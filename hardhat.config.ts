@@ -36,6 +36,15 @@ export default {
 				},
 			},
 			{
+				version: '0.7.3',
+				settings: {
+					optimizer: {
+						enabled: true,
+						runs: 10000,
+					},
+				},
+			},
+			{
 				version: '0.8.0',
 				settings: {
 					optimizer: {

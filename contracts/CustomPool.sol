@@ -2,11 +2,20 @@ pragma solidity ^0.7.1;
 pragma experimental ABIEncoderV2;
 
 import './balancer-core-v2/pool-utils/contracts/BaseMinimalSwapInfoPool.sol';
-import './dfx-protocol-mock/MockedProportionalLiquidity.sol';
+import './amm-v1/ProportionalLiquidity.sol';
+
+// import "./amm-v1/Orchestrator.sol";
+import './amm-v1/Assimilators.sol';
+
+import './amm-v1/interfaces/IOracle.sol';
+
+import './amm-v1/lib/ABDKMath64x64.sol';
 
 contract CustomPool is BaseMinimalSwapInfoPool {
 	using LogExpMath for uint256;
 	using FixedPoint for uint256;
+	using ABDKMath64x64 for uint256;
+	using ABDKMath64x64 for int128;
 
 	// The Balancer pool data
 	// Note we change style to match Balancer's custom getter
@@ -14,7 +23,59 @@ contract CustomPool is BaseMinimalSwapInfoPool {
 	uint256 internal immutable _scalingFactor0;
 	uint256 internal immutable _scalingFactor1;
 
-	MockedProportionalLiquidity mockedProportionalLiquidity;
+	ProportionalLiquidity proportionalLiquidity;
+
+	// Note Start of Storage variables
+
+	struct Assimilator {
+		address addr;
+		uint8 ix;
+	}
+
+	// Start Curve variables
+	int128 public alpha;
+	int128 public beta;
+	int128 public delta;
+	int128 public epsilon;
+	int128 public lambda;
+	int128[] public weights;
+	// Assets and their assimilators
+	Assimilator[] public assets;
+	mapping(address => Assimilator) private assimilators;
+	// Oracles to determine the price
+	// Note that 0'th index should always be USDC 1e18
+	// Oracle's pricing should be denominated in Currency/USDC
+	mapping(address => IOracle) public oracles;
+	// End Curve variables
+
+	address[] public derivatives;
+	address[] public numeraires;
+	address[] public reserves;
+
+	// Curve operational state
+	bool public frozen = false;
+	bool public emergency = false;
+	bool public whitelistingStage = true;
+	bool internal notEntered = true;
+
+	// Note end of Storage variables
+
+	event ParametersSet(
+		uint256 alpha,
+		uint256 beta,
+		uint256 delta,
+		uint256 epsilon,
+		uint256 lambda
+	);
+
+	event AssetIncluded(address indexed numeraire, address indexed reserve, uint256 weight);
+
+	event AssimilatorIncluded(
+		address indexed derivative,
+		address indexed numeraire,
+		address indexed reserve,
+		address assimilator
+	);
 
 	/// @param vault The balancer vault
 	/// @param name The balancer pool token name
@@ -24,11 +85,12 @@ contract CustomPool is BaseMinimalSwapInfoPool {
 		string memory name,
 		string memory symbol,
 		IERC20[] memory tokens,
+		uint256[] memory _assetWeights,
 		uint256 swapFeePercentage,
 		uint256 pauseWindowDuration,
 		uint256 bufferPeriodDuration,
 		address owner,
-		MockedProportionalLiquidity mockedProportionalLiquidty_
+		ProportionalLiquidity proportionalLiquidty_
 	)
 		BasePool(
 			vault,
@@ -46,7 +108,86 @@ contract CustomPool is BaseMinimalSwapInfoPool {
 		_scalingFactor0 = _computeScalingFactor(tokens[0]);
 		_scalingFactor1 = _computeScalingFactor(tokens[1]);
 
-		mockedProportionalLiquidity = mockedProportionalLiquidty_;
+		proportionalLiquidity = proportionalLiquidty_;
+
+		initialize(tokens, _assetWeights);
+	}
+
+	/** Initialization */
+
+	function initialize(address[] calldata _assets, uint256[] calldata _assetWeights) private {
+		require(_assetWeights.length == 2, 'Curve/assetWeights-must-be-length-two');
+		require(_assets.length % 5 == 0, 'Curve/assets-must-be-divisible-by-five');
+
+		for (uint256 i = 0; i < _assetWeights.length; i++) {
+			uint256 ix = i * 5;
+
+			numeraires.push(_assets[ix]);
+			derivatives.push(_assets[ix]);
+
+			reserves.push(_assets[2 + ix]);
+			if (_assets[ix] != _assets[2 + ix]) derivatives.push(_assets[2 + ix]);
+
+			includeAsset(
+				_assets[ix], // numeraire
+				_assets[1 + ix], // numeraire assimilator
+				_assets[2 + ix], // reserve
+				_assets[3 + ix], // reserve assimilator
+				_assets[4 + ix], // reserve approve to
+				_assetWeights[i]
+			);
+		}
+	}
+
+	function includeAsset(
+		address _numeraire,
+		address _numeraireAssim,
+		address _reserve,
+		address _reserveAssim,
+		address _reserveApproveTo,
+		uint256 _weight
+	) private {
+		// TODO: Make sure to require caller is Orchestrator
+		require(_numeraire != address(0), 'Curve/numeraire-cannot-be-zeroth-address');
+
+		require(
+			_numeraireAssim != address(0),
+			'Curve/numeraire-assimilator-cannot-be-zeroth-address'
+		);
+
+		require(_reserve != address(0), 'Curve/reserve-cannot-be-zeroth-address');
+
+		require(_reserveAssim != address(0), 'Curve/reserve-assimilator-cannot-be-zeroth-address');
+
+		require(_weight < 1e18, 'Curve/weight-must-be-less-than-one');
+
+		if (_numeraire != _reserve) IERC20(_numeraire).approve(_reserveApproveTo, uint256(-1));
+
+		Assimilator storage _numeraireAssimilator = assimilators[_numeraire];
+
+		_numeraireAssimilator.addr = _numeraireAssim;
+
+		_numeraireAssimilator.ix = uint8(assets.length);
+
+		Assimilator storage _reserveAssimilator = assimilators[_reserve];
+
+		_reserveAssimilator.addr = _reserveAssim;
+
+		_reserveAssimilator.ix = uint8(assets.length);
+
+		int128 __weight = _weight.divu(1e18).add(uint256(1).divu(1e18));
+
+		weights.push(__weight);
+
+		assets.push(_numeraireAssimilator);
+
+		emit AssetIncluded(_numeraire, _reserve, _weight);
+
+		emit AssimilatorIncluded(_numeraire, _numeraire, _reserve, _numeraireAssim);
+
+		if (_numeraireAssim != _reserveAssim) {
+			emit AssimilatorIncluded(_reserve, _numeraire, _reserve, _reserveAssim);
+		}
 	}
 
 	function _getTotalTokens() internal view override returns (uint256) {
@@ -70,6 +211,28 @@ contract CustomPool is BaseMinimalSwapInfoPool {
 		}
 
 		return scalingFactors;
+	}
+
+	// ADD ONS
+
+	function getWeightsLength() public view returns (uint256) {
+		return weights.length;
+	}
+
+	function getAssetsLength() public returns (uint256) {
+		return assets.length;
+	}
+
+	function getAsset(uint256 index) public returns (Assimilator memory) {
+		return assets[index];
+	}
+
+	function getAssimilator(address assim) public returns (Assimilator memory) {
+		return assimilators[assim];
+	}
+
+	function setAssimilator(address assimAddress, Assimilator memory assimilator) external {
+		assimilators[assimAddress] = assimilator;
 	}
 
 	function _onInitializePool(
@@ -115,8 +278,10 @@ contract CustomPool is BaseMinimalSwapInfoPool {
 		uint256[] memory maxAmountsIn = abi.decode(userData, (uint256[]));
 		require(balances.length == 2 && maxAmountsIn.length == 2, 'Invalid format');
 
-		(uint256 curvesMinted, uint256[] memory deposits) = mockedProportionalLiquidity
-			.proportionalDeposit(maxAmountsIn[0], maxAmountsIn);
+		// (uint256 curvesMinted, uint256[] memory deposits) = proportionalLiquidity
+		// 	.proportionalDeposit(maxAmountsIn[0], maxAmountsIn);
+
+		uint256 curvesMinted = maxAmountsIn[0];
 
 		bptAmountOut = curvesMinted;
 
@@ -127,7 +292,8 @@ contract CustomPool is BaseMinimalSwapInfoPool {
 		}
 
 		{
-			amountsIn = deposits;
+			// amountsIn = deposits;
+			amountsIn = maxAmountsIn;
 		}
 	}
 

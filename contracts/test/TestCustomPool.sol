@@ -3,7 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import '../CustomPool.sol';
 
-import '../dfx-protocol-mock/MockedProportionalLiquidity.sol';
+import '../amm-v1/ProportionalLiquidity.sol';
 
 contract TestCustomPool is CustomPool {
 	event TestInitializePool(uint256 bptAmountOut, uint256[] amountsIn);
@@ -39,7 +39,7 @@ contract TestCustomPool is CustomPool {
 		uint256 pauseWindowDuration,
 		uint256 bufferPeriodDuration,
 		address owner,
-		MockedProportionalLiquidity mockedProportionalLiquidity
+		ProportionalLiquidity proportionalLiquidity
 	)
 		CustomPool(
 			vault,
@@ -50,7 +50,7 @@ contract TestCustomPool is CustomPool {
 			pauseWindowDuration,
 			bufferPeriodDuration,
 			owner,
-			mockedProportionalLiquidity
+			proportionalLiquidity
 		)
 	{}
 

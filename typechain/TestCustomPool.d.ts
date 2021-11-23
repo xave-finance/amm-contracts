@@ -23,11 +23,22 @@ interface TestCustomPoolInterface extends ethers.utils.Interface {
   functions: {
     "DOMAIN_SEPARATOR()": FunctionFragment;
     "allowance(address,address)": FunctionFragment;
+    "alpha()": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
+    "assets(uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
+    "beta()": FunctionFragment;
     "decimals()": FunctionFragment;
     "decreaseAllowance(address,uint256)": FunctionFragment;
+    "delta()": FunctionFragment;
+    "derivatives(uint256)": FunctionFragment;
+    "emergency()": FunctionFragment;
+    "epsilon()": FunctionFragment;
+    "frozen()": FunctionFragment;
     "getActionId(bytes4)": FunctionFragment;
+    "getAsset(uint256)": FunctionFragment;
+    "getAssetsLength()": FunctionFragment;
+    "getAssimilator(address)": FunctionFragment;
     "getAuthorizer()": FunctionFragment;
     "getOwner()": FunctionFragment;
     "getPausedState()": FunctionFragment;
@@ -35,25 +46,33 @@ interface TestCustomPoolInterface extends ethers.utils.Interface {
     "getScalingFactors()": FunctionFragment;
     "getSwapFeePercentage()": FunctionFragment;
     "getVault()": FunctionFragment;
+    "getWeightsLength()": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
+    "lambda()": FunctionFragment;
     "name()": FunctionFragment;
     "nonces(address)": FunctionFragment;
+    "numeraires(uint256)": FunctionFragment;
     "onExitPool(bytes32,address,address,uint256[],uint256,uint256,uint256[],bytes)": FunctionFragment;
     "onInitalizePool(bytes32,address,address,uint256[],bytes)": FunctionFragment;
     "onJoinPool(bytes32,address,address,uint256[],uint256,uint256,bytes)": FunctionFragment;
     "onSwap((uint8,address,address,uint256,bytes32,uint256,address,address,bytes),uint256,uint256)": FunctionFragment;
     "onSwapGivenIn((uint8,address,address,uint256,bytes32,uint256,address,address,bytes),uint256,uint256)": FunctionFragment;
     "onSwapGivenOut((uint8,address,address,uint256,bytes32,uint256,address,address,bytes),uint256,uint256)": FunctionFragment;
+    "oracles(address)": FunctionFragment;
     "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
     "queryExit(bytes32,address,address,uint256[],uint256,uint256,bytes)": FunctionFragment;
     "queryJoin(bytes32,address,address,uint256[],uint256,uint256,bytes)": FunctionFragment;
+    "reserves(uint256)": FunctionFragment;
     "setAssetManagerPoolConfig(address,bytes)": FunctionFragment;
+    "setAssimilator(address,(address,uint8))": FunctionFragment;
     "setPaused(bool)": FunctionFragment;
     "setSwapFeePercentage(uint256)": FunctionFragment;
     "symbol()": FunctionFragment;
     "totalSupply()": FunctionFragment;
     "transfer(address,uint256)": FunctionFragment;
     "transferFrom(address,address,uint256)": FunctionFragment;
+    "weights(uint256)": FunctionFragment;
+    "whitelistingStage()": FunctionFragment;
   };
 
   encodeFunctionData(
@@ -64,19 +83,45 @@ interface TestCustomPoolInterface extends ethers.utils.Interface {
     functionFragment: "allowance",
     values: [string, string]
   ): string;
+  encodeFunctionData(functionFragment: "alpha", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "approve",
     values: [string, BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "assets",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
+  encodeFunctionData(functionFragment: "beta", values?: undefined): string;
   encodeFunctionData(functionFragment: "decimals", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "decreaseAllowance",
     values: [string, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "delta", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "derivatives",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(functionFragment: "emergency", values?: undefined): string;
+  encodeFunctionData(functionFragment: "epsilon", values?: undefined): string;
+  encodeFunctionData(functionFragment: "frozen", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "getActionId",
     values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getAsset",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getAssetsLength",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getAssimilator",
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "getAuthorizer",
@@ -98,11 +143,20 @@ interface TestCustomPoolInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "getVault", values?: undefined): string;
   encodeFunctionData(
+    functionFragment: "getWeightsLength",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "increaseAllowance",
     values: [string, BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "lambda", values?: undefined): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "nonces", values: [string]): string;
+  encodeFunctionData(
+    functionFragment: "numeraires",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "onExitPool",
     values: [
@@ -186,6 +240,7 @@ interface TestCustomPoolInterface extends ethers.utils.Interface {
       BigNumberish
     ]
   ): string;
+  encodeFunctionData(functionFragment: "oracles", values: [string]): string;
   encodeFunctionData(
     functionFragment: "permit",
     values: [
@@ -223,8 +278,16 @@ interface TestCustomPoolInterface extends ethers.utils.Interface {
     ]
   ): string;
   encodeFunctionData(
+    functionFragment: "reserves",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "setAssetManagerPoolConfig",
     values: [string, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "setAssimilator",
+    values: [string, { addr: string; ix: BigNumberish }]
   ): string;
   encodeFunctionData(functionFragment: "setPaused", values: [boolean]): string;
   encodeFunctionData(
@@ -244,21 +307,49 @@ interface TestCustomPoolInterface extends ethers.utils.Interface {
     functionFragment: "transferFrom",
     values: [string, string, BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "weights",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "whitelistingStage",
+    values?: undefined
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "DOMAIN_SEPARATOR",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "alpha", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "assets", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "beta", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "decreaseAllowance",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "delta", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "derivatives",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "emergency", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "epsilon", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "frozen", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getActionId",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "getAsset", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getAssetsLength",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getAssimilator",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -281,11 +372,17 @@ interface TestCustomPoolInterface extends ethers.utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "getVault", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "getWeightsLength",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "increaseAllowance",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "lambda", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "nonces", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "numeraires", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "onExitPool", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "onInitalizePool",
@@ -301,11 +398,17 @@ interface TestCustomPoolInterface extends ethers.utils.Interface {
     functionFragment: "onSwapGivenOut",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "oracles", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "permit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "queryExit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "queryJoin", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "reserves", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setAssetManagerPoolConfig",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "setAssimilator",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "setPaused", data: BytesLike): Result;
@@ -323,9 +426,17 @@ interface TestCustomPoolInterface extends ethers.utils.Interface {
     functionFragment: "transferFrom",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "weights", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "whitelistingStage",
+    data: BytesLike
+  ): Result;
 
   events: {
     "Approval(address,address,uint256)": EventFragment;
+    "AssetIncluded(address,address,uint256)": EventFragment;
+    "AssimilatorIncluded(address,address,address,address)": EventFragment;
+    "ParametersSet(uint256,uint256,uint256,uint256,uint256)": EventFragment;
     "PausedStateChanged(bool)": EventFragment;
     "SwapFeePercentageChanged(uint256)": EventFragment;
     "TestExitPool(uint256,uint256[],uint256[])": EventFragment;
@@ -337,6 +448,9 @@ interface TestCustomPoolInterface extends ethers.utils.Interface {
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "AssetIncluded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "AssimilatorIncluded"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ParametersSet"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "PausedStateChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "SwapFeePercentageChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "TestExitPool"): EventFragment;
@@ -352,6 +466,33 @@ export type ApprovalEvent = TypedEvent<
     owner: string;
     spender: string;
     value: BigNumber;
+  }
+>;
+
+export type AssetIncludedEvent = TypedEvent<
+  [string, string, BigNumber] & {
+    numeraire: string;
+    reserve: string;
+    weight: BigNumber;
+  }
+>;
+
+export type AssimilatorIncludedEvent = TypedEvent<
+  [string, string, string, string] & {
+    derivative: string;
+    numeraire: string;
+    reserve: string;
+    assimilator: string;
+  }
+>;
+
+export type ParametersSetEvent = TypedEvent<
+  [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber] & {
+    alpha: BigNumber;
+    beta: BigNumber;
+    delta: BigNumber;
+    epsilon: BigNumber;
+    lambda: BigNumber;
   }
 >;
 
@@ -465,13 +606,22 @@ export class TestCustomPool extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    alpha(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     approve(
       spender: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    assets(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string, number] & { addr: string; ix: number }>;
+
     balanceOf(account: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    beta(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     decimals(overrides?: CallOverrides): Promise<[number]>;
 
@@ -481,10 +631,37 @@ export class TestCustomPool extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    delta(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    derivatives(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
+
+    emergency(overrides?: CallOverrides): Promise<[boolean]>;
+
+    epsilon(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    frozen(overrides?: CallOverrides): Promise<[boolean]>;
+
     getActionId(
       selector: BytesLike,
       overrides?: CallOverrides
     ): Promise<[string]>;
+
+    getAsset(
+      index: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    getAssetsLength(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    getAssimilator(
+      assim: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     getAuthorizer(overrides?: CallOverrides): Promise<[string]>;
 
@@ -508,15 +685,24 @@ export class TestCustomPool extends BaseContract {
 
     getVault(overrides?: CallOverrides): Promise<[string]>;
 
+    getWeightsLength(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     increaseAllowance(
       spender: string,
       addedValue: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    lambda(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     name(overrides?: CallOverrides): Promise<[string]>;
 
     nonces(owner: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    numeraires(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
     "onExitPool(bytes32,address,address,uint256[],uint256,uint256,uint256[],bytes)"(
       poolId: BytesLike,
@@ -624,6 +810,8 @@ export class TestCustomPool extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    oracles(arg0: string, overrides?: CallOverrides): Promise<[string]>;
+
     permit(
       owner: string,
       spender: string,
@@ -657,9 +845,17 @@ export class TestCustomPool extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    reserves(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
+
     setAssetManagerPoolConfig(
       token: string,
       poolConfig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setAssimilator(
+      assimAddress: string,
+      assimilator: { addr: string; ix: BigNumberish },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -689,6 +885,13 @@ export class TestCustomPool extends BaseContract {
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    weights(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    whitelistingStage(overrides?: CallOverrides): Promise<[boolean]>;
   };
 
   DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<string>;
@@ -699,13 +902,22 @@ export class TestCustomPool extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  alpha(overrides?: CallOverrides): Promise<BigNumber>;
+
   approve(
     spender: string,
     amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  assets(
+    arg0: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<[string, number] & { addr: string; ix: number }>;
+
   balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  beta(overrides?: CallOverrides): Promise<BigNumber>;
 
   decimals(overrides?: CallOverrides): Promise<number>;
 
@@ -715,7 +927,31 @@ export class TestCustomPool extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  delta(overrides?: CallOverrides): Promise<BigNumber>;
+
+  derivatives(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
+  emergency(overrides?: CallOverrides): Promise<boolean>;
+
+  epsilon(overrides?: CallOverrides): Promise<BigNumber>;
+
+  frozen(overrides?: CallOverrides): Promise<boolean>;
+
   getActionId(selector: BytesLike, overrides?: CallOverrides): Promise<string>;
+
+  getAsset(
+    index: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  getAssetsLength(
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  getAssimilator(
+    assim: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   getAuthorizer(overrides?: CallOverrides): Promise<string>;
 
@@ -739,15 +975,21 @@ export class TestCustomPool extends BaseContract {
 
   getVault(overrides?: CallOverrides): Promise<string>;
 
+  getWeightsLength(overrides?: CallOverrides): Promise<BigNumber>;
+
   increaseAllowance(
     spender: string,
     addedValue: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  lambda(overrides?: CallOverrides): Promise<BigNumber>;
+
   name(overrides?: CallOverrides): Promise<string>;
 
   nonces(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  numeraires(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
   "onExitPool(bytes32,address,address,uint256[],uint256,uint256,uint256[],bytes)"(
     poolId: BytesLike,
@@ -855,6 +1097,8 @@ export class TestCustomPool extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  oracles(arg0: string, overrides?: CallOverrides): Promise<string>;
+
   permit(
     owner: string,
     spender: string,
@@ -888,9 +1132,17 @@ export class TestCustomPool extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  reserves(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
   setAssetManagerPoolConfig(
     token: string,
     poolConfig: BytesLike,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setAssimilator(
+    assimAddress: string,
+    assimilator: { addr: string; ix: BigNumberish },
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -921,6 +1173,10 @@ export class TestCustomPool extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  weights(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
+  whitelistingStage(overrides?: CallOverrides): Promise<boolean>;
+
   callStatic: {
     DOMAIN_SEPARATOR(overrides?: CallOverrides): Promise<string>;
 
@@ -930,13 +1186,22 @@ export class TestCustomPool extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    alpha(overrides?: CallOverrides): Promise<BigNumber>;
+
     approve(
       spender: string,
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    assets(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string, number] & { addr: string; ix: number }>;
+
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    beta(overrides?: CallOverrides): Promise<BigNumber>;
 
     decimals(overrides?: CallOverrides): Promise<number>;
 
@@ -946,10 +1211,32 @@ export class TestCustomPool extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    delta(overrides?: CallOverrides): Promise<BigNumber>;
+
+    derivatives(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
+    emergency(overrides?: CallOverrides): Promise<boolean>;
+
+    epsilon(overrides?: CallOverrides): Promise<BigNumber>;
+
+    frozen(overrides?: CallOverrides): Promise<boolean>;
+
     getActionId(
       selector: BytesLike,
       overrides?: CallOverrides
     ): Promise<string>;
+
+    getAsset(
+      index: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string, number] & { addr: string; ix: number }>;
+
+    getAssetsLength(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getAssimilator(
+      assim: string,
+      overrides?: CallOverrides
+    ): Promise<[string, number] & { addr: string; ix: number }>;
 
     getAuthorizer(overrides?: CallOverrides): Promise<string>;
 
@@ -973,15 +1260,21 @@ export class TestCustomPool extends BaseContract {
 
     getVault(overrides?: CallOverrides): Promise<string>;
 
+    getWeightsLength(overrides?: CallOverrides): Promise<BigNumber>;
+
     increaseAllowance(
       spender: string,
       addedValue: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    lambda(overrides?: CallOverrides): Promise<BigNumber>;
+
     name(overrides?: CallOverrides): Promise<string>;
 
     nonces(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    numeraires(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
     "onExitPool(bytes32,address,address,uint256[],uint256,uint256,uint256[],bytes)"(
       poolId: BytesLike,
@@ -1106,6 +1399,8 @@ export class TestCustomPool extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    oracles(arg0: string, overrides?: CallOverrides): Promise<string>;
+
     permit(
       owner: string,
       spender: string,
@@ -1143,9 +1438,17 @@ export class TestCustomPool extends BaseContract {
       [BigNumber, BigNumber[]] & { bptOut: BigNumber; amountsIn: BigNumber[] }
     >;
 
+    reserves(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
     setAssetManagerPoolConfig(
       token: string,
       poolConfig: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    setAssimilator(
+      assimAddress: string,
+      assimilator: { addr: string; ix: BigNumberish },
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1172,6 +1475,10 @@ export class TestCustomPool extends BaseContract {
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    weights(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
+    whitelistingStage(overrides?: CallOverrides): Promise<boolean>;
   };
 
   filters: {
@@ -1191,6 +1498,88 @@ export class TestCustomPool extends BaseContract {
     ): TypedEventFilter<
       [string, string, BigNumber],
       { owner: string; spender: string; value: BigNumber }
+    >;
+
+    "AssetIncluded(address,address,uint256)"(
+      numeraire?: string | null,
+      reserve?: string | null,
+      weight?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber],
+      { numeraire: string; reserve: string; weight: BigNumber }
+    >;
+
+    AssetIncluded(
+      numeraire?: string | null,
+      reserve?: string | null,
+      weight?: null
+    ): TypedEventFilter<
+      [string, string, BigNumber],
+      { numeraire: string; reserve: string; weight: BigNumber }
+    >;
+
+    "AssimilatorIncluded(address,address,address,address)"(
+      derivative?: string | null,
+      numeraire?: string | null,
+      reserve?: string | null,
+      assimilator?: null
+    ): TypedEventFilter<
+      [string, string, string, string],
+      {
+        derivative: string;
+        numeraire: string;
+        reserve: string;
+        assimilator: string;
+      }
+    >;
+
+    AssimilatorIncluded(
+      derivative?: string | null,
+      numeraire?: string | null,
+      reserve?: string | null,
+      assimilator?: null
+    ): TypedEventFilter<
+      [string, string, string, string],
+      {
+        derivative: string;
+        numeraire: string;
+        reserve: string;
+        assimilator: string;
+      }
+    >;
+
+    "ParametersSet(uint256,uint256,uint256,uint256,uint256)"(
+      alpha?: null,
+      beta?: null,
+      delta?: null,
+      epsilon?: null,
+      lambda?: null
+    ): TypedEventFilter<
+      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber],
+      {
+        alpha: BigNumber;
+        beta: BigNumber;
+        delta: BigNumber;
+        epsilon: BigNumber;
+        lambda: BigNumber;
+      }
+    >;
+
+    ParametersSet(
+      alpha?: null,
+      beta?: null,
+      delta?: null,
+      epsilon?: null,
+      lambda?: null
+    ): TypedEventFilter<
+      [BigNumber, BigNumber, BigNumber, BigNumber, BigNumber],
+      {
+        alpha: BigNumber;
+        beta: BigNumber;
+        delta: BigNumber;
+        epsilon: BigNumber;
+        lambda: BigNumber;
+      }
     >;
 
     "PausedStateChanged(bool)"(
@@ -1397,13 +1786,19 @@ export class TestCustomPool extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    alpha(overrides?: CallOverrides): Promise<BigNumber>;
+
     approve(
       spender: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    assets(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
     balanceOf(account: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    beta(overrides?: CallOverrides): Promise<BigNumber>;
 
     decimals(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1413,9 +1808,36 @@ export class TestCustomPool extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    delta(overrides?: CallOverrides): Promise<BigNumber>;
+
+    derivatives(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    emergency(overrides?: CallOverrides): Promise<BigNumber>;
+
+    epsilon(overrides?: CallOverrides): Promise<BigNumber>;
+
+    frozen(overrides?: CallOverrides): Promise<BigNumber>;
+
     getActionId(
       selector: BytesLike,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getAsset(
+      index: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    getAssetsLength(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    getAssimilator(
+      assim: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     getAuthorizer(overrides?: CallOverrides): Promise<BigNumber>;
@@ -1432,15 +1854,24 @@ export class TestCustomPool extends BaseContract {
 
     getVault(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getWeightsLength(overrides?: CallOverrides): Promise<BigNumber>;
+
     increaseAllowance(
       spender: string,
       addedValue: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    lambda(overrides?: CallOverrides): Promise<BigNumber>;
+
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
     nonces(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    numeraires(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     "onExitPool(bytes32,address,address,uint256[],uint256,uint256,uint256[],bytes)"(
       poolId: BytesLike,
@@ -1548,6 +1979,8 @@ export class TestCustomPool extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    oracles(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
     permit(
       owner: string,
       spender: string,
@@ -1581,9 +2014,17 @@ export class TestCustomPool extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    reserves(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
     setAssetManagerPoolConfig(
       token: string,
       poolConfig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setAssimilator(
+      assimAddress: string,
+      assimilator: { addr: string; ix: BigNumberish },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1613,6 +2054,10 @@ export class TestCustomPool extends BaseContract {
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    weights(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+
+    whitelistingStage(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -1624,16 +2069,25 @@ export class TestCustomPool extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    alpha(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     approve(
       spender: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    assets(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     balanceOf(
       account: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
+
+    beta(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     decimals(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
@@ -1643,9 +2097,36 @@ export class TestCustomPool extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    delta(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    derivatives(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    emergency(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    epsilon(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    frozen(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     getActionId(
       selector: BytesLike,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getAsset(
+      index: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getAssetsLength(
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    getAssimilator(
+      assim: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     getAuthorizer(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -1664,16 +2145,25 @@ export class TestCustomPool extends BaseContract {
 
     getVault(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    getWeightsLength(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     increaseAllowance(
       spender: string,
       addedValue: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    lambda(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     nonces(
       owner: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    numeraires(
+      arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1783,6 +2273,11 @@ export class TestCustomPool extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    oracles(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     permit(
       owner: string,
       spender: string,
@@ -1816,9 +2311,20 @@ export class TestCustomPool extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    reserves(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     setAssetManagerPoolConfig(
       token: string,
       poolConfig: BytesLike,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setAssimilator(
+      assimAddress: string,
+      assimilator: { addr: string; ix: BigNumberish },
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1848,5 +2354,12 @@ export class TestCustomPool extends BaseContract {
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    weights(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    whitelistingStage(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

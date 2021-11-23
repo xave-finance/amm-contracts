@@ -145,6 +145,30 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20__factory>;
     getContractFactory(
+      name: "Assimilators",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Assimilators__factory>;
+    getContractFactory(
+      name: "CurveMath",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.CurveMath__factory>;
+    getContractFactory(
+      name: "IAssimilator",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IAssimilator__factory>;
+    getContractFactory(
+      name: "IOracle",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IOracle__factory>;
+    getContractFactory(
+      name: "Orchestrator",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.Orchestrator__factory>;
+    getContractFactory(
+      name: "ProportionalLiquidity",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ProportionalLiquidity__factory>;
+    getContractFactory(
       name: "IAaveIncentivesController",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IAaveIncentivesController__factory>;
@@ -533,10 +557,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.CustomPool__factory>;
     getContractFactory(
-      name: "MockedProportionalLiquidity",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.MockedProportionalLiquidity__factory>;
-    getContractFactory(
       name: "FakeToken",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.FakeToken__factory>;
@@ -714,6 +734,36 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IERC20>;
+    getContractAt(
+      name: "Assimilators",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Assimilators>;
+    getContractAt(
+      name: "CurveMath",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.CurveMath>;
+    getContractAt(
+      name: "IAssimilator",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IAssimilator>;
+    getContractAt(
+      name: "IOracle",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IOracle>;
+    getContractAt(
+      name: "Orchestrator",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.Orchestrator>;
+    getContractAt(
+      name: "ProportionalLiquidity",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ProportionalLiquidity>;
     getContractAt(
       name: "IAaveIncentivesController",
       address: string,
@@ -1199,11 +1249,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.CustomPool>;
-    getContractAt(
-      name: "MockedProportionalLiquidity",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.MockedProportionalLiquidity>;
     getContractAt(
       name: "FakeToken",
       address: string,
