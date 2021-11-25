@@ -49,6 +49,7 @@ export default async (taskArgs: any) => {
 	const startTimestamp = (await ethers.provider.getBlock('latest')).timestamp
 	const SECONDS_IN_YEAR = 31536000
 	const tokens = sortAddresses([baseTokenAddress, quoteTokenAddress]) // need to be sorted
+	const assetWeights = [ethers.utils.parseEther("0.5"), ethers.utils.parseEther("0.5")]
 	const pauseWindowDuration = 7776000
 	const bufferPeriodDuration = 2592000
 	const owner = false ? '0x0000000000000000000000000000000000000000' : deployer.address
@@ -90,6 +91,7 @@ export default async (taskArgs: any) => {
 			'Custom Pool',
 			`${baseTokenAddress}-${quoteTokenAddress} LP`,
 			tokens,
+			assetWeights,
 			swapFeePercentage,
 			pauseWindowDuration,
 			bufferPeriodDuration,

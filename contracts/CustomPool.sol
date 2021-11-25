@@ -110,12 +110,17 @@ contract CustomPool is BaseMinimalSwapInfoPool {
 
 		proportionalLiquidity = proportionalLiquidty_;
 
-		initialize(tokens, _assetWeights);
+		address[] memory tokenAddresses = new address[](tokens.length);
+		for (uint128 i = 0; i < tokens.length; i++) {
+			tokenAddresses[i] = address(tokens[i]);
+		}
+
+		initialize(tokenAddresses, _assetWeights);
 	}
 
 	/** Initialization */
 
-	function initialize(address[] calldata _assets, uint256[] calldata _assetWeights) private {
+	function initialize(address[] memory _assets, uint256[] memory _assetWeights) private {
 		require(_assetWeights.length == 2, 'Curve/assetWeights-must-be-length-two');
 		require(_assets.length % 5 == 0, 'Curve/assets-must-be-divisible-by-five');
 
