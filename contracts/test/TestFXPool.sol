@@ -1,11 +1,12 @@
 pragma solidity ^0.7.1;
 pragma experimental ABIEncoderV2;
 
-import '../CustomPool.sol';
+import '../FXPool.sol';
 
+import '../amm-v1/CurveMath.sol';
 import '../amm-v1/ProportionalLiquidity.sol';
 
-contract TestCustomPool is CustomPool {
+contract TestCustomPool is FXPool {
 	event TestInitializePool(uint256 bptAmountOut, uint256[] amountsIn);
 	event TestJoinPool(uint256 bptAmountOut, uint256[] amountsIn, uint256[] dueProtocolFeeAmounts);
 	event TestExitPool(uint256 bptAmountIn, uint256[] amountsOut, uint256[] dueProtocolFeeAmounts);
@@ -41,9 +42,10 @@ contract TestCustomPool is CustomPool {
 		uint256 pauseWindowDuration,
 		uint256 bufferPeriodDuration,
 		address owner,
+		CurveMath curveMath,
 		ProportionalLiquidity proportionalLiquidity
 	)
-		CustomPool(
+		FXPool(
 			vault,
 			name,
 			symbol,
@@ -54,6 +56,7 @@ contract TestCustomPool is CustomPool {
 			pauseWindowDuration,
 			bufferPeriodDuration,
 			owner,
+			// curveMath,
 			proportionalLiquidity
 		)
 	{}

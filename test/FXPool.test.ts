@@ -16,7 +16,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 
 import { CustomPoolDeployParams } from '../scripts/types/CustomPool'
 
-describe('Custom Pool', () => {
+describe('FX Pool', () => {
 	let halodaoSigner: SignerWithAddress
 	let tokenSigner: SignerWithAddress
 	let beneficiarySigner: SignerWithAddress
@@ -60,6 +60,34 @@ describe('Custom Pool', () => {
 
 	sharedBeforeEach('deploy custom pool', async () => {
 		await deployPool()
+	})
+
+	describe('Pool Creation', () => {
+		describe('Bonding curve initialization', () => {
+			it('sets value of alpha', async () => {
+				console.log('Alpha:', decimal(await pool.alpha()))
+			})
+
+			it('sets value of beta', async () => {
+				console.log('Beta:', await pool.beta())
+			})
+
+			it('sets value of delta', async () => {
+				console.log('Delta:', await pool.delta())
+			})
+
+			it('sets value of epsilon', async () => {
+				console.log('Epsilon:', await pool.epsilon())
+			})
+
+			it('sets value of lambda', async () => {
+				console.log('Lambda:', await pool.lambda())
+			})
+
+			it('sets values of weights', async () => {
+				console.log('Weights:', await pool.weights(0))
+			})
+		})
 	})
 
 	describe('onInitializePool', () => {

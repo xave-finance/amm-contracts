@@ -45,8 +45,8 @@ export default async (taskArgs: any) => {
 	}
 
 	/** Deploy Assimilator Here */
-	const baseAssimilator = '0xed48321C9eBf31fB03f4a3fA7ecF900e5fC0D9F7'
-	const quoteAssimilator = '0xFA9F7eA2D5f89D908048ae93764a5Eb31e6c093B'
+	const baseAssimilator = '0xa99202DD31C78B7A4f5C608ab286f1ac2bc03627' // PHP - USD
+	const quoteAssimilator = '0xbe8aD396DCdDB55013499AD11E5de919027C42ee' // USDC - USD
 	const PROPORTIONAL_LIQUIDITY = '0xb41B19c72bAc4A61e808890D9F150BC66f6CDa28'
 
 

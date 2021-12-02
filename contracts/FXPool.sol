@@ -11,7 +11,9 @@ import './amm-v1/interfaces/IOracle.sol';
 
 import './amm-v1/lib/ABDKMath64x64.sol';
 
-contract CustomPool is BaseMinimalSwapInfoPool {
+// import "./amm-v1/CurveMath.sol";
+
+contract FXPool is BaseMinimalSwapInfoPool {
 	using LogExpMath for uint256;
 	using FixedPoint for uint256;
 	using ABDKMath64x64 for uint256;
@@ -23,6 +25,7 @@ contract CustomPool is BaseMinimalSwapInfoPool {
 	uint256 internal immutable _scalingFactor0;
 	uint256 internal immutable _scalingFactor1;
 
+	// CurveMath curveMath;
 	ProportionalLiquidity proportionalLiquidity;
 
 	// Note Start of Storage variables
@@ -91,6 +94,7 @@ contract CustomPool is BaseMinimalSwapInfoPool {
 		uint256 pauseWindowDuration,
 		uint256 bufferPeriodDuration,
 		address owner,
+		// CurveMath curveMath_,
 		ProportionalLiquidity proportionalLiquidty_
 	)
 		BasePool(
@@ -108,6 +112,7 @@ contract CustomPool is BaseMinimalSwapInfoPool {
 	{
 		_scalingFactor0 = _computeScalingFactor(tokens[0]);
 		_scalingFactor1 = _computeScalingFactor(tokens[1]);
+
 
 		proportionalLiquidity = proportionalLiquidty_;
 
@@ -142,6 +147,10 @@ contract CustomPool is BaseMinimalSwapInfoPool {
 				_assets[4 + ix], // reserve approve to
 				_assetWeights[i]
 			);
+
+			// TEST
+
+			alpha = 5;
 		}
 	}
 
@@ -195,6 +204,30 @@ contract CustomPool is BaseMinimalSwapInfoPool {
 			emit AssimilatorIncluded(_reserve, _numeraire, _reserve, _reserveAssim);
 		}
 	}
+
+	// function getFee(FXPool pool) private returns (int128 fee_) {
+  //       int128 _gLiq;
+
+  //       // Always pairs
+  //       int128[] memory _bals = new int128[](2);
+
+  //       for (uint256 i = 0; i < _bals.length; i++) {
+  //           address assimilatorAddress = pool.getAsset(i).addr;
+  //           int128 _bal = Assimilators.viewNumeraireBalance(assimilatorAddress);
+
+  //           _bals[i] = _bal;
+
+  //           _gLiq += _bal;
+  //       }
+  //       int128[] memory _weights = new int128[](pool.getWeightsLength());
+
+	// 	for (uint128 i = 0; i < _weights.length; i++) {
+	// 		_weights[i] = pool.weights(i);
+	// 	}
+
+  //       fee_ = curveMath.calculateFee(_gLiq, _bals, pool.beta(), pool.delta(), _weights);
+  //       // fee_ = curveMath.calculateFee(_gLiq, _bals, pool.beta, pool.delta, pool.weights);
+  //   }
 
 	function _getTotalTokens() internal view override returns (uint256) {
 		return 2;
@@ -291,7 +324,9 @@ contract CustomPool is BaseMinimalSwapInfoPool {
 
 		// bptAmountOut = curvesMinted;
 
-		(uint256 curves, uint256[] memory deposits) = proportionalLiquidity.proportionalDeposit(CustomPool(address(this)), maxAmountsIn[0]);
+		// transferFrom()
+
+		(uint256 curves, uint256[] memory deposits) = proportionalLiquidity.proportionalDeposit(FXPool(address(this)), maxAmountsIn[0]);
 
 		{
 			dueProtocolFeeAmounts = new uint256[](2);

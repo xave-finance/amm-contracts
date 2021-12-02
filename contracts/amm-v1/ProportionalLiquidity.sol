@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 
 import './Assimilators.sol';
 
-// import "../CustomPool.sol";
+// import "../FXPool.sol";
 
 import './lib/UnsafeMath64x64.sol';
 import './lib/ABDKMath64x64.sol';
@@ -27,7 +27,7 @@ contract ProportionalLiquidity is CurveMath {
 		uint8 ix;
 	}
 
-	function proportionalDeposit(CustomPool curve, uint256 _deposit)
+	function proportionalDeposit(FXPool curve, uint256 _deposit)
 		external
 		returns (uint256 curves_, uint256[] memory)
 	{
@@ -85,7 +85,7 @@ contract ProportionalLiquidity is CurveMath {
 		return (curves_, deposits_);
 	}
 
-	function viewProportionalDeposit(CustomPool curve, uint256 _deposit)
+	function viewProportionalDeposit(FXPool curve, uint256 _deposit)
 		external
 		returns (uint256 curves_, uint256[] memory)
 	{
@@ -140,7 +140,7 @@ contract ProportionalLiquidity is CurveMath {
 		return (curves_, deposits_);
 	}
 
-	function emergencyProportionalWithdraw(CustomPool curve, uint256 _withdrawal)
+	function emergencyProportionalWithdraw(FXPool curve, uint256 _withdrawal)
 		external
 		returns (uint256[] memory)
 	{
@@ -169,7 +169,7 @@ contract ProportionalLiquidity is CurveMath {
 		return withdrawals_;
 	}
 
-	function proportionalWithdraw(CustomPool curve, uint256 _withdrawal)
+	function proportionalWithdraw(FXPool curve, uint256 _withdrawal)
 		external
 		returns (uint256[] memory)
 	{
@@ -200,7 +200,7 @@ contract ProportionalLiquidity is CurveMath {
 		return withdrawals_;
 	}
 
-	function viewProportionalWithdraw(CustomPool curve, uint256 _withdrawal)
+	function viewProportionalWithdraw(FXPool curve, uint256 _withdrawal)
 		external
 		returns (uint256[] memory)
 	{
@@ -223,7 +223,7 @@ contract ProportionalLiquidity is CurveMath {
 		return withdrawals_;
 	}
 
-	function getGrossLiquidityAndBalancesForDeposit(CustomPool curve)
+	function getGrossLiquidityAndBalancesForDeposit(FXPool curve)
 		internal
 		returns (int128 grossLiquidity_, int128[] memory)
 	{
@@ -248,7 +248,7 @@ contract ProportionalLiquidity is CurveMath {
 		return (grossLiquidity_, balances_);
 	}
 
-	function getGrossLiquidityAndBalances(CustomPool curve)
+	function getGrossLiquidityAndBalances(FXPool curve)
 		internal
 		returns (int128 grossLiquidity_, int128[] memory)
 	{
@@ -268,7 +268,7 @@ contract ProportionalLiquidity is CurveMath {
 	}
 
 	function requireLiquidityInvariant(
-		CustomPool curve,
+		FXPool curve,
 		int128 _curves,
 		int128 _newShells,
 		int128 _oGLiq,
@@ -292,7 +292,7 @@ contract ProportionalLiquidity is CurveMath {
 	}
 
 	// function burn(
-	// 	CustomPool curve,
+	// 	FXPool curve,
 	// 	address account,
 	// 	uint256 amount
 	// ) private {
@@ -304,7 +304,7 @@ contract ProportionalLiquidity is CurveMath {
 	// }
 
 	// function mint(
-	// 	CustomPool curve,
+	// 	FXPool curve,
 	// 	address account,
 	// 	uint256 amount
 	// ) private {

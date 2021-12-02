@@ -16,12 +16,12 @@
 pragma solidity ^0.7.3;
 pragma experimental ABIEncoderV2;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+// import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 
 import "./lib/ABDKMath64x64.sol";
 
-// import "../CustomPool.sol";
+// import "../FXPool.sol";
 
 import './Assimilators.sol';
 import "./CurveMath.sol";
@@ -51,7 +51,7 @@ contract Orchestrator {
     );
 
     function setParams(
-        CustomPool pool,
+        FXPool pool,
         uint256 _alpha,
         uint256 _beta,
         uint256 _feeAtHalt,
@@ -96,7 +96,7 @@ contract Orchestrator {
         emit ParametersSet(_alpha, _beta, x, _epsilon, _lambda);
     }
 
-    function getFee(CustomPool pool) private returns (int128 fee_) {
+    function getFee(FXPool pool) private returns (int128 fee_) {
         int128 _gLiq;
 
         // Always pairs
@@ -121,7 +121,7 @@ contract Orchestrator {
     }
 
     function includeAssimilator(
-        CustomPool pool,
+        FXPool pool,
         address _derivative,
         address _numeraire,
         address _reserve,
@@ -138,16 +138,16 @@ contract Orchestrator {
 
         IERC20(_numeraire).safeApprove(_derivativeApproveTo, uint256(-1));
 
-        // CustomPool.Assimilator storage _numeraireAssim = pool.assimilators[_numeraire];
-        CustomPool.Assimilator memory _numeraireAssim = pool.getAssimilator(_numeraire);
+        // FXPool.Assimilator storage _numeraireAssim = pool.assimilators[_numeraire];
+        FXPool.Assimilator memory _numeraireAssim = pool.getAssimilator(_numeraire);
 
-        // pool.assimilators[_derivative] = CustomPool.Assimilator(_assimilator, _numeraireAssim.ix);
-        pool.setAssimilator(_derivative, CustomPool.Assimilator(_assimilator, _numeraireAssim.ix));
+        // pool.assimilators[_derivative] = FXPool.Assimilator(_assimilator, _numeraireAssim.ix);
+        pool.setAssimilator(_derivative, FXPool.Assimilator(_assimilator, _numeraireAssim.ix));
 
         emit AssimilatorIncluded(_derivative, _numeraire, _reserve, _assimilator);
     }
 
-    function viewCurve(CustomPool pool)
+    function viewCurve(FXPool pool)
         external
         view
         returns (

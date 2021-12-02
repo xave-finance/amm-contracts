@@ -1,6 +1,6 @@
 pragma solidity ^0.7.3;
 
-import '../CustomPool.sol';
+import '../FXPool.sol';
 
 import './lib/UnsafeMath64x64.sol';
 import './lib/ABDKMath64x64.sol';
@@ -18,7 +18,7 @@ contract CurveMath {
 	function calculateFee(
 		int128 _gLiq,
 		int128[] memory _bals,
-		CustomPool pool,
+		FXPool pool,
 		int128[] memory _weights
 	) public view returns (int128 psi_) {
 		int128 _beta = pool.beta();
@@ -78,7 +78,7 @@ contract CurveMath {
 	}
 
 	function calculateTrade(
-		CustomPool pool,
+		FXPool pool,
 		int128 _oGLiq,
 		int128 _nGLiq,
 		int128[] memory _oBals,
@@ -130,7 +130,7 @@ contract CurveMath {
 	}
 
 	function calculateLiquidityMembrane(
-		CustomPool pool,
+		FXPool pool,
 		int128 _oGLiq,
 		int128 _nGLiq,
 		int128[] memory _oBals,
@@ -218,7 +218,7 @@ contract CurveMath {
 	}
 
 	function enforceHalts(
-		CustomPool pool,
+		FXPool pool,
 		int128 _oGLiq,
 		int128 _nGLiq,
 		int128[] memory _oBals,

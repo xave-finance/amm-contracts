@@ -1,10 +1,10 @@
 import { Signer } from 'ethers'
-import { MockedProportionalLiquidity__factory } from '../../typechain/factories/MockedProportionalLiquidity__factory'
+import { ProportionalLiquidity__factory } from '../../typechain/factories/ProportionalLiquidity__factory'
 
 export async function deployMockedProportionalLiquidity(
   signer: Signer
 ) {
-  const proportionalLiquidityDeployer = new MockedProportionalLiquidity__factory(signer)
+  const proportionalLiquidityDeployer = new ProportionalLiquidity__factory(signer)
 
   const proportionalLiquidityContract = await proportionalLiquidityDeployer.deploy()
 
