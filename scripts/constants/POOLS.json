@@ -1,4 +1,31 @@
 {
   "POOLS_LIST": [
-  ]
+    "BERG-FORT",
+    "FORT-SHIRE",
+    "SHIRE-TON"
+  ],
+  "BERG-FORT": {
+    "kovan": {
+      "address": "0xbc1734e2975590B9B8261D1fbEF34f1A13c4bf93",
+      "poolId": "0xbc1734e2975590b9b8261d1fbef34f1a13c4bf9300010000000000000000041e",
+      "baseTokenAddress": "0xBAbaEEb6d26Eb640D0475DAcA2b365658e45B81D",
+      "quoteTokenAddress": "0x4048e8Ef4ddF1A5E46b213408b878816AD67Dc00"
+    }
+  },
+  "FORT-SHIRE": {
+    "kovan": {
+      "address": "0xf41aC5d09E022D016b3110CAd76119B79306cBE7",
+      "poolId": "0xf41ac5d09e022d016b3110cad76119b79306cbe7000100000000000000000436",
+      "baseTokenAddress": "0x4048e8Ef4ddF1A5E46b213408b878816AD67Dc00",
+      "quoteTokenAddress": "0x95C29AAbcB6aE30147d271D800c4Df14e3e569fA"
+    }
+  },
+  "SHIRE-TON": {
+    "kovan": {
+      "address": "0x8243dB2B9B38d7953BD462A82CA1446De9c5c2E1",
+      "poolId": "0x8243db2b9b38d7953bd462a82ca1446de9c5c2e1000100000000000000000459",
+      "baseTokenAddress": "0x95C29AAbcB6aE30147d271D800c4Df14e3e569fA",
+      "quoteTokenAddress": "0xF559A88Bc17B5a9D9859cE9Cab53d1B13A2fe30A"
+    }
+  }
 }

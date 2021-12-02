@@ -85,6 +85,7 @@ contract CustomPool is BaseMinimalSwapInfoPool {
 		string memory name,
 		string memory symbol,
 		IERC20[] memory tokens,
+		address[] memory _assets,
 		uint256[] memory _assetWeights,
 		uint256 swapFeePercentage,
 		uint256 pauseWindowDuration,
@@ -110,12 +111,12 @@ contract CustomPool is BaseMinimalSwapInfoPool {
 
 		proportionalLiquidity = proportionalLiquidty_;
 
-		address[] memory tokenAddresses = new address[](tokens.length);
-		for (uint128 i = 0; i < tokens.length; i++) {
-			tokenAddresses[i] = address(tokens[i]);
-		}
+		// address[] memory tokenAddresses = new address[](tokens.length);
+		// for (uint128 i = 0; i < tokens.length; i++) {
+		// 	tokenAddresses[i] = address(tokens[i]);
+		// }
 
-		initialize(tokenAddresses, _assetWeights);
+		initialize(_assets, _assetWeights);
 	}
 
 	/** Initialization */
@@ -286,9 +287,11 @@ contract CustomPool is BaseMinimalSwapInfoPool {
 		// (uint256 curvesMinted, uint256[] memory deposits) = proportionalLiquidity
 		// 	.proportionalDeposit(maxAmountsIn[0], maxAmountsIn);
 
-		uint256 curvesMinted = maxAmountsIn[0];
+		// uint256 curvesMinted = maxAmountsIn[0];
 
-		bptAmountOut = curvesMinted;
+		// bptAmountOut = curvesMinted;
+
+		(uint256 curves, uint256[] memory deposits) = proportionalLiquidity.proportionalDeposit(CustomPool(address(this)), maxAmountsIn[0]);
 
 		{
 			dueProtocolFeeAmounts = new uint256[](2);
@@ -296,9 +299,11 @@ contract CustomPool is BaseMinimalSwapInfoPool {
 			dueProtocolFeeAmounts[1] = 2;
 		}
 
+		bptAmountOut = curves;
+
 		{
-			// amountsIn = deposits;
-			amountsIn = maxAmountsIn;
+			amountsIn = deposits;
+			// amountsIn = maxAmountsIn;
 		}
 	}
 
