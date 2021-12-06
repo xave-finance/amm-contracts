@@ -125,51 +125,6 @@ library CurveMath {
 		revert('Curve/swap-convergence-failed');
 	}
 
-	function calculateLiquidityMembrane(
-		int128[] memory weights,
-		int128 alpha,
-		int128 beta,
-		int128 delta,
-		int128 lambda,
-		uint256 totalSupply,
-		int128 _oGLiq,
-		int128 _nGLiq,
-		int128[] memory _oBals,
-		int128[] memory _nBals
-	) internal returns (int128 curves_) {
-		// enforceHalts(alpha, _oGLiq, _nGLiq, _oBals, _nBals, weights);
-
-		int128 _omega;
-		int128 _psi;
-
-		{
-			_omega = calculateFee(_oGLiq, _oBals, beta, delta, weights);
-			_psi = calculateFee(_nGLiq, _nBals, beta, delta, weights);
-		}
-
-		int128 _feeDiff = _psi.sub(_omega);
-		int128 _liqDiff = _nGLiq.sub(_oGLiq);
-		int128 _oUtil = _oGLiq.sub(_omega);
-		int128 _totalShells = totalSupply.divu(1e18);
-		int128 _curveMultiplier;
-
-		if (_totalShells == 0) {
-			curves_ = _nGLiq.sub(_psi);
-		} else if (_feeDiff >= 0) {
-			_curveMultiplier = _liqDiff.sub(_feeDiff).div(_oUtil);
-		} else {
-			_curveMultiplier = _liqDiff.sub(lambda.mul(_feeDiff));
-
-			_curveMultiplier = _curveMultiplier.div(_oUtil);
-		}
-
-		if (_totalShells != 0) {
-			curves_ = _totalShells.mul(_curveMultiplier);
-
-			enforceLiquidityInvariant(_totalShells, curves_, _oGLiq, _nGLiq, _omega, _psi);
-		}
-	}
-
 	function enforceSwapInvariant(
 		int128 _oGLiq,
 		int128 _omega,

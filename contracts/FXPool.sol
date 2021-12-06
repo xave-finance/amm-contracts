@@ -13,6 +13,8 @@ import './amm-v1/lib/ABDKMath64x64.sol';
 
 import './amm-v1/CurveMath.sol';
 
+import './amm-v1/Swaps.sol';
+
 contract FXPool is BaseMinimalSwapInfoPool {
 	using LogExpMath for uint256;
 	using FixedPoint for uint256;
@@ -28,6 +30,7 @@ contract FXPool is BaseMinimalSwapInfoPool {
 	uint256 internal immutable _scalingFactor1;
 
 	ProportionalLiquidity proportionalLiquidity;
+	AmmV1Swaps swaps;
 
 	// Note Start of Storage variables
 
@@ -95,7 +98,8 @@ contract FXPool is BaseMinimalSwapInfoPool {
 		uint256 pauseWindowDuration,
 		uint256 bufferPeriodDuration,
 		// address owner,
-		ProportionalLiquidity proportionalLiquidty_
+		ProportionalLiquidity proportionalLiquidty_,
+		AmmV1Swaps swaps_
 	)
 		BasePool(
 			vault,
@@ -114,6 +118,7 @@ contract FXPool is BaseMinimalSwapInfoPool {
 		_scalingFactor1 = _computeScalingFactor(tokens[1]);
 
 		proportionalLiquidity = proportionalLiquidty_;
+		swaps = swaps_;
 
 		// address[] memory tokenAddresses = new address[](tokens.length);
 		// for (uint128 i = 0; i < tokens.length; i++) {

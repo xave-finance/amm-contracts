@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 import '../FXPool.sol';
 
 import '../amm-v1/ProportionalLiquidity.sol';
+import '../amm-v1/Swaps.sol';
 
 contract TestFXPool is FXPool {
 	event TestInitializePool(uint256 bptAmountOut, uint256[] amountsIn);
@@ -41,7 +42,8 @@ contract TestFXPool is FXPool {
 		uint256 pauseWindowDuration,
 		uint256 bufferPeriodDuration,
 		// address owner,
-		ProportionalLiquidity proportionalLiquidity
+		ProportionalLiquidity proportionalLiquidity,
+		AmmV1Swaps swaps
 	)
 		FXPool(
 			vault,
@@ -54,7 +56,8 @@ contract TestFXPool is FXPool {
 			pauseWindowDuration,
 			bufferPeriodDuration,
 			// owner,
-			proportionalLiquidity
+			proportionalLiquidity,
+			swaps
 		)
 	{}
 

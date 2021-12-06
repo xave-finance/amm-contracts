@@ -9,7 +9,7 @@ import { Vault } from '../../typechain/Vault'
 import { CustomPoolDeployParams } from '../../scripts/types/CustomPool'
 import { sortAddresses } from '../../scripts/utils/sortAddresses'
 
-import { deployMockedProportionalLiquidity } from './deployMockedCurveContracts'
+import { deployMockedProportionalLiquidity, deploySwaps } from './deployMockedCurveContracts'
 
 import { fp } from '../common//v2-helpers/numbers'
 
@@ -22,6 +22,7 @@ export async function deployTestCustomPool(
 	}
 ): Promise<any> {
 	const { proportionalLiquidityContract } = await deployMockedProportionalLiquidity(signer)
+	const { swapsContract } = await deploySwaps(signer)
 	/** Deploy Assimilators */
 	const AssimilatorsLib = new Assimilators__factory(signer)
 	const assimilators = await AssimilatorsLib.deploy()
@@ -61,7 +62,8 @@ export async function deployTestCustomPool(
 		swapFeePercentage,
 		pauseWindowDuration,
 		bufferPeriodDuration,
-		proportionalLiquidityContract.address
+		proportionalLiquidityContract.address,
+		swapsContract.address,
 	)
 
 	if (options.getPoolId) {

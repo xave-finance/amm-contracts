@@ -28,3 +28,29 @@ export async function deployMockedProportionalLiquidity(
 
   return { proportionalLiquidityContract }
 }
+
+export async function deploySwaps(
+  signer: Signer
+) {
+  /** Deploy Assimilators */
+	const AssimilatorsLib = new Assimilators__factory(signer)
+	const assimilators = await AssimilatorsLib.deploy()
+	await assimilators.deployed()
+
+	/** Deploy Curve Math */
+	const CurveMathLib = new CurveMath__factory(signer)
+	const curveMath = await CurveMathLib.deploy()
+	await curveMath.deployed()
+
+  const SwapsFactory = await ethers.getContractFactory('AmmV1Swaps', {
+		libraries: {
+			Assimilators: assimilators.address,
+			// CurveMath: curveMath.address,
+		}
+	})
+
+  const swapsContract = await SwapsFactory.deploy()
+  await swapsContract.deployed()
+
+  return { swapsContract }
+}
