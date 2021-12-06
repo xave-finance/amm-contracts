@@ -1,11 +1,9 @@
 pragma solidity ^0.7.3;
 
-import '../FXPool.sol';
-
 import './lib/UnsafeMath64x64.sol';
 import './lib/ABDKMath64x64.sol';
 
-contract CurveMath {
+library CurveMath {
 	int128 private constant ONE = 0x10000000000000000;
 	int128 private constant MAX = 0x4000000000000000; // .25 in layman's terms
 	int128 private constant MAX_DIFF = -0x10C6F7A0B5EE;
@@ -15,16 +13,22 @@ contract CurveMath {
 	using UnsafeMath64x64 for int128;
 	using ABDKMath64x64 for uint256;
 
-	function calculateFee(
-		int128 _gLiq,
-		int128[] memory _bals,
-		FXPool pool,
-		int128[] memory _weights
-	) public view returns (int128 psi_) {
-		int128 _beta = pool.beta();
-		int128 _delta = pool.delta();
+	struct CurveDimensions {
+		int128 alpha;
+		int128 beta;
+		int128 delta;
+		int128 epsilon;
+		int128 lambda;
+	}
 
-		psi_ = calculateFee(_gLiq, _bals, _beta, _delta, _weights);
+	struct Liquidity {
+		int128 oGLiq;
+		int128 nGLiq;
+	}
+
+	struct Balances {
+		int128[] oBals;
+		int128[] nBals;
 	}
 
 	function calculateFee(
@@ -78,51 +82,43 @@ contract CurveMath {
 	}
 
 	function calculateTrade(
-		FXPool pool,
-		int128 _oGLiq,
-		int128 _nGLiq,
-		int128[] memory _oBals,
-		int128[] memory _nBals,
+		CurveDimensions memory dimensions,
+		int128[] memory weights,
+		Liquidity memory liquidity,
+		Balances memory balances,
 		int128 _inputAmt,
 		uint256 _outputIndex
 	) internal view returns (int128 outputAmt_) {
 		outputAmt_ = -_inputAmt;
 
-		int128 _lambda = pool.lambda();
-		int128[] memory _weights = new int128[](pool.getWeightsLength());
-
-		for(uint128 i = 0; i < _weights.length; i++) {
-			_weights[i] = pool.weights(i);
-		}
-
-		int128 _omega = calculateFee(_oGLiq, _oBals, pool, _weights);
+		int128 _omega = calculateFee(liquidity.oGLiq, balances.oBals, dimensions.beta, dimensions.delta, weights);
 		int128 _psi;
 
 		for (uint256 i = 0; i < 32; i++) {
-			_psi = calculateFee(_nGLiq, _nBals, pool, _weights);
+			_psi = calculateFee(liquidity.nGLiq, balances.nBals, dimensions.beta, dimensions.delta, weights);
 
 			int128 prevAmount;
 			{
 				prevAmount = outputAmt_;
 				outputAmt_ = _omega < _psi
 					? -(_inputAmt + _omega - _psi)
-					: -(_inputAmt + _lambda.mul(_omega - _psi));
+					: -(_inputAmt + dimensions.lambda.mul(_omega - _psi));
 			}
 
 			if (outputAmt_ / 1e13 == prevAmount / 1e13) {
-				_nGLiq = _oGLiq + _inputAmt + outputAmt_;
+				liquidity.nGLiq = liquidity.oGLiq + _inputAmt + outputAmt_;
 
-				_nBals[_outputIndex] = _oBals[_outputIndex] + outputAmt_;
+				balances.nBals[_outputIndex] = balances.oBals[_outputIndex] + outputAmt_;
 
-				enforceHalts(pool, _oGLiq, _nGLiq, _oBals, _nBals, _weights);
+				enforceHalts(dimensions.alpha, liquidity, balances.oBals, balances.nBals, weights);
 
-				enforceSwapInvariant(_oGLiq, _omega, _nGLiq, _psi);
+				enforceSwapInvariant(liquidity.oGLiq, _omega, liquidity.nGLiq, _psi);
 
 				return outputAmt_;
 			} else {
-				_nGLiq = _oGLiq + _inputAmt + outputAmt_;
+				liquidity.nGLiq = liquidity.oGLiq + _inputAmt + outputAmt_;
 
-				_nBals[_outputIndex] = _oBals[_outputIndex].add(outputAmt_);
+				balances.nBals[_outputIndex] = balances.oBals[_outputIndex].add(outputAmt_);
 			}
 		}
 
@@ -130,40 +126,31 @@ contract CurveMath {
 	}
 
 	function calculateLiquidityMembrane(
-		FXPool pool,
+		int128[] memory weights,
+		int128 alpha,
+		int128 beta,
+		int128 delta,
+		int128 lambda,
+		uint256 totalSupply,
 		int128 _oGLiq,
 		int128 _nGLiq,
 		int128[] memory _oBals,
 		int128[] memory _nBals
 	) internal returns (int128 curves_) {
-		int128[] memory _weights = new int128[](pool.getWeightsLength());
-
-		for(uint128 i = 0; i < _weights.length; i++) {
-			_weights[i] = pool.weights(i);
-		}
-
-		enforceHalts(pool, _oGLiq, _nGLiq, _oBals, _nBals, _weights);
+		// enforceHalts(alpha, _oGLiq, _nGLiq, _oBals, _nBals, weights);
 
 		int128 _omega;
 		int128 _psi;
 
 		{
-			int128 _beta = pool.beta();
-			int128 _delta = pool.delta();
-			int128[] memory _weights = new int128[](pool.getWeightsLength());
-
-			for(uint128 i = 0; i < _weights.length; i++) {
-				_weights[i] = pool.weights(i);
-			}
-
-			_omega = calculateFee(_oGLiq, _oBals, _beta, _delta, _weights);
-			_psi = calculateFee(_nGLiq, _nBals, _beta, _delta, _weights);
+			_omega = calculateFee(_oGLiq, _oBals, beta, delta, weights);
+			_psi = calculateFee(_nGLiq, _nBals, beta, delta, weights);
 		}
 
 		int128 _feeDiff = _psi.sub(_omega);
 		int128 _liqDiff = _nGLiq.sub(_oGLiq);
 		int128 _oUtil = _oGLiq.sub(_omega);
-		int128 _totalShells = pool.totalSupply().divu(1e18);
+		int128 _totalShells = totalSupply.divu(1e18);
 		int128 _curveMultiplier;
 
 		if (_totalShells == 0) {
@@ -171,7 +158,7 @@ contract CurveMath {
 		} else if (_feeDiff >= 0) {
 			_curveMultiplier = _liqDiff.sub(_feeDiff).div(_oUtil);
 		} else {
-			_curveMultiplier = _liqDiff.sub(pool.lambda().mul(_feeDiff));
+			_curveMultiplier = _liqDiff.sub(lambda.mul(_feeDiff));
 
 			_curveMultiplier = _curveMultiplier.div(_oUtil);
 		}
@@ -218,37 +205,35 @@ contract CurveMath {
 	}
 
 	function enforceHalts(
-		FXPool pool,
-		int128 _oGLiq,
-		int128 _nGLiq,
+		int128 alpha,
+		Liquidity memory liquidity,
 		int128[] memory _oBals,
 		int128[] memory _nBals,
 		int128[] memory _weights
 	) private view {
 		uint256 _length = _nBals.length;
-		int128 _alpha = pool.alpha();
 
 		for (uint256 i = 0; i < _length; i++) {
-			int128 _nIdeal = _nGLiq.mul(_weights[i]);
+			int128 _nIdeal = liquidity.nGLiq.mul(_weights[i]);
 
 			if (_nBals[i] > _nIdeal) {
-				int128 _upperAlpha = ONE + _alpha;
+				int128 _upperAlpha = ONE + alpha;
 
 				int128 _nHalt = _nIdeal.mul(_upperAlpha);
 
 				if (_nBals[i] > _nHalt) {
-					int128 _oHalt = _oGLiq.mul(_weights[i]).mul(_upperAlpha);
+					int128 _oHalt = liquidity.oGLiq.mul(_weights[i]).mul(_upperAlpha);
 
 					if (_oBals[i] < _oHalt) revert('Curve/upper-halt');
 					if (_nBals[i] - _nHalt > _oBals[i] - _oHalt) revert('Curve/upper-halt');
 				}
 			} else {
-				int128 _lowerAlpha = ONE - _alpha;
+				int128 _lowerAlpha = ONE - alpha;
 
 				int128 _nHalt = _nIdeal.mul(_lowerAlpha);
 
 				if (_nBals[i] < _nHalt) {
-					int128 _oHalt = _oGLiq.mul(_weights[i]);
+					int128 _oHalt = liquidity.oGLiq.mul(_weights[i]);
 					_oHalt = _oHalt.mul(_lowerAlpha);
 
 					if (_oBals[i] > _oHalt) revert('Curve/lower-halt');

@@ -7,6 +7,7 @@ import "../helpers/BalancerErrors.sol";
 import "./IERC20.sol";
 import "./SafeMath.sol";
 
+
 /**
  * @dev Implementation of the {IERC20} interface.
  *
@@ -159,7 +160,7 @@ contract ERC20 is IERC20 {
         _approve(
             sender,
             msg.sender,
-            _allowances[sender][msg.sender].sub(amount, Errors.ERC20_TRANSFER_EXCEEDS_ALLOWANCE)
+            _allowances[sender][msg.sender].sub(amount)
         );
         return true;
     }
@@ -199,7 +200,7 @@ contract ERC20 is IERC20 {
         _approve(
             msg.sender,
             spender,
-            _allowances[msg.sender][spender].sub(subtractedValue, Errors.ERC20_DECREASED_ALLOWANCE_BELOW_ZERO)
+            _allowances[msg.sender][spender].sub(subtractedValue)
         );
         return true;
     }
@@ -228,7 +229,7 @@ contract ERC20 is IERC20 {
 
         _beforeTokenTransfer(sender, recipient, amount);
 
-        _balances[sender] = _balances[sender].sub(amount, Errors.ERC20_TRANSFER_EXCEEDS_BALANCE);
+        _balances[sender] = _balances[sender].sub(amount);
         _balances[recipient] = _balances[recipient].add(amount);
         emit Transfer(sender, recipient, amount);
     }
@@ -266,7 +267,7 @@ contract ERC20 is IERC20 {
 
         _beforeTokenTransfer(account, address(0), amount);
 
-        _balances[account] = _balances[account].sub(amount, Errors.ERC20_BURN_EXCEEDS_ALLOWANCE);
+        _balances[account] = _balances[account].sub(amount);
         _totalSupply = _totalSupply.sub(amount);
         emit Transfer(account, address(0), amount);
     }

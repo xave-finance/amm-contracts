@@ -4,7 +4,7 @@ import { solidity } from 'ethereum-waffle'
 import { map, includes, kebabCase } from 'lodash'
 import Vault from '@balancer-labs/v2-deployments/deployed/kovan/Vault.json'
 
-import { TestCustomPool } from '../typechain/TestCustomPool'
+import { TestFXPool } from '../typechain/TestFXPool'
 import { FakeToken__factory } from '../typechain/factories/FakeToken__factory'
 
 import { deployTestCustomPool } from './helpers/deployTestCustomPool'
@@ -24,7 +24,7 @@ describe('FX Pool', () => {
 	let tokenA: FakeToken
 	let tokenB: FakeToken
 
-	let pool: TestCustomPool
+	let pool: TestFXPool
 
 	before('setup signers', async () => {
 		;[halodaoSigner, tokenSigner, beneficiarySigner] = await ethers.getSigners()
@@ -41,52 +41,60 @@ describe('FX Pool', () => {
 	})
 
 	async function deployPool() {
+		const baseAssimilator = '0xa99202DD31C78B7A4f5C608ab286f1ac2bc03627' // PHP - USD
+		const quoteAssimilator = '0xbe8aD396DCdDB55013499AD11E5de919027C42ee' // USDC - USD
+
+		const assets = [tokenA.address, baseAssimilator, tokenA.address, baseAssimilator, tokenA.address,
+		tokenB.address, quoteAssimilator, tokenB.address, quoteAssimilator, tokenB.address]
+		const assetWeights = [fp(0.5), fp(0.5)]
+		const swapFeePercentage = ethers.utils.parseEther('0.000001')
+		const pauseWindowDuration = 7776000
+		const bufferPeriodDuration = 2592000
+
 		const poolParams: CustomPoolDeployParams = {
 			vaultContract: Vault as any,
-			name: 'Test Custom Pool',
-			symbol: 'TCP',
+			name: 'TEST AB',
+			symbol: 'TAB',
 			tokens: [tokenA.address, tokenB.address],
-			swapFeePercentage: ethers.utils.parseEther('0.000001'),
-			pauseWindowDuration: 7776000,
-			bufferPeriodDuration: 2592000,
-			owner: halodaoSigner as any,
+			assets,
+			assetWeights,
+			swapFeePercentage,
+			pauseWindowDuration,
+			bufferPeriodDuration,
+			// curveMath.address,
+			// proportionalLiquidity.address
 		}
 
 		;({ poolContract: pool } = await deployTestCustomPool(halodaoSigner, poolParams, {
 			getPoolId: false,
 			toSortTokens: true,
 		}))
+		
 	}
 
 	sharedBeforeEach('deploy custom pool', async () => {
 		await deployPool()
 	})
 
-	describe('Pool Creation', () => {
-		describe('Bonding curve initialization', () => {
-			it('sets value of alpha', async () => {
+	describe('setParams', () => {
+		context('when provided with valid bonding curve parameters', () => {
+			it('sets value of alpha, beta, delta, epsilon, lambda', async () => {
+				// console.log('pool.setParams:', pool.setParams)
+				await pool.connect(halodaoSigner).setParams(
+					fp(0.8),
+					fp(0.48),
+					fp(0.175),
+					fp(0.0005),
+					fp(0.3),
+				)
+
 				console.log('Alpha:', decimal(await pool.alpha()))
+				console.log('Beta:', decimal(await pool.beta()))
+				console.log('Delta:', decimal(await pool.delta()))
+				console.log('Epsilon:', decimal(await pool.epsilon()))
+				console.log('Lambda:', decimal(await pool.lambda()))
 			})
 
-			it('sets value of beta', async () => {
-				console.log('Beta:', await pool.beta())
-			})
-
-			it('sets value of delta', async () => {
-				console.log('Delta:', await pool.delta())
-			})
-
-			it('sets value of epsilon', async () => {
-				console.log('Epsilon:', await pool.epsilon())
-			})
-
-			it('sets value of lambda', async () => {
-				console.log('Lambda:', await pool.lambda())
-			})
-
-			it('sets values of weights', async () => {
-				console.log('Weights:', await pool.weights(0))
-			})
 		})
 	})
 

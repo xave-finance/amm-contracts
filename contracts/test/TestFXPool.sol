@@ -3,10 +3,9 @@ pragma experimental ABIEncoderV2;
 
 import '../FXPool.sol';
 
-import '../amm-v1/CurveMath.sol';
 import '../amm-v1/ProportionalLiquidity.sol';
 
-contract TestCustomPool is FXPool {
+contract TestFXPool is FXPool {
 	event TestInitializePool(uint256 bptAmountOut, uint256[] amountsIn);
 	event TestJoinPool(uint256 bptAmountOut, uint256[] amountsIn, uint256[] dueProtocolFeeAmounts);
 	event TestExitPool(uint256 bptAmountIn, uint256[] amountsOut, uint256[] dueProtocolFeeAmounts);
@@ -41,8 +40,7 @@ contract TestCustomPool is FXPool {
 		uint256 swapFeePercentage,
 		uint256 pauseWindowDuration,
 		uint256 bufferPeriodDuration,
-		address owner,
-		CurveMath curveMath,
+		// address owner,
 		ProportionalLiquidity proportionalLiquidity
 	)
 		FXPool(
@@ -55,8 +53,7 @@ contract TestCustomPool is FXPool {
 			swapFeePercentage,
 			pauseWindowDuration,
 			bufferPeriodDuration,
-			owner,
-			// curveMath,
+			// owner,
 			proportionalLiquidity
 		)
 	{}

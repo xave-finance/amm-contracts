@@ -13,6 +13,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+/// CHANGED following functions from internal to public:
+/// [intakeNumeraire, intakeNumeraireLPRatio, viewRawAmount,
+/// viewRawAmountLPRatio, outputNumeraire, viewNumeraireBalanceLPRatio,
+/// viewNumeraireBalance]
+
 pragma solidity ^0.7.1;
 
 import "@openzeppelin/contracts/utils/Address.sol";
@@ -45,7 +51,7 @@ library Assimilators {
         amount_ = IAssimilator(_assim).getRate();
     }
 
-    function viewRawAmount(address _assim, int128 _amt) internal view returns (uint256 amount_) {
+    function viewRawAmount(address _assim, int128 _amt) public view returns (uint256 amount_) {
         amount_ = IAssimilator(_assim).viewRawAmount(_amt);
     }
 
@@ -54,7 +60,7 @@ library Assimilators {
         uint256 _baseWeight,
         uint256 _quoteWeight,
         int128 _amount
-    ) internal view returns (uint256 amount_) {
+    ) public view returns (uint256 amount_) {
         amount_ = IAssimilator(_assim).viewRawAmountLPRatio(_baseWeight, _quoteWeight, address(this), _amount);
     }
 
@@ -70,7 +76,7 @@ library Assimilators {
         (amt_, bal_) = IAssimilator(_assim).viewNumeraireAmountAndBalance(address(this), _amt);
     }
 
-    function viewNumeraireBalance(address _assim) internal view returns (int128 bal_) {
+    function viewNumeraireBalance(address _assim) public view returns (int128 bal_) {
         bal_ = IAssimilator(_assim).viewNumeraireBalance(address(this));
     }
 
@@ -78,7 +84,7 @@ library Assimilators {
         uint256 _baseWeight,
         uint256 _quoteWeight,
         address _assim
-    ) internal view returns (int128 bal_) {
+    ) public view returns (int128 bal_) {
         bal_ = IAssimilator(_assim).viewNumeraireBalanceLPRatio(_baseWeight, _quoteWeight, address(this));
     }
 
@@ -94,7 +100,7 @@ library Assimilators {
         (amt_, bal_) = abi.decode(delegate(_assim, data), (int128, int128));
     }
 
-    function intakeNumeraire(address _assim, int128 _amt) internal returns (uint256 amt_) {
+    function intakeNumeraire(address _assim, int128 _amt) public returns (uint256 amt_) {
         bytes memory data = abi.encodeWithSelector(iAsmltr.intakeNumeraire.selector, _amt);
 
         amt_ = abi.decode(delegate(_assim, data), (uint256));
@@ -105,7 +111,7 @@ library Assimilators {
         uint256 _baseWeight,
         uint256 _quoteWeight,
         int128 _amount
-    ) internal returns (uint256 amt_) {
+    ) public returns (uint256 amt_) {
         bytes memory data =
             abi.encodeWithSelector(
                 iAsmltr.intakeNumeraireLPRatio.selector,
@@ -146,7 +152,7 @@ library Assimilators {
         address _assim,
         address _dst,
         int128 _amt
-    ) internal returns (uint256 amt_) {
+    ) public returns (uint256 amt_) {
         bytes memory data = abi.encodeWithSelector(iAsmltr.outputNumeraire.selector, _dst, _amt.abs());
 
         amt_ = abi.decode(delegate(_assim, data), (uint256));

@@ -6,8 +6,10 @@ export type CustomPoolDeployParams = {
   name: string,
 	symbol: string,
 	tokens: string[],
+	assets: any[],
+	assetWeights: BigNumberish[],
 	swapFeePercentage: BigNumberish,
 	pauseWindowDuration: BigNumberish,
 	bufferPeriodDuration: BigNumberish,
-  owner: Wallet
+  owner?: Wallet
 }

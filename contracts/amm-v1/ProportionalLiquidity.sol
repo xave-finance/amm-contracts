@@ -5,14 +5,14 @@ pragma experimental ABIEncoderV2;
 
 import './Assimilators.sol';
 
-// import "../FXPool.sol";
+import "../FXPool.sol";
 
 import './lib/UnsafeMath64x64.sol';
 import './lib/ABDKMath64x64.sol';
 
 import './CurveMath.sol';
 
-contract ProportionalLiquidity is CurveMath {
+contract ProportionalLiquidity {
 	using ABDKMath64x64 for uint256;
 	using ABDKMath64x64 for int128;
 	using UnsafeMath64x64 for int128;
@@ -60,11 +60,12 @@ contract ProportionalLiquidity is CurveMath {
 
 			for (uint256 i = 0; i < _length; i++) {
 				address assimilatorAddress = curve.getAsset(i).addr;
+				int128 oGBal = _oBals[i].mul(_multiplier);
 				deposits_[i] = Assimilators.intakeNumeraireLPRatio(
 					assimilatorAddress,
 					_baseWeight,
 					_quoteWeight,
-					_oBals[i].mul(_multiplier).add(ONE_WEI)
+					oGBal.add(ONE_WEI)
 				);
 			}
 		}
@@ -101,9 +102,10 @@ contract ProportionalLiquidity is CurveMath {
 		if (_oGLiq == 0) {
 			for (uint256 i = 0; i < _length; i++) {
 				address assimilatorAddress = curve.getAsset(i).addr;
+				int128 deposit = __deposit.mul(curve.weights(i));
 				deposits_[i] = Assimilators.viewRawAmount(
 					assimilatorAddress,
-					__deposit.mul(curve.weights(i)).add(ONE_WEI)
+					deposit.add(ONE_WEI)
 				);
 			}
 		} else {

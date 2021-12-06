@@ -14,7 +14,7 @@
 
 pragma solidity ^0.7.0;
 
-import "@balancer-labs/v2-vault/contracts/interfaces/IVault.sol";
+import "../../../vault/contracts/interfaces/IVault.sol";
 
 import "../BalancerPoolToken.sol";
 

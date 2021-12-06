@@ -11,7 +11,7 @@ import './amm-v1/interfaces/IOracle.sol';
 
 import './amm-v1/lib/ABDKMath64x64.sol';
 
-// import "./amm-v1/CurveMath.sol";
+import './amm-v1/CurveMath.sol';
 
 contract FXPool is BaseMinimalSwapInfoPool {
 	using LogExpMath for uint256;
@@ -19,13 +19,14 @@ contract FXPool is BaseMinimalSwapInfoPool {
 	using ABDKMath64x64 for uint256;
 	using ABDKMath64x64 for int128;
 
+	int128 private constant ONE_WEI = 0x12;
+
 	// The Balancer pool data
 	// Note we change style to match Balancer's custom getter
 
 	uint256 internal immutable _scalingFactor0;
 	uint256 internal immutable _scalingFactor1;
 
-	// CurveMath curveMath;
 	ProportionalLiquidity proportionalLiquidity;
 
 	// Note Start of Storage variables
@@ -93,8 +94,7 @@ contract FXPool is BaseMinimalSwapInfoPool {
 		uint256 swapFeePercentage,
 		uint256 pauseWindowDuration,
 		uint256 bufferPeriodDuration,
-		address owner,
-		// CurveMath curveMath_,
+		// address owner,
 		ProportionalLiquidity proportionalLiquidty_
 	)
 		BasePool(
@@ -107,12 +107,11 @@ contract FXPool is BaseMinimalSwapInfoPool {
 			swapFeePercentage,
 			pauseWindowDuration,
 			bufferPeriodDuration,
-			owner
+			msg.sender
 		)
 	{
 		_scalingFactor0 = _computeScalingFactor(tokens[0]);
 		_scalingFactor1 = _computeScalingFactor(tokens[1]);
-
 
 		proportionalLiquidity = proportionalLiquidty_;
 
@@ -149,8 +148,7 @@ contract FXPool is BaseMinimalSwapInfoPool {
 			);
 
 			// TEST
-
-			alpha = 5;
+			// alpha = 5;
 		}
 	}
 
@@ -205,29 +203,63 @@ contract FXPool is BaseMinimalSwapInfoPool {
 		}
 	}
 
-	// function getFee(FXPool pool) private returns (int128 fee_) {
-  //       int128 _gLiq;
+	function setParams(
+        uint256 _alpha,
+        uint256 _beta,
+        uint256 _feeAtHalt,
+        uint256 _epsilon,
+        uint256 _lambda
+    ) public {
+        require(0 < _alpha && _alpha < 1e18, "Curve/parameter-invalid-alpha");
 
-  //       // Always pairs
-  //       int128[] memory _bals = new int128[](2);
+        require(_beta < _alpha, "Curve/parameter-invalid-beta");
 
-  //       for (uint256 i = 0; i < _bals.length; i++) {
-  //           address assimilatorAddress = pool.getAsset(i).addr;
-  //           int128 _bal = Assimilators.viewNumeraireBalance(assimilatorAddress);
+        require(_feeAtHalt <= 5e17, "Curve/parameter-invalid-max");
 
-  //           _bals[i] = _bal;
+        require(_epsilon <= 1e16, "Curve/parameter-invalid-epsilon");
 
-  //           _gLiq += _bal;
-  //       }
-  //       int128[] memory _weights = new int128[](pool.getWeightsLength());
+        require(_lambda <= 1e18, "Curve/parameter-invalid-lambda");
 
-	// 	for (uint128 i = 0; i < _weights.length; i++) {
-	// 		_weights[i] = pool.weights(i);
-	// 	}
+				FXPool pool = FXPool(address(this));
 
-  //       fee_ = curveMath.calculateFee(_gLiq, _bals, pool.beta(), pool.delta(), _weights);
-  //       // fee_ = curveMath.calculateFee(_gLiq, _bals, pool.beta, pool.delta, pool.weights);
-  //   }
+        int128 _omega = getFee(pool);
+
+        alpha = (_alpha + 1).divu(1e18);
+
+        beta = (_beta + 1).divu(1e18);
+
+        int128 minued = alpha.sub(beta);
+
+				delta = (_feeAtHalt).divu(1e18).div(uint256(2).fromUInt().mul(minued)) + ONE_WEI;
+
+        epsilon = (_epsilon + 1).divu(1e18);
+
+        lambda = (_lambda + 1).divu(1e18);
+
+        int128 _psi = getFee(pool);
+
+        require(_omega >= _psi, "Curve/parameters-increase-fee");
+
+        emit ParametersSet(_alpha, _beta, delta.mulu(1e18), _epsilon, _lambda);
+    }
+
+	function getFee(FXPool pool) private returns (int128 fee_) {
+		int128 _gLiq;
+
+		// Always pairs
+		int128[] memory _bals = new int128[](2);
+
+		for (uint256 i = 0; i < _bals.length; i++) {
+			address assimilatorAddress = pool.getAsset(i).addr;
+			int128 _bal = Assimilators.viewNumeraireBalance(assimilatorAddress);
+
+			_bals[i] = _bal;
+
+			_gLiq += _bal;
+		}
+		
+		fee_ = CurveMath.calculateFee(_gLiq, _bals, beta, delta, weights);
+	}
 
 	function _getTotalTokens() internal view override returns (uint256) {
 		return 2;
@@ -258,15 +290,27 @@ contract FXPool is BaseMinimalSwapInfoPool {
 		return weights.length;
 	}
 
-	function getAssetsLength() public returns (uint256) {
+	function getWeights() public view returns (int128[] memory) {
+		return weights;
+	}
+
+	function getWeight(uint128 index) public view returns (int128) {
+		return weights[index];
+	}
+
+	function getAssets() public view returns (Assimilator[] memory) {
+		return assets;
+	}
+
+	function getAssetsLength() public view returns (uint256) {
 		return assets.length;
 	}
 
-	function getAsset(uint256 index) public returns (Assimilator memory) {
+	function getAsset(uint256 index) public view returns (Assimilator memory) {
 		return assets[index];
 	}
 
-	function getAssimilator(address assim) public returns (Assimilator memory) {
+	function getAssimilator(address assim) public view returns (Assimilator memory) {
 		return assimilators[assim];
 	}
 
@@ -326,7 +370,10 @@ contract FXPool is BaseMinimalSwapInfoPool {
 
 		// transferFrom()
 
-		(uint256 curves, uint256[] memory deposits) = proportionalLiquidity.proportionalDeposit(FXPool(address(this)), maxAmountsIn[0]);
+		(uint256 curves, uint256[] memory deposits) = proportionalLiquidity.proportionalDeposit(
+			FXPool(address(this)),
+			maxAmountsIn[0]
+		);
 
 		{
 			dueProtocolFeeAmounts = new uint256[](2);
