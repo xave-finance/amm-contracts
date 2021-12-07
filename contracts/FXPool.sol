@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.7.1;
 pragma experimental ABIEncoderV2;
 
@@ -83,6 +85,8 @@ contract FXPool is BaseMinimalSwapInfoPool {
 		address indexed reserve,
 		address assimilator
 	);
+
+	event TestingSwapGivenIn(uint256 calculatedAmount);
 
 	/// @param vault The balancer vault
 	/// @param name The balancer pool token name
@@ -441,7 +445,32 @@ contract FXPool is BaseMinimalSwapInfoPool {
 		uint256 balanceTokenIn,
 		uint256 balanceTokenOut
 	) internal override returns (uint256) {
+		// return swapRequest.amount;
+		// IERC20 baseToken = IERC20(swapRequest.tokenIn);
+		// baseToken.transferFrom(msg.sender, address(this), swapRequest.amount);
+
+		// (uint256 tAmt_) = swaps.originSwap(
+		// 	FXPool(address(this)),
+		// 	address(swapRequest.tokenIn),
+		// 	address(swapRequest.tokenOut),
+		// 	swapRequest.amount,
+		// 	msg.sender
+		// );
+
+		// return tAmt_;
+
+		(uint256 tAmt_) = swaps.viewOriginSwap(
+			FXPool(address(this)),
+			address(swapRequest.tokenIn),
+			address(swapRequest.tokenOut),
+			swapRequest.amount
+		);
+
+		emit TestingSwapGivenIn(tAmt_);
+
 		return swapRequest.amount;
+
+		// return 1;
 	}
 
 	/**

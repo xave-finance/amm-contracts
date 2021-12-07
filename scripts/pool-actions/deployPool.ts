@@ -3,6 +3,10 @@ import editJson from 'edit-json-file'
 import open from 'open'
 
 import Vault from '@balancer-labs/v2-deployments/deployed/kovan/Vault.json'
+import { CurveMath__factory } from '../../typechain/factories/CurveMath__factory'
+import { Assimilators__factory } from '../../typechain/factories/Assimilators__factory'
+
+import { deployMockedProportionalLiquidity, deploySwaps } from '../../test/helpers/deployMockedCurveContracts'
 
 declare const ethers: any
 declare const hre: any
@@ -33,25 +37,73 @@ export default async (taskArgs: any) => {
 	console.log(`Base Token address: ${baseTokenAddress}`)
 	console.log(`Quote Token address: ${quoteTokenAddress}`)
 
-	let proportionalLiquidity
-	if (false) {
-		const ProportionalLiquidity = await ethers.getContractFactory(
-			'ProportionalLiquidity'
-		)
-		proportionalLiquidity = await ProportionalLiquidity.deploy()
-		await proportionalLiquidity.deployed()
+	// let proportionalLiquidity
+	// if (false) {
+	// 	const ProportionalLiquidity = await ethers.getContractFactory(
+	// 		'ProportionalLiquidity'
+	// 	)
+	// 	proportionalLiquidity = await ProportionalLiquidity.deploy()
+	// 	await proportionalLiquidity.deployed()
 
-		console.log(`Mocked Proportional Liquidity deployed at: ${proportionalLiquidity.address}`)
-	}
+	// 	console.log(`Mocked Proportional Liquidity deployed at: ${proportionalLiquidity.address}`)
+	// }
 
 	/** Deploy Assimilator Here */
 	const baseAssimilator = '0xa99202DD31C78B7A4f5C608ab286f1ac2bc03627' // PHP - USD
 	const quoteAssimilator = '0xbe8aD396DCdDB55013499AD11E5de919027C42ee' // USDC - USD
-	const PROPORTIONAL_LIQUIDITY = '0xb41B19c72bAc4A61e808890D9F150BC66f6CDa28'
+
+	/** Deploy Assimilators */
+	// const AssimilatorsLib = new Assimilators__factory(deployer)
+	// const assimilators = await AssimilatorsLib.deploy()
+	// await assimilators.deployed()
+
+	// console.log('assimilators:', assimilators.address)
+
+	// /** Deploy Curve Math */
+	// const CurveMathLib = new CurveMath__factory(deployer)
+	// const curveMath = await CurveMathLib.deploy()
+	// await curveMath.deployed()
+
+	// console.log('curveMath:', curveMath.address)
+
+	// const ProportionalLiquidityFactory = await ethers.getContractFactory('ProportionalLiquidity', {
+	// 	// libraries: {
+	// 	// 	Assimilators: assimilators.address,
+	// 	// 	CurveMath: curveMath.address,
+	// 	// }
+	// })
+
+  // const proportionalLiquidityContract = await ProportionalLiquidityFactory.deploy()
+  // await proportionalLiquidityContract.deployed()
+
+	// const SwapsFactory = await ethers.getContractFactory('AmmV1Swaps', {
+	// 	// libraries: {
+	// 	// 	Assimilators: assimilators.address,
+	// 	// 	// CurveMath: curveMath.address,
+	// 	// }
+	// })
+
+	// const swapsContract = await SwapsFactory.deploy()
+  // await swapsContract.deployed()
+
+	const assimilators = { address: '0x15C31d61687981dec710D1EaC307488df60B6751' }
+	const curveMath = { address: '0x1155bBF23f3c99583Ecd825592df8181f94830f8' }
+	const proportionalLiquidityContract = { address: '0x3BC220C9ea7BCFbD79B8141bf95d447238E75E1b' }
+	const swapsContract = { address: '0x764fFC0f6DA999fec0C2614750FE301652a0014B' }
+
+	console.log('swapsContract:', swapsContract.address)
+
+	const PROPORTIONAL_LIQUIDITY = proportionalLiquidityContract.address
+	const SWAPS = swapsContract.address
 
 
 
-	const CustomPool = await ethers.getContractFactory('CustomPool')
+	const CustomPool = await ethers.getContractFactory('FXPool', {
+		libraries: {
+			Assimilators: assimilators.address,
+			CurveMath: curveMath.address,
+		}
+	})
 	const swapFeePercentage = ethers.utils.parseEther('0.000001') // working already 10% fee
 
 	const tokens = sortAddresses([baseTokenAddress, quoteTokenAddress]) // need to be sorted
@@ -68,7 +120,7 @@ export default async (taskArgs: any) => {
 
 		const encodedDeploy = await CustomPool.interface.encodeDeploy([Vault.address,
 			'Custom V2 Pool', `${baseTokenAddress}-${quoteTokenAddress} LP`, tokens, assets, assetWeights,
-			swapFeePercentage, pauseWindowDuration, bufferPeriodDuration, owner, PROPORTIONAL_LIQUIDITY])
+			swapFeePercentage, pauseWindowDuration, bufferPeriodDuration, PROPORTIONAL_LIQUIDITY, SWAPS])
 
 		const bytecodePlusEncodedDeploy = ethers.utils.hexConcat([contractBytecode, encodedDeploy])
 
@@ -100,7 +152,7 @@ export default async (taskArgs: any) => {
 		const customPool = await CustomPool.deploy(
 			Vault.address,
 			'Custom V2 Pool', `${baseTokenAddress}-${quoteTokenAddress} LP`, tokens, assets, assetWeights,
-			swapFeePercentage, pauseWindowDuration, bufferPeriodDuration, owner, PROPORTIONAL_LIQUIDITY
+			swapFeePercentage, pauseWindowDuration, bufferPeriodDuration, PROPORTIONAL_LIQUIDITY, SWAPS
 		)
 	
 		await customPool.deployed()
@@ -121,13 +173,29 @@ export default async (taskArgs: any) => {
 		).save()
 		await POOLS_FILE.append(`POOLS_LIST`, `${baseToken}-${quoteToken}`).save()
 
-		await sleep(90000)
+		await sleep(150000)
+
+		// await hre.run('verify:verify', {
+		// 	address: assimilators.address
+		// })
+
+		// await hre.run('verify:verify', {
+		// 	address: curveMath.address
+		// })
+
+		// await hre.run('verify:verify', {
+		// 	address: proportionalLiquidityContract.address
+		// })
+
+		// await hre.run('verify:verify', {
+		// 	address: swapsContract.address
+		// })
 
 		await hre.run('verify:verify', {
 			address: customPool.address,
 			constructorArguments: [Vault.address,
 				'Custom V2 Pool', `${baseTokenAddress}-${quoteTokenAddress} LP`, tokens, assets, assetWeights,
-				swapFeePercentage, pauseWindowDuration, bufferPeriodDuration, owner, PROPORTIONAL_LIQUIDITY],
+				swapFeePercentage, pauseWindowDuration, bufferPeriodDuration, PROPORTIONAL_LIQUIDITY, SWAPS],
 		})
 	}
 

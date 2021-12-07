@@ -9,6 +9,7 @@ require("@tenderly/hardhat-tenderly")
 import './test/common/setupTests'
 
 import initializePoolTasks from './scripts//pool-actions/'
+import initializeSwapTasks from './scripts/swaps/'
 
 const INFURA_PROJECT_ID = process.env.INFURA_PROJECT_ID || ''
 const MNEMONIC_SEED = process.env.MNEMONIC_SEED || ''
@@ -18,6 +19,7 @@ const TENDERLY_USERNAME = process.env.TENDERLY_USERNAME || ''
 const TENDERLY_PROJECT= process.env.TENDERLY_PROJECT || ''
 
 initializePoolTasks()
+initializeSwapTasks()
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
