@@ -1,0 +1,1 @@
+npx hardhat single-swap --to kovan --pool SHIRE-TON --kind GIVEN_IN --basetoken 0x95C29AAbcB6aE30147d271D800c4Df14e3e569fA    --quotetoken 0xF559A88Bc17B5a9D9859cE9Cab53d1B13A2fe30A --amount 1 --frominternalbalance false --tointernalbalance    false --limit 0 --deadline 300 --network kovan

@@ -1,0 +1,1 @@
+npx hardhat deploy-pool --to kovan --basetoken SHIRE --quotetoken TON --network kovan

@@ -6,7 +6,7 @@ import Vault from '@balancer-labs/v2-deployments/deployed/kovan/Vault.json'
 import { CurveMath__factory } from '../../typechain/factories/CurveMath__factory'
 import { Assimilators__factory } from '../../typechain/factories/Assimilators__factory'
 
-import { deployMockedProportionalLiquidity, deploySwaps } from '../../test/helpers/deployMockedCurveContracts'
+import { fp } from '../utils/numbers'
 
 declare const ethers: any
 declare const hre: any
@@ -51,6 +51,8 @@ export default async (taskArgs: any) => {
 	/** Deploy Assimilator Here */
 	const baseAssimilator = '0xa99202DD31C78B7A4f5C608ab286f1ac2bc03627' // PHP - USD
 	const quoteAssimilator = '0xbe8aD396DCdDB55013499AD11E5de919027C42ee' // USDC - USD
+	const assimilators = { address: '0x15C31d61687981dec710D1EaC307488df60B6751' }
+	const curveMath = { address: '0x1155bBF23f3c99583Ecd825592df8181f94830f8' }
 
 	/** Deploy Assimilators */
 	// const AssimilatorsLib = new Assimilators__factory(deployer)
@@ -77,19 +79,18 @@ export default async (taskArgs: any) => {
   // await proportionalLiquidityContract.deployed()
 
 	// const SwapsFactory = await ethers.getContractFactory('AmmV1Swaps', {
-	// 	// libraries: {
-	// 	// 	Assimilators: assimilators.address,
-	// 	// 	// CurveMath: curveMath.address,
-	// 	// }
+	// 	libraries: {
+	// 		Assimilators: assimilators.address,
+	// 		// CurveMath: curveMath.address,
+	// 	}
 	// })
 
 	// const swapsContract = await SwapsFactory.deploy()
   // await swapsContract.deployed()
 
-	const assimilators = { address: '0x15C31d61687981dec710D1EaC307488df60B6751' }
-	const curveMath = { address: '0x1155bBF23f3c99583Ecd825592df8181f94830f8' }
+	
 	const proportionalLiquidityContract = { address: '0x3BC220C9ea7BCFbD79B8141bf95d447238E75E1b' }
-	const swapsContract = { address: '0x764fFC0f6DA999fec0C2614750FE301652a0014B' }
+	const swapsContract = { address: '0x8FA69C0a9eC713156A2D5a50eB3A03Fa0A6F4909' }
 
 	console.log('swapsContract:', swapsContract.address)
 
@@ -190,6 +191,14 @@ export default async (taskArgs: any) => {
 		// await hre.run('verify:verify', {
 		// 	address: swapsContract.address
 		// })
+
+		await customPool.setParams(
+			fp(0.8),
+			fp(0.48),
+			fp(0.175),
+			fp(0.0005),
+			fp(0.3),
+		)
 
 		await hre.run('verify:verify', {
 			address: customPool.address,

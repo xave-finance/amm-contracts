@@ -1,0 +1,1 @@
+npx hardhat add-liquidity --to kovan --pool SHIRE-TON --basetoken 0x95C29AAbcB6aE30147d271D800c4Df14e3e569fA --quotetoken 0xF559A88Bc17B5a9D9859cE9Cab53d1B13A2fe30A  --baseamount 1000 --quoteamount 1000 --frominternalbalance false --network kovan

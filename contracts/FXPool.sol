@@ -213,44 +213,44 @@ contract FXPool is BaseMinimalSwapInfoPool {
 	}
 
 	function setParams(
-        uint256 _alpha,
-        uint256 _beta,
-        uint256 _feeAtHalt,
-        uint256 _epsilon,
-        uint256 _lambda
-    ) public {
-        require(0 < _alpha && _alpha < 1e18, "Curve/parameter-invalid-alpha");
+		uint256 _alpha,
+		uint256 _beta,
+		uint256 _feeAtHalt,
+		uint256 _epsilon,
+		uint256 _lambda
+	) public {
+		require(0 < _alpha && _alpha < 1e18, 'Curve/parameter-invalid-alpha');
 
-        require(_beta < _alpha, "Curve/parameter-invalid-beta");
+		require(_beta < _alpha, 'Curve/parameter-invalid-beta');
 
-        require(_feeAtHalt <= 5e17, "Curve/parameter-invalid-max");
+		require(_feeAtHalt <= 5e17, 'Curve/parameter-invalid-max');
 
-        require(_epsilon <= 1e16, "Curve/parameter-invalid-epsilon");
+		require(_epsilon <= 1e16, 'Curve/parameter-invalid-epsilon');
 
-        require(_lambda <= 1e18, "Curve/parameter-invalid-lambda");
+		require(_lambda <= 1e18, 'Curve/parameter-invalid-lambda');
 
-				FXPool pool = FXPool(address(this));
+		FXPool pool = FXPool(address(this));
 
-        int128 _omega = getFee(pool);
+		int128 _omega = getFee(pool);
 
-        alpha = (_alpha + 1).divu(1e18);
+		alpha = (_alpha + 1).divu(1e18);
 
-        beta = (_beta + 1).divu(1e18);
+		beta = (_beta + 1).divu(1e18);
 
-        int128 minued = alpha.sub(beta);
+		int128 minued = alpha.sub(beta);
 
-				delta = (_feeAtHalt).divu(1e18).div(uint256(2).fromUInt().mul(minued)) + ONE_WEI;
+		delta = (_feeAtHalt).divu(1e18).div(uint256(2).fromUInt().mul(minued)) + ONE_WEI;
 
-        epsilon = (_epsilon + 1).divu(1e18);
+		epsilon = (_epsilon + 1).divu(1e18);
 
-        lambda = (_lambda + 1).divu(1e18);
+		lambda = (_lambda + 1).divu(1e18);
 
-        int128 _psi = getFee(pool);
+		int128 _psi = getFee(pool);
 
-        require(_omega >= _psi, "Curve/parameters-increase-fee");
+		require(_omega >= _psi, 'Curve/parameters-increase-fee');
 
-        emit ParametersSet(_alpha, _beta, delta.mulu(1e18), _epsilon, _lambda);
-    }
+		emit ParametersSet(_alpha, _beta, delta.mulu(1e18), _epsilon, _lambda);
+	}
 
 	function getFee(FXPool pool) private returns (int128 fee_) {
 		int128 _gLiq;
@@ -266,7 +266,7 @@ contract FXPool is BaseMinimalSwapInfoPool {
 
 			_gLiq += _bal;
 		}
-		
+
 		fee_ = CurveMath.calculateFee(_gLiq, _bals, beta, delta, weights);
 	}
 
@@ -458,9 +458,16 @@ contract FXPool is BaseMinimalSwapInfoPool {
 		// );
 
 		// return tAmt_;
+		CurveMath.Liquidity memory liquidity = CurveMath.Liquidity({
+			// oGLiq: ABDKMath64x64.fromInt(ABDKMath64x64.fromUInt(balanceTokenIn)),
+			// nGLiq: ABDKMath64x64.fromInt(ABDKMath64x64.fromUInt(balanceTokenOut))
+			oGLiq: ABDKMath64x64.fromUInt(1),
+			nGLiq: ABDKMath64x64.fromUInt(1)
+		});
 
-		(uint256 tAmt_) = swaps.viewOriginSwap(
+		uint256 tAmt_ = swaps.viewOriginSwap(
 			FXPool(address(this)),
+			liquidity,
 			address(swapRequest.tokenIn),
 			address(swapRequest.tokenOut),
 			swapRequest.amount

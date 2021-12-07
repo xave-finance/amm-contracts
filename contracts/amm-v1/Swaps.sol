@@ -127,6 +127,7 @@ contract AmmV1Swaps {
 
 	function viewOriginSwap(
 		FXPool pool,
+		CurveMath.Liquidity memory liquidity,
 		address _origin,
 		address _target,
 		uint256 _originAmount
@@ -144,19 +145,19 @@ contract AmmV1Swaps {
 					Assimilators.viewNumeraireAmount(_o.addr, _originAmount)
 				);
 
-		(
-			int128 _amt,
-			int128 _oGLiq,
-			int128 _nGLiq,
-			int128[] memory _nBals,
-			int128[] memory _oBals
-		) = viewOriginSwapData(pool, _o.ix, _t.ix, _originAmount, _o.addr);
+		(int128 _amt, , , int128[] memory _nBals, int128[] memory _oBals) = viewOriginSwapData(
+			pool,
+			_o.ix,
+			_t.ix,
+			_originAmount,
+			_o.addr
+		);
 
 		(CurveMath.CurveDimensions memory dimensions, int128[] memory weights) = _getDimensions(
 			pool
 		);
 
-		CurveMath.Liquidity memory liquidity = CurveMath.Liquidity({oGLiq: _oGLiq, nGLiq: _nGLiq});
+		// CurveMath.Liquidity memory liquidity = CurveMath.Liquidity({oGLiq: _oGLiq, nGLiq: _nGLiq});
 
 		CurveMath.Balances memory balances = CurveMath.Balances({oBals: _oBals, nBals: _nBals});
 

@@ -98,6 +98,41 @@ describe('FX Pool', () => {
 		})
 	})
 
+	describe('initialize', () => {
+		context('when triggered during pool creation', () => {
+			it('sets the assimilators', async () => {
+				const baseAssimilator = '0xa99202DD31C78B7A4f5C608ab286f1ac2bc03627' // PHP - USD
+				const quoteAssimilator = '0xbe8aD396DCdDB55013499AD11E5de919027C42ee' // USDC - USD
+
+				const addedBaseAssim = await pool.getAssimilator(baseAssimilator)
+				const addedQuoteAssim = await pool.getAssimilator(quoteAssimilator)
+
+				console.log('addedBaseAssim:', addedBaseAssim)
+				console.log('addedQuoteAssim:', addedQuoteAssim)
+			})
+
+			it('sets the assets', async () => {
+
+			})
+
+			it('sets the weights', async () => {
+
+			})
+
+			it('sets the numeraires', async () => {
+				
+			})
+
+			it('sets the derivatives', async () => {
+				
+			})
+
+			it('sets the reserves', async () => {
+				
+			})
+		})
+	})
+
 	describe('onInitializePool', () => {
 		context('when provided with invalid parameters', () => {
 			it('reverts when not provided with user data payload', async () => {

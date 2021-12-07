@@ -190,16 +190,7 @@
   "resolved" "https://registry.npmjs.org/@balancer-labs/v2-deployments/-/v2-deployments-1.1.1.tgz"
   "version" "1.1.1"
 
-"@balancer-labs/v2-pool-stable@^2.0.0":
-  "integrity" "sha512-zh1saY6lbiOfmxTCyZjfwiYpLYISpnWdSJIfZkJxOemGF/YkeojRnF6p9t///iKRAaH6YdX5iU24LkBK1Atv3g=="
-  "resolved" "https://registry.npmjs.org/@balancer-labs/v2-pool-stable/-/v2-pool-stable-2.0.0.tgz"
-  "version" "2.0.0"
-  dependencies:
-    "@balancer-labs/v2-pool-utils" "2.0.1"
-    "@balancer-labs/v2-solidity-utils" "2.0.0"
-    "@balancer-labs/v2-vault" "2.0.0"
-
-"@balancer-labs/v2-pool-utils@^2.0.1", "@balancer-labs/v2-pool-utils@2.0.1":
+"@balancer-labs/v2-pool-utils@^2.0.1":
   "integrity" "sha512-Xt3d8LqJnqq5JkuSgvf0sZuWqaywg9JxrCT1myVsG6zgbtfvcraJgSCLERUdqxP47aUPHwKvm5/+mdT9xayCXA=="
   "resolved" "https://registry.npmjs.org/@balancer-labs/v2-pool-utils/-/v2-pool-utils-2.0.1.tgz"
   "version" "2.0.1"
@@ -208,21 +199,12 @@
     "@balancer-labs/v2-solidity-utils" "2.0.0"
     "@balancer-labs/v2-vault" "2.0.0"
 
-"@balancer-labs/v2-pool-weighted@^2.0.1":
-  "integrity" "sha512-0rNdK/7grQ1UlqmEtZV2nldSlNrGaBevfoiIbhYK3K+GHRTBs4cyCtuucDvEgtmDxbKIoO4W4p0xcrfCtMiyBw=="
-  "resolved" "https://registry.npmjs.org/@balancer-labs/v2-pool-weighted/-/v2-pool-weighted-2.0.1.tgz"
-  "version" "2.0.1"
-  dependencies:
-    "@balancer-labs/v2-pool-utils" "2.0.1"
-    "@balancer-labs/v2-solidity-utils" "2.0.0"
-    "@balancer-labs/v2-vault" "2.0.0"
-
-"@balancer-labs/v2-solidity-utils@^2.0.0", "@balancer-labs/v2-solidity-utils@2.0.0":
+"@balancer-labs/v2-solidity-utils@2.0.0":
   "integrity" "sha512-OB+05vJqrs35B1d40y7tnSm6oYWnsmfRa/wpI2owJXhwx/8qr2buE+RDmT0x6Upr/c7wBdUh8v4UVk9l0+CNiA=="
   "resolved" "https://registry.npmjs.org/@balancer-labs/v2-solidity-utils/-/v2-solidity-utils-2.0.0.tgz"
   "version" "2.0.0"
 
-"@balancer-labs/v2-vault@^2.0.0", "@balancer-labs/v2-vault@2.0.0":
+"@balancer-labs/v2-vault@2.0.0":
   "integrity" "sha512-GwPY84j6g7OY1z13wRYYGQeupb6DI3U+s22Ebg2v32djS9CnPzM04GJapURRbKZkpraUOYIcqhEF3Cm1AafAKg=="
   "resolved" "https://registry.npmjs.org/@balancer-labs/v2-vault/-/v2-vault-2.0.0.tgz"
   "version" "2.0.0"
@@ -3981,7 +3963,7 @@
   "resolved" "https://registry.npmjs.org/eth-sig-util/-/eth-sig-util-1.4.2.tgz"
   "version" "1.4.2"
   dependencies:
-    "ethereumjs-abi" "ethereumjs-abi@git+https://github.com/ethereumjs/ethereumjs-abi.git"
+    "ethereumjs-abi" "git+https://github.com/ethereumjs/ethereumjs-abi.git"
     "ethereumjs-util" "^5.1.1"
 
 "eth-sig-util@^2.5.2":
@@ -4112,7 +4094,7 @@
     "bn.js" "^4.10.0"
     "ethereumjs-util" "^4.3.0"
 
-"ethereumjs-abi@ethereumjs-abi@git+https://github.com/ethereumjs/ethereumjs-abi.git":
+"ethereumjs-abi@git+https://github.com/ethereumjs/ethereumjs-abi.git":
   "resolved" "git+ssh://git@github.com/ethereumjs/ethereumjs-abi.git#ee3994657fa7a427238e6ba92a84d0b529bbcde0"
   dependencies:
     "bn.js" "^4.11.8"

@@ -1,6 +1,6 @@
 import '@nomiclabs/hardhat-ethers'
 import Vault from '@balancer-labs/v2-deployments/deployed/kovan/Vault.json'
-import { Vault as VaultInterface } from '../../typechain/Vault'
+// import { Vault as VaultInterface } from '../../typechain/Vault'
 import editJson from 'edit-json-file'
 
 import { Wallet, utils } from 'ethers'
@@ -55,7 +55,7 @@ export default async (taskArgs: any) => {
   }
 
 
-  const vault = await ethers.getContractAt(Vault.abi, Vault.address) as VaultInterface
+  const vault = await ethers.getContractAt(Vault.abi, Vault.address)
   const connectedVault = await vault.connect(deployer)
 
   const encodedSingleSwapTx = await connectedVault.populateTransaction.swap(singleSwapRequest, fundManagement, limit, deadline)
