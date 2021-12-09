@@ -138,7 +138,7 @@ contract AmmV1Swaps {
 			_target
 		);
 
-		if (_o.ix == _t.ix)
+		if (_o.ix == _t.ix)	//TODO: Figure out reason for doing this
 			return
 				Assimilators.viewRawAmount(
 					_t.addr,

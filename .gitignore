@@ -353,11 +353,3 @@ MigrationBackup/
 
 build/
 cache/
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-
-typechain/
-=======
->>>>>>> 9c4dbf9 (added custom pool boilerplate)
->>>>>>> master

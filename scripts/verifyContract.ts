@@ -7,7 +7,7 @@ declare const hre: any
 
 const verify = async() => {
 
-  const CONTRACT = '0x0538cab9Ab43eDf2Afc36CE08fD75B744066082A'
+  const CONTRACT = '0x6F40a5aa86C6a96efE3C916182D22cF8B687B193'
 
   const baseAssimilator = '0xa99202DD31C78B7A4f5C608ab286f1ac2bc03627' // PHP - USD
 	const quoteAssimilator = '0xbe8aD396DCdDB55013499AD11E5de919027C42ee' // USDC - USD
@@ -24,7 +24,7 @@ const verify = async() => {
 	const bufferPeriodDuration = 2592000
 
   const PROPORTIONAL_LIQUIDITY = '0x3BC220C9ea7BCFbD79B8141bf95d447238E75E1b'
-  const SWAPS = '0x8FA69C0a9eC713156A2D5a50eB3A03Fa0A6F4909'
+  const SWAPS = '0x51Dd683319F8B74EC9aC582b3881c6382093527C'
 
   const CONSTRUCTOR_ARGS = [Vault.address,
     'Custom V2 Pool', `${baseTokenAddress}-${quoteTokenAddress} LP`, tokens, assets, assetWeights,
@@ -35,6 +35,7 @@ const verify = async() => {
     constructorArguments: [Vault.address,
       'Custom V2 Pool', `${baseTokenAddress}-${quoteTokenAddress} LP`, tokens, assets, assetWeights,
       swapFeePercentage, pauseWindowDuration, bufferPeriodDuration, PROPORTIONAL_LIQUIDITY, SWAPS],
+    // constructorArguments: []
   })
 }
 

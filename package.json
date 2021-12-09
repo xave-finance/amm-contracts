@@ -12,7 +12,7 @@
     "pool:add-liquidity": "ts-node scripts/cli/addLiquidityCLI.ts",
     "pool:remove-liquidity": "ts-node scripts/cli/removeLiquidityCLI.ts",
     "swap:single": "ts-node scripts/cli/singleSwapCLI.ts",
-    "verify:contract": "npx hardhat run scripts/verifyContract.ts --network kovan",
+    "verify": "npx hardhat run scripts/verifyContract.ts --network kovan",
     "node": "npx hardhat node",
     "test": "npx hardhat test",
     "typecheck": "yarn compile && tsc --noEmit",

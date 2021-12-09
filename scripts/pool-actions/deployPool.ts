@@ -51,20 +51,20 @@ export default async (taskArgs: any) => {
 	/** Deploy Assimilator Here */
 	const baseAssimilator = '0xa99202DD31C78B7A4f5C608ab286f1ac2bc03627' // PHP - USD
 	const quoteAssimilator = '0xbe8aD396DCdDB55013499AD11E5de919027C42ee' // USDC - USD
-	const assimilators = { address: '0x15C31d61687981dec710D1EaC307488df60B6751' }
-	const curveMath = { address: '0x1155bBF23f3c99583Ecd825592df8181f94830f8' }
+	// const assimilators = { address: '0x15C31d61687981dec710D1EaC307488df60B6751' }
+	// const curveMath = { address: '0x1155bBF23f3c99583Ecd825592df8181f94830f8' }
 
 	/** Deploy Assimilators */
-	// const AssimilatorsLib = new Assimilators__factory(deployer)
-	// const assimilators = await AssimilatorsLib.deploy()
-	// await assimilators.deployed()
+	const AssimilatorsLib = new Assimilators__factory(deployer)
+	const assimilators = await AssimilatorsLib.deploy()
+	await assimilators.deployed()
 
 	// console.log('assimilators:', assimilators.address)
 
-	// /** Deploy Curve Math */
-	// const CurveMathLib = new CurveMath__factory(deployer)
-	// const curveMath = await CurveMathLib.deploy()
-	// await curveMath.deployed()
+	/** Deploy Curve Math */
+	const CurveMathLib = new CurveMath__factory(deployer)
+	const curveMath = await CurveMathLib.deploy()
+	await curveMath.deployed()
 
 	// console.log('curveMath:', curveMath.address)
 
@@ -78,19 +78,19 @@ export default async (taskArgs: any) => {
   // const proportionalLiquidityContract = await ProportionalLiquidityFactory.deploy()
   // await proportionalLiquidityContract.deployed()
 
-	// const SwapsFactory = await ethers.getContractFactory('AmmV1Swaps', {
-	// 	libraries: {
-	// 		Assimilators: assimilators.address,
-	// 		// CurveMath: curveMath.address,
-	// 	}
-	// })
+	const SwapsFactory = await ethers.getContractFactory('AmmV1Swaps', {
+		libraries: {
+			Assimilators: assimilators.address,
+			// CurveMath: curveMath.address,
+		}
+	})
 
-	// const swapsContract = await SwapsFactory.deploy()
-  // await swapsContract.deployed()
+	const swapsContract = await SwapsFactory.deploy()
+  await swapsContract.deployed()
 
 	
 	const proportionalLiquidityContract = { address: '0x3BC220C9ea7BCFbD79B8141bf95d447238E75E1b' }
-	const swapsContract = { address: '0x8FA69C0a9eC713156A2D5a50eB3A03Fa0A6F4909' }
+	// const swapsContract = { address: '0x8FA69C0a9eC713156A2D5a50eB3A03Fa0A6F4909' }
 
 	console.log('swapsContract:', swapsContract.address)
 
@@ -176,21 +176,21 @@ export default async (taskArgs: any) => {
 
 		await sleep(150000)
 
-		// await hre.run('verify:verify', {
-		// 	address: assimilators.address
-		// })
+		await hre.run('verify:verify', {
+			address: assimilators.address
+		})
 
-		// await hre.run('verify:verify', {
-		// 	address: curveMath.address
-		// })
+		await hre.run('verify:verify', {
+			address: curveMath.address
+		})
 
 		// await hre.run('verify:verify', {
 		// 	address: proportionalLiquidityContract.address
 		// })
 
-		// await hre.run('verify:verify', {
-		// 	address: swapsContract.address
-		// })
+		await hre.run('verify:verify', {
+			address: swapsContract.address
+		})
 
 		await customPool.setParams(
 			fp(0.8),

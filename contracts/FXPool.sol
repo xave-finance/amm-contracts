@@ -185,23 +185,41 @@ contract FXPool is BaseMinimalSwapInfoPool {
 
 		if (_numeraire != _reserve) IERC20(_numeraire).approve(_reserveApproveTo, uint256(-1));
 
-		Assimilator storage _numeraireAssimilator = assimilators[_numeraire];
+		// Assimilator storage _numeraireAssimilator = assimilators[_numeraire];
 
-		_numeraireAssimilator.addr = _numeraireAssim;
+		// _numeraireAssimilator.addr = _numeraireAssim;
 
-		_numeraireAssimilator.ix = uint8(assets.length);
+		// _numeraireAssimilator.ix = uint8(assets.length);
 
-		Assimilator storage _reserveAssimilator = assimilators[_reserve];
+		// Assimilator storage _reserveAssimilator = assimilators[_reserve];
 
-		_reserveAssimilator.addr = _reserveAssim;
+		// _reserveAssimilator.addr = _reserveAssim;
 
-		_reserveAssimilator.ix = uint8(assets.length);
+		// _reserveAssimilator.ix = uint8(assets.length);
+
+		Assimilator memory _numeraireAssimilator = Assimilator({
+			addr: _numeraireAssim,
+			ix: uint8(assets.length)
+		});
+
+		assimilators[_numeraire] = _numeraireAssimilator;
+
+
+		Assimilator memory _reserveAssimilator = Assimilator({
+			addr: _reserveAssim,
+			ix: uint8(assets.length)
+		});
+
+		assimilators[_reserve] = _reserveAssimilator;
 
 		int128 __weight = _weight.divu(1e18).add(uint256(1).divu(1e18));
 
 		weights.push(__weight);
 
 		assets.push(_numeraireAssimilator);
+		// assets.push(_reserveAssimilator); // commented out cause was not added in original code
+
+
 
 		emit AssetIncluded(_numeraire, _reserve, _weight);
 

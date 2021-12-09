@@ -2,6 +2,9 @@
   "POOLS_LIST": [
     "BERG-FORT",
     "FORT-SHIRE",
+    "SHIRE-TON",
+    "SHIRE-TON",
+    "SHIRE-TON",
     "SHIRE-TON"
   ],
   "BERG-FORT": {
@@ -22,8 +25,8 @@
   },
   "SHIRE-TON": {
     "kovan": {
-      "address": "0x5EC40a3C5F00EAf1508703aD33d970D36A990F8D",
-      "poolId": "0x5ec40a3c5f00eaf1508703ad33d970d36a990f8d0001000000000000000004a1",
+      "address": "0x6F40a5aa86C6a96efE3C916182D22cF8B687B193",
+      "poolId": "0x6f40a5aa86c6a96efe3c916182d22cf8b687b1930001000000000000000004c7",
       "baseTokenAddress": "0x95C29AAbcB6aE30147d271D800c4Df14e3e569fA",
       "quoteTokenAddress": "0xF559A88Bc17B5a9D9859cE9Cab53d1B13A2fe30A"
     }

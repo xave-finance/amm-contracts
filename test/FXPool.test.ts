@@ -101,11 +101,14 @@ describe('FX Pool', () => {
 	describe('initialize', () => {
 		context('when triggered during pool creation', () => {
 			it('sets the assimilators', async () => {
-				const baseAssimilator = '0xa99202DD31C78B7A4f5C608ab286f1ac2bc03627' // PHP - USD
-				const quoteAssimilator = '0xbe8aD396DCdDB55013499AD11E5de919027C42ee' // USDC - USD
+				// const baseAssimilator = '0xa99202DD31C78B7A4f5C608ab286f1ac2bc03627' // PHP - USD
+				// const quoteAssimilator = '0xbe8aD396DCdDB55013499AD11E5de919027C42ee' // USDC - USD
 
-				const addedBaseAssim = await pool.getAssimilator(baseAssimilator)
-				const addedQuoteAssim = await pool.getAssimilator(quoteAssimilator)
+				// const addedBaseAssim = await pool.getAssimilator(baseAssimilator)
+				// const addedQuoteAssim = await pool.getAssimilator(quoteAssimilator)
+
+				const addedBaseAssim = await pool.getAssimilator(tokenA.address)
+				const addedQuoteAssim = await pool.getAssimilator(tokenB.address)
 
 				console.log('addedBaseAssim:', addedBaseAssim)
 				console.log('addedQuoteAssim:', addedQuoteAssim)
