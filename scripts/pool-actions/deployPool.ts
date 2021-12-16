@@ -49,22 +49,28 @@ export default async (taskArgs: any) => {
 	// }
 
 	/** Deploy Assimilator Here */
-	const baseAssimilator = '0xa99202DD31C78B7A4f5C608ab286f1ac2bc03627' // PHP - USD
-	const quoteAssimilator = '0xbe8aD396DCdDB55013499AD11E5de919027C42ee' // USDC - USD
-	// const assimilators = { address: '0x15C31d61687981dec710D1EaC307488df60B6751' }
-	// const curveMath = { address: '0x1155bBF23f3c99583Ecd825592df8181f94830f8' }
+	// const baseAssimilator = '0xa99202DD31C78B7A4f5C608ab286f1ac2bc03627' // PHP - USD
+	// const quoteAssimilator = '0xbe8aD396DCdDB55013499AD11E5de919027C42ee' // USDC - USD
+
+	const baseAssimilator = '0xF9596c5781ABAA8dC8cf8eFE091fa93e61665a2F' // W-PESO - W-USDC
+	const quoteAssimilator = '0xE6dBa291C1E2c59474c5b92D6e865637C1C0bFaC' // W-USDC - USD
+
+	// const baseAssimilator = '0xF9596c5781ABAA8dC8cf8eFE091fa93e61665a2F' // CHF
+	// const quoteAssimilator = '0xE6dBa291C1E2c59474c5b92D6e865637C1C0bFaC' // USDC
+	const assimilators = { address: '0x15C31d61687981dec710D1EaC307488df60B6751' }
+	const curveMath = { address: '0x1155bBF23f3c99583Ecd825592df8181f94830f8' }
 
 	/** Deploy Assimilators */
-	const AssimilatorsLib = new Assimilators__factory(deployer)
-	const assimilators = await AssimilatorsLib.deploy()
-	await assimilators.deployed()
+	// const AssimilatorsLib = new Assimilators__factory(deployer)
+	// const assimilators = await AssimilatorsLib.deploy()
+	// await assimilators.deployed()
 
-	// console.log('assimilators:', assimilators.address)
+	// // console.log('assimilators:', assimilators.address)
 
-	/** Deploy Curve Math */
-	const CurveMathLib = new CurveMath__factory(deployer)
-	const curveMath = await CurveMathLib.deploy()
-	await curveMath.deployed()
+	// /** Deploy Curve Math */
+	// const CurveMathLib = new CurveMath__factory(deployer)
+	// const curveMath = await CurveMathLib.deploy()
+	// await curveMath.deployed()
 
 	// console.log('curveMath:', curveMath.address)
 
@@ -78,19 +84,19 @@ export default async (taskArgs: any) => {
   // const proportionalLiquidityContract = await ProportionalLiquidityFactory.deploy()
   // await proportionalLiquidityContract.deployed()
 
-	const SwapsFactory = await ethers.getContractFactory('AmmV1Swaps', {
-		libraries: {
-			Assimilators: assimilators.address,
-			// CurveMath: curveMath.address,
-		}
-	})
+	// const SwapsFactory = await ethers.getContractFactory('AmmV1Swaps', {
+	// 	libraries: {
+	// 		Assimilators: assimilators.address,
+	// 		// CurveMath: curveMath.address,
+	// 	}
+	// })
 
-	const swapsContract = await SwapsFactory.deploy()
-  await swapsContract.deployed()
+	// const swapsContract = await SwapsFactory.deploy()
+  // await swapsContract.deployed()
 
 	
 	const proportionalLiquidityContract = { address: '0x3BC220C9ea7BCFbD79B8141bf95d447238E75E1b' }
-	// const swapsContract = { address: '0x8FA69C0a9eC713156A2D5a50eB3A03Fa0A6F4909' }
+	const swapsContract = { address: '0x51dd683319f8b74ec9ac582b3881c6382093527c' }
 
 	console.log('swapsContract:', swapsContract.address)
 
@@ -107,7 +113,9 @@ export default async (taskArgs: any) => {
 	})
 	const swapFeePercentage = ethers.utils.parseEther('0.000001') // working already 10% fee
 
-	const tokens = sortAddresses([baseTokenAddress, quoteTokenAddress]) // need to be sorted
+	// const tokens = sortAddresses([baseTokenAddress, quoteTokenAddress]) // need to be sorted
+	const tokens = [quoteTokenAddress, baseTokenAddress]
+	console.log('tokens:', tokens)
 	// const assets = [baseTokenAddress, quoteTokenAddress, baseTokenAddress, quoteTokenAddress, baseTokenAddress, baseTokenAddress, quoteTokenAddress, baseTokenAddress, quoteTokenAddress, baseTokenAddress, baseTokenAddress, quoteTokenAddress, baseTokenAddress, quoteTokenAddress, baseTokenAddress]
 	const assets = [baseTokenAddress, baseAssimilator, baseTokenAddress, baseAssimilator, baseTokenAddress,
 										quoteTokenAddress, quoteAssimilator, quoteTokenAddress, quoteAssimilator, quoteTokenAddress]
@@ -176,21 +184,21 @@ export default async (taskArgs: any) => {
 
 		await sleep(150000)
 
-		await hre.run('verify:verify', {
-			address: assimilators.address
-		})
-
-		await hre.run('verify:verify', {
-			address: curveMath.address
-		})
-
 		// await hre.run('verify:verify', {
-		// 	address: proportionalLiquidityContract.address
+		// 	address: assimilators.address
 		// })
 
-		await hre.run('verify:verify', {
-			address: swapsContract.address
-		})
+		// await hre.run('verify:verify', {
+		// 	address: curveMath.address
+		// })
+
+		// // await hre.run('verify:verify', {
+		// // 	address: proportionalLiquidityContract.address
+		// // })
+
+		// await hre.run('verify:verify', {
+		// 	address: swapsContract.address
+		// })
 
 		await customPool.setParams(
 			fp(0.8),

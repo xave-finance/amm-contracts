@@ -157,7 +157,6 @@ contract AmmV1Swaps {
 			pool
 		);
 
-		// CurveMath.Liquidity memory liquidity = CurveMath.Liquidity({oGLiq: _oGLiq, nGLiq: _nGLiq});
 
 		CurveMath.Balances memory balances = CurveMath.Balances({oBals: _oBals, nBals: _nBals});
 

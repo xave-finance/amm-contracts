@@ -82,7 +82,7 @@ export default {
 			forking: {
 				url: `https://eth-kovan.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
 				// blockNumber: 28132012,
-				blockNumber: 28611095,
+				blockNumber: 28764216,
 			},
 			accounts: {
 				accountsBalance: '100000000000000000000000', // 100000 ETH

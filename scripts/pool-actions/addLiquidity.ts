@@ -28,11 +28,24 @@ export default async (taskArgs: any) => {
 
   const poolId = await POOLS_FILE.get(`${pool}.${network}.poolId`)
 
-  const liquidityToAdd = [ethers.utils.parseEther(`${baseAmount}`), ethers.utils.parseEther(`${quoteAmount}`)]
+  const ERC20 = await ethers.getContractFactory('@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20')
+
+  const baseTokenDecimals = await ERC20.attach(baseToken).decimals()
+  const quoteTokenDecimals = await ERC20.attach(quoteToken).decimals()
+
+  // console.log('baseTokenDecimals:', baseTokenDecimals)
+  // console.log('quoteTokenDecimals:', quoteTokenDecimals)
+  // console.log('ethers.utils.parseUnits(`${baseAmount}`, baseTokenDecimals):', ethers.utils.parseUnits(`${baseAmount}`, baseTokenDecimals).toNumber())
+  // console.log('ethers.utils.parseUnits(`${quoteAmount}`, quoteTokenDecimals):', ethers.utils.parseUnits(`${quoteAmount}`, quoteTokenDecimals).toNumber())
+
+  // const liquidityToAdd = [ethers.utils.parseEther(`${baseAmount}`), ethers.utils.parseEther(`${quoteAmount}`)]
+  // const liquidityToAdd = [ethers.utils.parseUnits(`${baseAmount}`, baseTokenDecimals), ethers.utils.parseUnits(`${quoteAmount}`, quoteTokenDecimals)]
+  const liquidityToAdd = [ethers.utils.parseUnits(`${quoteAmount}`, quoteTokenDecimals), ethers.utils.parseUnits(`${baseAmount}`, baseTokenDecimals)]
   const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]'], [liquidityToAdd])
 
   const joinPoolRequest = {
-    assets: sortAddresses([baseToken, quoteToken]),
+    // assets: sortAddresses([baseToken, quoteToken]),
+    assets: [quoteToken, baseToken],
     maxAmountsIn: liquidityToAdd,
     userData: payload,
     // userData: '0x',

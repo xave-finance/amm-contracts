@@ -5,7 +5,7 @@ pragma experimental ABIEncoderV2;
 
 import './Assimilators.sol';
 
-import "../FXPool.sol";
+import '../FXPool.sol';
 
 import './lib/UnsafeMath64x64.sol';
 import './lib/ABDKMath64x64.sol';
@@ -27,21 +27,14 @@ contract ProportionalLiquidity {
 		uint8 ix;
 	}
 
-	function proportionalDeposit(FXPool curve, uint256 _deposit)
-		external
-		returns (uint256 curves_, uint256[] memory)
-	{
-		int128 __deposit = _deposit.divu(1e18);
-
-		uint256 _length = curve.getAssetsLength();
-
-		uint256[] memory deposits_ = new uint256[](_length);
-
-		(int128 _oGLiq, int128[] memory _oBals) = getGrossLiquidityAndBalancesForDeposit(curve);
-
-		// Needed to calculate liquidity invariant
-		(int128 _oGLiqProp, int128[] memory _oBalsProp) = getGrossLiquidityAndBalances(curve);
-
+	function _x(
+		int128 _oGLiq,
+		uint256 _length,
+		int128 __deposit,
+		FXPool curve,
+		uint256[] memory deposits_,
+		int128[] memory _oBals
+	) internal returns (uint256[] memory, int128) {
 		// No liquidity, oracle sets the ratio
 		if (_oGLiq == 0) {
 			for (uint256 i = 0; i < _length; i++) {
@@ -72,6 +65,83 @@ contract ProportionalLiquidity {
 
 		int128 _totalShells = curve.totalSupply().divu(1e18);
 
+		return (deposits_, _totalShells);
+	}
+
+	function _proportionalDeposit(FXPool curve, uint256 _deposit)
+		internal
+		returns (
+			int128,
+			int128,
+			int128,
+			int128[] memory,
+			uint256[] memory
+		)
+	{
+		int128 __deposit = _deposit.divu(1e18);
+
+		uint256 _length = curve.getAssetsLength();
+
+		uint256[] memory deposits_ = new uint256[](_length);
+
+		(int128 _oGLiq, int128[] memory _oBals) = getGrossLiquidityAndBalancesForDeposit(curve);
+
+		// Needed to calculate liquidity invariant
+		(int128 _oGLiqProp, int128[] memory _oBalsProp) = getGrossLiquidityAndBalances(curve);
+
+		// // No liquidity, oracle sets the ratio
+		// if (_oGLiq == 0) {
+		// 	for (uint256 i = 0; i < _length; i++) {
+		// 		// Variable here to avoid stack-too-deep errors
+		// 		int128 _d = __deposit.mul(curve.weights(i));
+		// 		address assimilatorAddress = curve.getAsset(i).addr;
+		// 		deposits_[i] = Assimilators.intakeNumeraire(assimilatorAddress, _d.add(ONE_WEI));
+		// 	}
+		// } else {
+		// 	// We already have an existing pool ratio
+		// 	// which must be respected
+		// 	int128 _multiplier = __deposit.div(_oGLiq);
+
+		// 	uint256 _baseWeight = curve.weights(0).mulu(1e18);
+		// 	uint256 _quoteWeight = curve.weights(1).mulu(1e18);
+
+		// 	for (uint256 i = 0; i < _length; i++) {
+		// 		address assimilatorAddress = curve.getAsset(i).addr;
+		// 		int128 oGBal = _oBals[i].mul(_multiplier);
+		// 		deposits_[i] = Assimilators.intakeNumeraireLPRatio(
+		// 			assimilatorAddress,
+		// 			_baseWeight,
+		// 			_quoteWeight,
+		// 			oGBal.add(ONE_WEI)
+		// 		);
+		// 	}
+		// }
+
+		// int128 _totalShells = curve.totalSupply().divu(1e18);
+
+		// return (_totalShells, _oGLiq, _oGLiqProp, _oBalsProp, deposits_);
+
+
+		(uint256[] memory updatedDeposits, int128 totalSupply) = _x(_oGLiq, _length, __deposit, curve, deposits_, _oBals);
+
+		return (totalSupply, _oGLiq, _oGLiqProp, _oBalsProp, updatedDeposits);
+
+	}
+
+	function initialProportionalDeposit(FXPool curve, uint256 _deposit)
+		external
+		returns (uint256 curves_, uint256[] memory)
+	{
+		int128 __deposit = _deposit.divu(1e18);
+
+		(
+			int128 _totalShells,
+			int128 _oGLiq,
+			int128 _oGLiqProp,
+			int128[] memory _oBalsProp,
+			uint256[] memory deposits_
+		) = _proportionalDeposit(curve, _deposit);
+
 		int128 _newShells = __deposit;
 
 		if (_totalShells > 0) {
@@ -81,7 +151,34 @@ contract ProportionalLiquidity {
 
 		requireLiquidityInvariant(curve, _totalShells, _newShells, _oGLiqProp, _oBalsProp);
 
-		// mint(curve, msg.sender, curves_ = _newShells.mulu(1e18));
+		curves_ = _newShells.mulu(1e18);
+
+		return (curves_, deposits_);
+	}
+
+	// @TODO: Need to rewrite. Separate the first instance deposit. Create internal function
+	function proportionalDeposit(FXPool curve, uint256 _deposit)
+		external
+		returns (uint256 curves_, uint256[] memory)
+	{
+		int128 __deposit = _deposit.divu(1e18);
+
+		(
+			int128 _totalShells,
+			int128 _oGLiq,
+			int128 _oGLiqProp,
+			int128[] memory _oBalsProp,
+			uint256[] memory deposits_
+		) = _proportionalDeposit(curve, _deposit);
+
+		int128 _newShells = __deposit;
+
+		_newShells = __deposit.div(_oGLiq);
+		_newShells = _newShells.mul(_totalShells);
+
+		requireLiquidityInvariant(curve, _totalShells, _newShells, _oGLiqProp, _oBalsProp);
+
+		curves_ = _newShells.mulu(1e18);
 
 		return (curves_, deposits_);
 	}
@@ -103,10 +200,7 @@ contract ProportionalLiquidity {
 			for (uint256 i = 0; i < _length; i++) {
 				address assimilatorAddress = curve.getAsset(i).addr;
 				int128 deposit = __deposit.mul(curve.weights(i));
-				deposits_[i] = Assimilators.viewRawAmount(
-					assimilatorAddress,
-					deposit.add(ONE_WEI)
-				);
+				deposits_[i] = Assimilators.viewRawAmount(assimilatorAddress, deposit.add(ONE_WEI));
 			}
 		} else {
 			// We already have an existing pool ratio

@@ -7,12 +7,12 @@ declare const hre: any
 
 const verify = async() => {
 
-  const CONTRACT = '0x6F40a5aa86C6a96efE3C916182D22cF8B687B193'
+  const CONTRACT = '0x1e9Acc58DFCd3DCc9BE00a7cbe1e4FF633e9E3b5'
 
-  const baseAssimilator = '0xa99202DD31C78B7A4f5C608ab286f1ac2bc03627' // PHP - USD
-	const quoteAssimilator = '0xbe8aD396DCdDB55013499AD11E5de919027C42ee' // USDC - USD
-  const baseTokenAddress = '0x95C29AAbcB6aE30147d271D800c4Df14e3e569fA'
-  const quoteTokenAddress = '0xF559A88Bc17B5a9D9859cE9Cab53d1B13A2fe30A'
+  const baseAssimilator = '0xF9596c5781ABAA8dC8cf8eFE091fa93e61665a2F' // W-PESO - W-USDC
+	const quoteAssimilator = '0xE6dBa291C1E2c59474c5b92D6e865637C1C0bFaC' // W-USDC - USD
+  const baseTokenAddress = '0xaE70265126c20F64A6b011b86F8E7852B0010eCe'
+  const quoteTokenAddress = '0xa57c092a117C9dE50922A75674dd35ab34d82c4A'
   const swapFeePercentage = ethers.utils.parseEther('0.000001') // working already 10% fee
 
 	const tokens = sortAddresses([baseTokenAddress, quoteTokenAddress]) // need to be sorted
@@ -24,7 +24,7 @@ const verify = async() => {
 	const bufferPeriodDuration = 2592000
 
   const PROPORTIONAL_LIQUIDITY = '0x3BC220C9ea7BCFbD79B8141bf95d447238E75E1b'
-  const SWAPS = '0x51Dd683319F8B74EC9aC582b3881c6382093527C'
+  const SWAPS = '0x2bde781a5B6c0747058c1e1C0998BCb87d4e2CE5'
 
   const CONSTRUCTOR_ARGS = [Vault.address,
     'Custom V2 Pool', `${baseTokenAddress}-${quoteTokenAddress} LP`, tokens, assets, assetWeights,

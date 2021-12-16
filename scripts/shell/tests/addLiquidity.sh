@@ -1,1 +1,1 @@
-npx hardhat add-liquidity --to kovan --pool SHIRE-TON --basetoken 0x95C29AAbcB6aE30147d271D800c4Df14e3e569fA --quotetoken 0xF559A88Bc17B5a9D9859cE9Cab53d1B13A2fe30A  --baseamount 1000 --quoteamount 1000 --frominternalbalance false --network kovan
+clear && npx hardhat add-liquidity --to kovan --pool CHF-USDC --basetoken 0xC11a1bdb6f239445cFBb1Ed5A25660F0358D5465 --quotetoken 0xa57c092a117C9dE50922A75674dd35ab34d82c4A  --baseamount 100000000000 --quoteamount 100000000000 --frominternalbalance false --network kovan

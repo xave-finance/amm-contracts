@@ -35,12 +35,18 @@ export default async (taskArgs: any) => {
   const MOCK_ASSIMILATOR_ADDRESS = '0x235A2ac113014F9dcb8aBA6577F20290832dDEFd'
   const payload = ethers.utils.defaultAbiCoder.encode(['address'], [MOCK_ASSIMILATOR_ADDRESS])
 
+  const ERC20 = await ethers.getContractFactory('@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20')
+
+  const baseTokenDecimals = await ERC20.attach(baseToken).decimals()
+  const quoteTokenDecimals = await ERC20.attach(quoteToken).decimals()
+
   const singleSwapRequest = {
     poolId: poolId,
     kind: kind === 'GIVEN_IN' ? 0 : 1,
     assetIn: baseToken,
     assetOut: quoteToken,
-    amount: ethers.utils.parseEther(`${amount}`),
+    // amount: ethers.utils.parseEther(`${amount}`),
+    amount: ethers.utils.parseUnits(`${amount}`, baseTokenDecimals),
     // userData: payload,
     userData: '0x',
   }

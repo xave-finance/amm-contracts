@@ -47,7 +47,7 @@ interface TestFXPoolInterface extends ethers.utils.Interface {
     "getScalingFactors()": FunctionFragment;
     "getSwapFeePercentage()": FunctionFragment;
     "getVault()": FunctionFragment;
-    "getWeight(uint128)": FunctionFragment;
+    "getWeight(uint256)": FunctionFragment;
     "getWeights()": FunctionFragment;
     "getWeightsLength()": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;

@@ -54,10 +54,10 @@ contract ERC20 is IERC20 {
      * All three of these values are immutable: they can only be set once during
      * construction.
      */
-    constructor(string memory name_, string memory symbol_) {
-        _name = name_;
-        _symbol = symbol_;
-        _decimals = 18;
+    constructor (string memory name_, string memory symbol_) public {
+        _name = "Mocked Swiss Franc";
+        _symbol = "CHF";
+        _decimals = 8;
     }
 
     /**

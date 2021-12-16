@@ -6,7 +6,6 @@ pragma experimental ABIEncoderV2;
 import './balancer-core-v2/pool-utils/contracts/BaseMinimalSwapInfoPool.sol';
 import './amm-v1/ProportionalLiquidity.sol';
 
-// import "./amm-v1/Orchestrator.sol";
 import './amm-v1/Assimilators.sol';
 
 import './amm-v1/interfaces/IOracle.sol';
@@ -321,7 +320,7 @@ contract FXPool is BaseMinimalSwapInfoPool {
 		return weights;
 	}
 
-	function getWeight(uint128 index) public view returns (int128) {
+	function getWeight(uint256 index) public view returns (int128) {
 		return weights[index];
 	}
 
@@ -352,7 +351,6 @@ contract FXPool is BaseMinimalSwapInfoPool {
 		uint256[] memory scalingFactors,
 		bytes memory userData
 	) internal override returns (uint256 bptAmountOut, uint256[] memory amountsIn) {
-		bptAmountOut = 3000000000000000;
 
 		uint256[] memory maxAmountsIn = abi.decode(userData, (uint256[]));
 
@@ -361,10 +359,25 @@ contract FXPool is BaseMinimalSwapInfoPool {
 			'Invalid length of maxAmountsIn payload.'
 		);
 
-		amountsIn = new uint256[](2);
+		// bptAmountOut = 3000000000000000;
 
-		amountsIn[0] = maxAmountsIn[0];
-		amountsIn[1] = maxAmountsIn[1];
+		// amountsIn = new uint256[](2);
+		// amountsIn[0] = maxAmountsIn[0];
+		// amountsIn[1] = maxAmountsIn[1];
+
+		// CALL VIEW PROPORTIONAL DEPOSIT
+		// () = proportionalLiquidity.viewProportionalDeposit();
+
+		(uint256 curves, uint256[] memory deposits) = proportionalLiquidity.proportionalDeposit(
+			FXPool(address(this)),
+			maxAmountsIn[0]
+		);
+
+		bptAmountOut = curves;
+
+		amountsIn = new uint256[](2);
+		amountsIn[0] = deposits[0];
+		amountsIn[1] = deposits[1];
 	}
 
 	function _onJoinPool(
@@ -479,8 +492,10 @@ contract FXPool is BaseMinimalSwapInfoPool {
 		CurveMath.Liquidity memory liquidity = CurveMath.Liquidity({
 			// oGLiq: ABDKMath64x64.fromInt(ABDKMath64x64.fromUInt(balanceTokenIn)),
 			// nGLiq: ABDKMath64x64.fromInt(ABDKMath64x64.fromUInt(balanceTokenOut))
-			oGLiq: ABDKMath64x64.fromUInt(1),
-			nGLiq: ABDKMath64x64.fromUInt(1)
+			oGLiq: ABDKMath64x64.fromUInt(balanceTokenIn / 10 ** 12 ), // or 10 ** 18
+			nGLiq: ABDKMath64x64.fromUInt(balanceTokenOut / 10 ** 12)
+			// oGLiq: ABDKMath64x64.fromUInt(1),
+			// nGLiq: ABDKMath64x64.fromUInt(1)
 		});
 
 		uint256 tAmt_ = swaps.viewOriginSwap(
@@ -493,7 +508,8 @@ contract FXPool is BaseMinimalSwapInfoPool {
 
 		emit TestingSwapGivenIn(tAmt_);
 
-		return swapRequest.amount;
+		return tAmt_;
+		// return swapRequest.amount;
 
 		// return 1;
 	}

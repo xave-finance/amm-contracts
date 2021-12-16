@@ -110,7 +110,7 @@ library CurveMath {
 
 				balances.nBals[_outputIndex] = balances.oBals[_outputIndex] + outputAmt_;
 
-				// enforceHalts(dimensions.alpha, liquidity, balances.oBals, balances.nBals, weights); // NOTE: Investigate why causing error
+				enforceHalts(dimensions.alpha, liquidity, balances.oBals, balances.nBals, weights); // NOTE: Investigate why causing error
 
 				enforceSwapInvariant(liquidity.oGLiq, _omega, liquidity.nGLiq, _psi);
 
