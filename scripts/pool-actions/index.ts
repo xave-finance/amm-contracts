@@ -8,8 +8,15 @@ declare const task: any
 export default () => {
   task('deploy-pool', 'Deploy custom pool')
     .addParam('to', 'Network to deploy Pool')
-    .addParam('basetoken', 'Base Token of Pool')
-    .addParam('quotetoken', 'Quote token of Pool')
+    .addParam('strategy', 'Strategy of deployment')
+    .addParam('force', 'Force deploy tx')
+    .addParam('verify', 'Verify deployed contracts')
+    .addOptionalParam('basetoken', 'Base Token of Pool')
+    .addOptionalParam('quotetoken', 'Quote token of Pool')
+    .addOptionalParam('baseassimilator', 'Base assimilator')
+    .addOptionalParam('quoteassimilator', 'Quote assimilator')
+    .addOptionalParam('proportionalliquidity', 'Proportional Liquidity contract address')
+    .addOptionalParam('swaps', 'Swaps contract address')
     .setAction(DeployPool)
 
   task('add-liquidity', 'Add liquidity to custom balancer pool')

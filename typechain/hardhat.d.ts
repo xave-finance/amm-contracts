@@ -33,6 +33,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Assimilators__factory>;
     getContractFactory(
+      name: "BaseToUsdAssimilator",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.BaseToUsdAssimilator__factory>;
+    getContractFactory(
       name: "CurveMath",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.CurveMath__factory>;
@@ -52,6 +56,10 @@ declare module "hardhat/types/runtime" {
       name: "AmmV1Swaps",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.AmmV1Swaps__factory>;
+    getContractFactory(
+      name: "UsdcToUsdAssimilator",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.UsdcToUsdAssimilator__factory>;
     getContractFactory(
       name: "IAaveIncentivesController",
       signerOrOptions?: ethers.Signer | FactoryOptions
@@ -435,6 +443,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.Assimilators>;
     getContractAt(
+      name: "BaseToUsdAssimilator",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.BaseToUsdAssimilator>;
+    getContractAt(
       name: "CurveMath",
       address: string,
       signer?: ethers.Signer
@@ -459,6 +472,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.AmmV1Swaps>;
+    getContractAt(
+      name: "UsdcToUsdAssimilator",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.UsdcToUsdAssimilator>;
     getContractAt(
       name: "IAaveIncentivesController",
       address: string,

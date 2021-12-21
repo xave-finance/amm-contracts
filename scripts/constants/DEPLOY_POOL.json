@@ -1,0 +1,32 @@
+{
+  "kovan": {
+    "BASE_TOKEN": "",
+    "QUOTE_TOKEN": "",
+    "BASE_ASSIMILATOR": "",
+    "QUOTE_ASSIMILATOR": "",
+    "ASSIMILATORS": "",
+    "CURVE_MATH": "",
+    "PROPORTIONAL_LIQUIDITY": "",
+    "SWAPS": ""
+  },
+  "hardhat": {
+    "BASE_TOKEN": "",
+    "QUOTE_TOKEN": "",
+    "BASE_ASSIMILATOR": "",
+    "QUOTE_ASSIMILATOR": "",
+    "ASSIMILATORS": "",
+    "CURVE_MATH": "",
+    "PROPORTIONAL_LIQUIDITY": "",
+    "SWAPS": ""
+  },
+  "mainnet": {
+    "BASE_TOKEN": "",
+    "QUOTE_TOKEN": "",
+    "BASE_ASSIMILATOR": "",
+    "QUOTE_ASSIMILATOR": "",
+    "ASSIMILATORS": "",
+    "CURVE_MATH": "",
+    "PROPORTIONAL_LIQUIDITY": "",
+    "SWAPS": ""
+  }
+}
