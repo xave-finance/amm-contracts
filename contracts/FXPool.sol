@@ -359,25 +359,25 @@ contract FXPool is BaseMinimalSwapInfoPool {
 			'Invalid length of maxAmountsIn payload.'
 		);
 
-		// bptAmountOut = 3000000000000000;
+		bptAmountOut = 3000000000000000;
 
-		// amountsIn = new uint256[](2);
-		// amountsIn[0] = maxAmountsIn[0];
-		// amountsIn[1] = maxAmountsIn[1];
+		amountsIn = new uint256[](2);
+		amountsIn[0] = maxAmountsIn[0];
+		amountsIn[1] = maxAmountsIn[1];
 
 		// CALL VIEW PROPORTIONAL DEPOSIT
 		// () = proportionalLiquidity.viewProportionalDeposit();
 
-		(uint256 curves, uint256[] memory deposits) = proportionalLiquidity.proportionalDeposit(
-			FXPool(address(this)),
-			maxAmountsIn[0]
-		);
+		// (uint256 curves, uint256[] memory deposits) = proportionalLiquidity.proportionalDeposit(
+		// 	FXPool(address(this)),
+		// 	maxAmountsIn[0]
+		// );
 
-		bptAmountOut = curves;
+		// bptAmountOut = curves;
 
-		amountsIn = new uint256[](2);
-		amountsIn[0] = deposits[0];
-		amountsIn[1] = deposits[1];
+		// amountsIn = new uint256[](2);
+		// amountsIn[0] = deposits[0];
+		// amountsIn[1] = deposits[1];
 	}
 
 	function _onJoinPool(
@@ -410,10 +410,10 @@ contract FXPool is BaseMinimalSwapInfoPool {
 
 		// transferFrom()
 
-		(uint256 curves, uint256[] memory deposits) = proportionalLiquidity.proportionalDeposit(
-			FXPool(address(this)),
-			maxAmountsIn[0]
-		);
+		// (uint256 curves, uint256[] memory deposits) = proportionalLiquidity.proportionalDeposit(
+		// 	FXPool(address(this)),
+		// 	maxAmountsIn[0]
+		// );
 
 		{
 			dueProtocolFeeAmounts = new uint256[](2);
@@ -421,11 +421,12 @@ contract FXPool is BaseMinimalSwapInfoPool {
 			dueProtocolFeeAmounts[1] = 2;
 		}
 
-		bptAmountOut = curves;
+		// bptAmountOut = curves;
+		bptAmountOut = 3e18;
 
 		{
-			amountsIn = deposits;
-			// amountsIn = maxAmountsIn;
+			// amountsIn = deposits;
+			amountsIn = maxAmountsIn;
 		}
 	}
 

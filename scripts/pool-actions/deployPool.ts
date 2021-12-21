@@ -208,6 +208,10 @@ export default async (taskArgs: any) => {
 			fp(0.3),
 		)
 
+		console.log(Vault.address,
+			'Custom V2 Pool', `${baseTokenAddress}-${quoteTokenAddress} LP`, tokens, assets, assetWeights,
+			swapFeePercentage, pauseWindowDuration, bufferPeriodDuration, PROPORTIONAL_LIQUIDITY, SWAPS)
+
 		await hre.run('verify:verify', {
 			address: customPool.address,
 			constructorArguments: [Vault.address,

@@ -15,6 +15,11 @@ contract DepositRelayer {
 
   int128 private constant ONE = 0x10000000000000000;
 
+	event GetBaseNumeraire(uint256 baseNumeraire);
+	event GetWeight(int128 weight);
+	event GetToUint(uint256 result);
+	event TestDeposit(uint256 lpTokens, uint256[] requiredTokens);
+
 	constructor(ProportionalLiquidity _proportionalLiquidity) {
 		proportionalLiquidity = _proportionalLiquidity;
 	}
@@ -38,22 +43,35 @@ contract DepositRelayer {
 		uint256 baseRate = _baseAssimilator.getRate();
 
 		uint256 baseNumeraire = amount * (baseRate);
+		emit GetBaseNumeraire(baseNumeraire);
 
 		// Get base weight
     int128 baseWeight = fxPool.getWeight(0);
+		emit GetWeight(baseWeight);
 
     // uint256 totalNumeraire = baseNumeraire * (ONE / baseWeight);
+		uint256 x = uint256(baseWeight);
+		emit GetToUint(x);
     uint256 totalNumeraire = baseNumeraire * ABDKMath64x64.toUInt(ONE / baseWeight);
+		// uint256 totalNumeraire = baseNumeraire * x;
     
 
 
 		(uint256 lpTokens, uint256[] memory requiredTokens) = proportionalLiquidity
 			.viewProportionalDeposit(FXPool(poolAddress), totalNumeraire);
 
+		emit TestDeposit(lpTokens, requiredTokens);
+
 		return (lpTokens, requiredTokens);
 	}
 
-	function deposit() external {}
+	function deposit(bytes32 poolId, uint256 amount) external returns (uint256, uint256[] memory) {
+		
+	}
 
-	function viewDeposit() external {}
+	function viewDeposit(bytes32 poolId, uint256 amount) external returns (uint256, uint256[] memory) {
+		(uint256 lpTokens, uint256[] memory requiredTokens) = _deposit(poolId, msg.sender, msg.sender, amount);
+
+		return (lpTokens, requiredTokens);
+	}
 }

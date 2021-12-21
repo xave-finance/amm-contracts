@@ -9,6 +9,7 @@
     "compile": "npx hardhat compile",
     "deploy:token": "ts-node scripts/cli/deployTokenCLI.ts",
     "deploy:pool": "ts-node scripts/cli/deployPoolCLI.ts",
+    "deploy:relayer": "ts-node scripts/cli/deployRelayerCLI.ts",
     "pool:add-liquidity": "ts-node scripts/cli/addLiquidityCLI.ts",
     "pool:remove-liquidity": "ts-node scripts/cli/removeLiquidityCLI.ts",
     "swap:single": "ts-node scripts/cli/singleSwapCLI.ts",

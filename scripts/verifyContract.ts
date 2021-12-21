@@ -7,7 +7,7 @@ declare const hre: any
 
 const verify = async() => {
 
-  const CONTRACT = '0x1e9Acc58DFCd3DCc9BE00a7cbe1e4FF633e9E3b5'
+  const CONTRACT = '0xA342A7f4A9C11fD080d369b74EF1F06ce7B29e8D'
 
   const baseAssimilator = '0xF9596c5781ABAA8dC8cf8eFE091fa93e61665a2F' // W-PESO - W-USDC
 	const quoteAssimilator = '0xE6dBa291C1E2c59474c5b92D6e865637C1C0bFaC' // W-USDC - USD
@@ -24,7 +24,7 @@ const verify = async() => {
 	const bufferPeriodDuration = 2592000
 
   const PROPORTIONAL_LIQUIDITY = '0x3BC220C9ea7BCFbD79B8141bf95d447238E75E1b'
-  const SWAPS = '0x2bde781a5B6c0747058c1e1C0998BCb87d4e2CE5'
+  const SWAPS = '0x51dd683319f8b74ec9ac582b3881c6382093527c'
 
   const CONSTRUCTOR_ARGS = [Vault.address,
     'Custom V2 Pool', `${baseTokenAddress}-${quoteTokenAddress} LP`, tokens, assets, assetWeights,

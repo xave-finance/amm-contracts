@@ -21,14 +21,17 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface DepositRelayerInterface extends ethers.utils.Interface {
   functions: {
-    "deposit()": FunctionFragment;
-    "viewDeposit()": FunctionFragment;
+    "deposit(bytes32,uint256)": FunctionFragment;
+    "viewDeposit(bytes32,uint256)": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "deposit", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "deposit",
+    values: [BytesLike, BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "viewDeposit",
-    values?: undefined
+    values: [BytesLike, BigNumberish]
   ): string;
 
   decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
@@ -37,8 +40,33 @@ interface DepositRelayerInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
 
-  events: {};
+  events: {
+    "GetBaseNumeraire(uint256)": EventFragment;
+    "GetToUint(uint256)": EventFragment;
+    "GetWeight(int128)": EventFragment;
+    "TestDeposit(uint256,uint256[])": EventFragment;
+  };
+
+  getEvent(nameOrSignatureOrTopic: "GetBaseNumeraire"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "GetToUint"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "GetWeight"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "TestDeposit"): EventFragment;
 }
+
+export type GetBaseNumeraireEvent = TypedEvent<
+  [BigNumber] & { baseNumeraire: BigNumber }
+>;
+
+export type GetToUintEvent = TypedEvent<[BigNumber] & { result: BigNumber }>;
+
+export type GetWeightEvent = TypedEvent<[BigNumber] & { weight: BigNumber }>;
+
+export type TestDepositEvent = TypedEvent<
+  [BigNumber, BigNumber[]] & {
+    lpTokens: BigNumber;
+    requiredTokens: BigNumber[];
+  }
+>;
 
 export class DepositRelayer extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
@@ -85,46 +113,110 @@ export class DepositRelayer extends BaseContract {
 
   functions: {
     deposit(
+      poolId: BytesLike,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     viewDeposit(
+      poolId: BytesLike,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
   };
 
   deposit(
+    poolId: BytesLike,
+    amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   viewDeposit(
+    poolId: BytesLike,
+    amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    deposit(overrides?: CallOverrides): Promise<void>;
+    deposit(
+      poolId: BytesLike,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber[]]>;
 
-    viewDeposit(overrides?: CallOverrides): Promise<void>;
+    viewDeposit(
+      poolId: BytesLike,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber[]]>;
   };
 
-  filters: {};
+  filters: {
+    "GetBaseNumeraire(uint256)"(
+      baseNumeraire?: null
+    ): TypedEventFilter<[BigNumber], { baseNumeraire: BigNumber }>;
+
+    GetBaseNumeraire(
+      baseNumeraire?: null
+    ): TypedEventFilter<[BigNumber], { baseNumeraire: BigNumber }>;
+
+    "GetToUint(uint256)"(
+      result?: null
+    ): TypedEventFilter<[BigNumber], { result: BigNumber }>;
+
+    GetToUint(
+      result?: null
+    ): TypedEventFilter<[BigNumber], { result: BigNumber }>;
+
+    "GetWeight(int128)"(
+      weight?: null
+    ): TypedEventFilter<[BigNumber], { weight: BigNumber }>;
+
+    GetWeight(
+      weight?: null
+    ): TypedEventFilter<[BigNumber], { weight: BigNumber }>;
+
+    "TestDeposit(uint256,uint256[])"(
+      lpTokens?: null,
+      requiredTokens?: null
+    ): TypedEventFilter<
+      [BigNumber, BigNumber[]],
+      { lpTokens: BigNumber; requiredTokens: BigNumber[] }
+    >;
+
+    TestDeposit(
+      lpTokens?: null,
+      requiredTokens?: null
+    ): TypedEventFilter<
+      [BigNumber, BigNumber[]],
+      { lpTokens: BigNumber; requiredTokens: BigNumber[] }
+    >;
+  };
 
   estimateGas: {
     deposit(
+      poolId: BytesLike,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     viewDeposit(
+      poolId: BytesLike,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
   };
 
   populateTransaction: {
     deposit(
+      poolId: BytesLike,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     viewDeposit(
+      poolId: BytesLike,
+      amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
   };

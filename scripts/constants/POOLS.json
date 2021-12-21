@@ -5,6 +5,9 @@
     "SHIRE-TON",
     "PESO-USDC",
     "CHF-USDC",
+    "CHF-USDC",
+    "CHF-USDC",
+    "CHF-USDC",
     "CHF-USDC"
   ],
   "BERG-FORT": {
@@ -41,8 +44,8 @@
   },
   "CHF-USDC": {
     "kovan": {
-      "address": "0x4d00e867f594266aDC95e4ed9c145556eD27fd7b",
-      "poolId": "0x4d00e867f594266adc95e4ed9c145556ed27fd7b000100000000000000000515",
+      "address": "0xE5F91c1B65aFCFA5E68d9A2876c217d1e62F9576",
+      "poolId": "0xe5f91c1b65afcfa5e68d9a2876c217d1e62f9576000100000000000000000537",
       "baseTokenAddress": "0xC11a1bdb6f239445cFBb1Ed5A25660F0358D5465",
       "quoteTokenAddress": "0xa57c092a117C9dE50922A75674dd35ab34d82c4A"
     }

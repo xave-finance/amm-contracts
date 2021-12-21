@@ -10,6 +10,7 @@ import './test/common/setupTests'
 
 import initializePoolTasks from './scripts//pool-actions/'
 import initializeSwapTasks from './scripts/swaps/'
+import initializeRelayerTasks from './scripts/relayers/'
 
 const INFURA_PROJECT_ID = process.env.INFURA_PROJECT_ID || ''
 const MNEMONIC_SEED = process.env.MNEMONIC_SEED || ''
@@ -20,6 +21,7 @@ const TENDERLY_PROJECT= process.env.TENDERLY_PROJECT || ''
 
 initializePoolTasks()
 initializeSwapTasks()
+initializeRelayerTasks()
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
