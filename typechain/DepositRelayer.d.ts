@@ -21,20 +21,32 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface DepositRelayerInterface extends ethers.utils.Interface {
   functions: {
-    "deposit(bytes32,uint256)": FunctionFragment;
+    "multiSidedDeposit(bytes32,address[],uint256[])": FunctionFragment;
+    "singleSidedDeposit(bytes32,address,uint256)": FunctionFragment;
     "viewDeposit(bytes32,uint256)": FunctionFragment;
   };
 
   encodeFunctionData(
-    functionFragment: "deposit",
-    values: [BytesLike, BigNumberish]
+    functionFragment: "multiSidedDeposit",
+    values: [BytesLike, string[], BigNumberish[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "singleSidedDeposit",
+    values: [BytesLike, string, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "viewDeposit",
     values: [BytesLike, BigNumberish]
   ): string;
 
-  decodeFunctionResult(functionFragment: "deposit", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "multiSidedDeposit",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "singleSidedDeposit",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "viewDeposit",
     data: BytesLike
@@ -112,8 +124,16 @@ export class DepositRelayer extends BaseContract {
   interface: DepositRelayerInterface;
 
   functions: {
-    deposit(
+    multiSidedDeposit(
       poolId: BytesLike,
+      tokens: string[],
+      amounts: BigNumberish[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    singleSidedDeposit(
+      poolId: BytesLike,
+      token: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -125,8 +145,16 @@ export class DepositRelayer extends BaseContract {
     ): Promise<ContractTransaction>;
   };
 
-  deposit(
+  multiSidedDeposit(
     poolId: BytesLike,
+    tokens: string[],
+    amounts: BigNumberish[],
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  singleSidedDeposit(
+    poolId: BytesLike,
+    token: string,
     amount: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -138,8 +166,16 @@ export class DepositRelayer extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    deposit(
+    multiSidedDeposit(
       poolId: BytesLike,
+      tokens: string[],
+      amounts: BigNumberish[],
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber[]]>;
+
+    singleSidedDeposit(
+      poolId: BytesLike,
+      token: string,
       amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber, BigNumber[]]>;
@@ -194,8 +230,16 @@ export class DepositRelayer extends BaseContract {
   };
 
   estimateGas: {
-    deposit(
+    multiSidedDeposit(
       poolId: BytesLike,
+      tokens: string[],
+      amounts: BigNumberish[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    singleSidedDeposit(
+      poolId: BytesLike,
+      token: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -208,8 +252,16 @@ export class DepositRelayer extends BaseContract {
   };
 
   populateTransaction: {
-    deposit(
+    multiSidedDeposit(
       poolId: BytesLike,
+      tokens: string[],
+      amounts: BigNumberish[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    singleSidedDeposit(
+      poolId: BytesLike,
+      token: string,
       amount: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;

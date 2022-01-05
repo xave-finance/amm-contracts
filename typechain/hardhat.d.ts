@@ -416,6 +416,10 @@ declare module "hardhat/types/runtime" {
       name: "TestFXPool",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.TestFXPool__factory>;
+    getContractFactory(
+      name: "TestNumberConvert",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.TestNumberConvert__factory>;
 
     getContractAt(
       name: "Ownable",
@@ -922,6 +926,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.TestFXPool>;
+    getContractAt(
+      name: "TestNumberConvert",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.TestNumberConvert>;
 
     // default types
     getContractFactory(

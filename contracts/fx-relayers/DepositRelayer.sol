@@ -65,8 +65,12 @@ contract DepositRelayer {
 		return (lpTokens, requiredTokens);
 	}
 
-	function deposit(bytes32 poolId, uint256 amount) external returns (uint256, uint256[] memory) {
+	function multiSidedDeposit(bytes32 poolId, address[] memory tokens, uint256[] memory amounts) external returns (uint256, uint256[] memory) {
 		
+	}
+
+	function singleSidedDeposit(bytes32 poolId, address token, uint256 amount) external returns (uint256, uint256[] memory) {
+
 	}
 
 	function viewDeposit(bytes32 poolId, uint256 amount) external returns (uint256, uint256[] memory) {

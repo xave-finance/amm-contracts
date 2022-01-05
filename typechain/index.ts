@@ -98,6 +98,7 @@ export type { DepositRelayer } from "./DepositRelayer";
 export type { FXPool } from "./FXPool";
 export type { IERC20Decimals } from "./IERC20Decimals";
 export type { TestFXPool } from "./TestFXPool";
+export type { TestNumberConvert } from "./TestNumberConvert";
 
 export { Ownable__factory } from "./factories/Ownable__factory";
 export { ERC20__factory } from "./factories/ERC20__factory";
@@ -196,3 +197,4 @@ export { DepositRelayer__factory } from "./factories/DepositRelayer__factory";
 export { FXPool__factory } from "./factories/FXPool__factory";
 export { IERC20Decimals__factory } from "./factories/IERC20Decimals__factory";
 export { TestFXPool__factory } from "./factories/TestFXPool__factory";
+export { TestNumberConvert__factory } from "./factories/TestNumberConvert__factory";
