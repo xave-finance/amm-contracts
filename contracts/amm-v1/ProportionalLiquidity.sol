@@ -31,13 +31,14 @@ contract ProportionalLiquidity {
 		external
 		returns (uint256 curves_, uint256[] memory)
 	{
-		int128 __deposit = _deposit.divu(1e18);
+		// int128 __deposit = _deposit.divu(1e18);
+		uint256 __deposit = _deposit / 1e18;
 
 		uint256 _length = curve.getAssetsLength();
 
 		uint256[] memory deposits_ = new uint256[](_length);
 
-		(int128 _oGLiq, int128[] memory _oBals) = getGrossLiquidityAndBalancesForDeposit(curve);
+		(uint256 _oGLiq, uint256[] memory _oBals) = getGrossLiquidityAndBalancesForDeposit(curve);
 
 		// Needed to calculate liquidity invariant
 		(int128 _oGLiqProp, int128[] memory _oBalsProp) = getGrossLiquidityAndBalances(curve);
@@ -46,17 +47,20 @@ contract ProportionalLiquidity {
 		if (_oGLiq == 0) {
 			for (uint256 i = 0; i < _length; i++) {
 				// Variable here to avoid stack-too-deep errors
-				int128 _d = __deposit.mul(curve.weights(i));
+				// int128 _d = __deposit.mul(curve.weights(i));
+				uint256 _d = __deposit * (curve.weights(i));
 				address assimilatorAddress = curve.getAsset(i).addr;
-				deposits_[i] = Assimilators.intakeNumeraire(assimilatorAddress, _d.add(ONE_WEI));
+				// deposits_[i] = Assimilators.intakeNumeraire(assimilatorAddress, _d.add(ONE_WEI));
+				deposits_[i] = Assimilators.intakeNumeraire(assimilatorAddress, (_d + 1));
 			}
 		} else {
 			// We already have an existing pool ratio
 			// which must be respected
-			int128 _multiplier = __deposit.div(_oGLiq);
+			// int128 _multiplier = __deposit.div(_oGLiq);
+			uint256 _multiplier = __deposit / _oGLiq;
 
-			uint256 _baseWeight = curve.weights(0).mulu(1e18);
-			uint256 _quoteWeight = curve.weights(1).mulu(1e18);
+			uint256 _baseWeight = curve.weights(0) * (1e18);
+			uint256 _quoteWeight = curve.weights(1) * (1e18);
 
 			for (uint256 i = 0; i < _length; i++) {
 				address assimilatorAddress = curve.getAsset(i).addr;
@@ -227,7 +231,7 @@ contract ProportionalLiquidity {
 
 	function getGrossLiquidityAndBalancesForDeposit(FXPool curve)
 		internal
-		returns (int128 grossLiquidity_, int128[] memory)
+		returns (uint256 grossLiquidity_, uint256[] memory)
 	{
 		uint256 _length = curve.getAssetsLength();
 

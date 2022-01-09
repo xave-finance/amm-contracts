@@ -41,12 +41,12 @@ contract FXPool is BaseMinimalSwapInfoPool {
 	}
 
 	// Start Curve variables
-	int128 public alpha;
-	int128 public beta;
-	int128 public delta;
-	int128 public epsilon;
-	int128 public lambda;
-	int128[] public weights;
+	uint256 public alpha;
+	uint256 public beta;
+	uint256 public delta;
+	uint256 public epsilon;
+	uint256 public lambda;
+	uint256[] public weights;
 	// Assets and their assimilators
 	Assimilator[] public assets;
 	mapping(address => Assimilator) private assimilators;
@@ -211,7 +211,7 @@ contract FXPool is BaseMinimalSwapInfoPool {
 
 		assimilators[_reserve] = _reserveAssimilator;
 
-		int128 __weight = _weight.divu(1e18).add(uint256(1).divu(1e18));
+		uint256 __weight = _weight.divu(1e18).add(uint256(1).divu(1e18));
 
 		weights.push(__weight);
 
@@ -248,13 +248,13 @@ contract FXPool is BaseMinimalSwapInfoPool {
 
 		FXPool pool = FXPool(address(this));
 
-		int128 _omega = getFee(pool);
+		uint256 _omega = getFee(pool);
 
 		alpha = (_alpha + 1).divu(1e18);
 
 		beta = (_beta + 1).divu(1e18);
 
-		int128 minued = alpha.sub(beta);
+		uint256 minued = alpha.sub(beta);
 
 		delta = (_feeAtHalt).divu(1e18).div(uint256(2).fromUInt().mul(minued)) + ONE_WEI;
 
@@ -262,22 +262,22 @@ contract FXPool is BaseMinimalSwapInfoPool {
 
 		lambda = (_lambda + 1).divu(1e18);
 
-		int128 _psi = getFee(pool);
+		uint256 _psi = getFee(pool);
 
 		require(_omega >= _psi, 'Curve/parameters-increase-fee');
 
 		emit ParametersSet(_alpha, _beta, delta.mulu(1e18), _epsilon, _lambda);
 	}
 
-	function getFee(FXPool pool) private returns (int128 fee_) {
-		int128 _gLiq;
+	function getFee(FXPool pool) private returns (uint256 fee_) {
+		uint256 _gLiq;
 
 		// Always pairs
-		int128[] memory _bals = new int128[](2);
+		uint256[] memory _bals = new uint256[](2);
 
 		for (uint256 i = 0; i < _bals.length; i++) {
 			address assimilatorAddress = pool.getAsset(i).addr;
-			int128 _bal = Assimilators.viewNumeraireBalance(assimilatorAddress);
+			uint256 _bal = Assimilators.viewNumeraireBalance(assimilatorAddress);
 
 			_bals[i] = _bal;
 
@@ -316,11 +316,11 @@ contract FXPool is BaseMinimalSwapInfoPool {
 		return weights.length;
 	}
 
-	function getWeights() public view returns (int128[] memory) {
+	function getWeights() public view returns (uint256[] memory) {
 		return weights;
 	}
 
-	function getWeight(uint256 index) public view returns (int128) {
+	function getWeight(uint256 index) public view returns (uint256) {
 		return weights[index];
 	}
 

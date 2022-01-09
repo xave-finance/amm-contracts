@@ -46,7 +46,7 @@ contract DepositRelayer {
 		emit GetBaseNumeraire(baseNumeraire);
 
 		// Get base weight
-    int128 baseWeight = fxPool.getWeight(0);
+    uint256 baseWeight = fxPool.getWeight(0);
 		emit GetWeight(baseWeight);
 
     // uint256 totalNumeraire = baseNumeraire * (ONE / baseWeight);
