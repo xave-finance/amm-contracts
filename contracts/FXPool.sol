@@ -16,11 +16,14 @@ import './amm-v1/CurveMath.sol';
 
 import './amm-v1/Swaps.sol';
 
+import './balancer-core-v2/solidity-utils/contracts/openzeppelin/SafeMath.sol';
+
 contract FXPool is BaseMinimalSwapInfoPool {
 	using LogExpMath for uint256;
 	using FixedPoint for uint256;
-	using ABDKMath64x64 for uint256;
+	// using ABDKMath64x64 for uint256;
 	using ABDKMath64x64 for int128;
+	using SafeMath for uint256;
 
 	int128 private constant ONE_WEI = 0x12;
 
@@ -211,7 +214,11 @@ contract FXPool is BaseMinimalSwapInfoPool {
 
 		assimilators[_reserve] = _reserveAssimilator;
 
-		uint256 __weight = _weight.divu(1e18).add(uint256(1).divu(1e18));
+		// uint256 __weight = _weight.div(1e18).add(uint256(1).div(1e18));
+		// uint256 a = _weight.div(1e18);
+		// uint256 __weight = a.add(1);
+
+		uint256 __weight = _weight.div(1e18) + uint256(1).div(1e18);
 
 		weights.push(__weight);
 
@@ -250,23 +257,24 @@ contract FXPool is BaseMinimalSwapInfoPool {
 
 		uint256 _omega = getFee(pool);
 
-		alpha = (_alpha + 1).divu(1e18);
+		alpha = (_alpha + 1).div(1e18);
 
-		beta = (_beta + 1).divu(1e18);
+		beta = (_beta + 1).div(1e18);
 
-		uint256 minued = alpha.sub(beta);
+		// uint256 minued = alpha.sub(beta);
+		uint256 minued = alpha - beta;
 
-		delta = (_feeAtHalt).divu(1e18).div(uint256(2).fromUInt().mul(minued)) + ONE_WEI;
+		delta = (_feeAtHalt).div(1e18).div(uint256(2).mul(minued)) + 1;
 
-		epsilon = (_epsilon + 1).divu(1e18);
+		epsilon = (_epsilon + 1).div(1e18);
 
-		lambda = (_lambda + 1).divu(1e18);
+		lambda = (_lambda + 1).div(1e18);
 
 		uint256 _psi = getFee(pool);
 
 		require(_omega >= _psi, 'Curve/parameters-increase-fee');
 
-		emit ParametersSet(_alpha, _beta, delta.mulu(1e18), _epsilon, _lambda);
+		emit ParametersSet(_alpha, _beta, delta.mul(1e18), _epsilon, _lambda);
 	}
 
 	function getFee(FXPool pool) private returns (uint256 fee_) {
@@ -359,25 +367,25 @@ contract FXPool is BaseMinimalSwapInfoPool {
 			'Invalid length of maxAmountsIn payload.'
 		);
 
-		bptAmountOut = 3000000000000000;
+		// bptAmountOut = 3000000000000000;
 
-		amountsIn = new uint256[](2);
-		amountsIn[0] = maxAmountsIn[0];
-		amountsIn[1] = maxAmountsIn[1];
+		// amountsIn = new uint256[](2);
+		// amountsIn[0] = maxAmountsIn[0];
+		// amountsIn[1] = maxAmountsIn[1];
 
 		// CALL VIEW PROPORTIONAL DEPOSIT
 		// () = proportionalLiquidity.viewProportionalDeposit();
 
-		// (uint256 curves, uint256[] memory deposits) = proportionalLiquidity.proportionalDeposit(
-		// 	FXPool(address(this)),
-		// 	maxAmountsIn[0]
-		// );
+		(uint256 curves, uint256[] memory deposits) = proportionalLiquidity.proportionalDeposit(
+			FXPool(address(this)),
+			maxAmountsIn[0]
+		);
 
-		// bptAmountOut = curves;
+		bptAmountOut = curves;
 
-		// amountsIn = new uint256[](2);
-		// amountsIn[0] = deposits[0];
-		// amountsIn[1] = deposits[1];
+		amountsIn = new uint256[](2);
+		amountsIn[0] = deposits[0];
+		amountsIn[1] = deposits[1];
 	}
 
 	function _onJoinPool(
@@ -401,12 +409,13 @@ contract FXPool is BaseMinimalSwapInfoPool {
 		uint256[] memory maxAmountsIn = abi.decode(userData, (uint256[]));
 		require(balances.length == 2 && maxAmountsIn.length == 2, 'Invalid format');
 
-		// (uint256 curvesMinted, uint256[] memory deposits) = proportionalLiquidity
-		// 	.proportionalDeposit(maxAmountsIn[0], maxAmountsIn);
+		(uint256 curvesMinted, uint256[] memory deposits) = proportionalLiquidity
+			.proportionalDeposit(FXPool(this), maxAmountsIn[0] / 2);
 
 		// uint256 curvesMinted = maxAmountsIn[0];
 
-		// bptAmountOut = curvesMinted;
+		bptAmountOut = curvesMinted;
+		amountsIn = deposits;
 
 		// transferFrom()
 
@@ -421,13 +430,13 @@ contract FXPool is BaseMinimalSwapInfoPool {
 			dueProtocolFeeAmounts[1] = 2;
 		}
 
-		// bptAmountOut = curves;
-		bptAmountOut = 3e18;
+		// // bptAmountOut = curves;
+		// bptAmountOut = 3e18;
 
-		{
-			// amountsIn = deposits;
-			amountsIn = maxAmountsIn;
-		}
+		// {
+		// 	// amountsIn = deposits;
+		// 	amountsIn = maxAmountsIn;
+		// }
 	}
 
 	function _onExitPool(
@@ -493,10 +502,12 @@ contract FXPool is BaseMinimalSwapInfoPool {
 		CurveMath.Liquidity memory liquidity = CurveMath.Liquidity({
 			// oGLiq: ABDKMath64x64.fromInt(ABDKMath64x64.fromUInt(balanceTokenIn)),
 			// nGLiq: ABDKMath64x64.fromInt(ABDKMath64x64.fromUInt(balanceTokenOut))
-			oGLiq: ABDKMath64x64.fromUInt(balanceTokenIn / 10 ** 12 ), // or 10 ** 18
-			nGLiq: ABDKMath64x64.fromUInt(balanceTokenOut / 10 ** 12)
+			// oGLiq: ABDKMath64x64.fromUInt(balanceTokenIn / 10 ** 12 ), // or 10 ** 18
+			// nGLiq: ABDKMath64x64.fromUInt(balanceTokenOut / 10 ** 12)
 			// oGLiq: ABDKMath64x64.fromUInt(1),
 			// nGLiq: ABDKMath64x64.fromUInt(1)
+			oGLiq: balanceTokenIn,
+			nGLiq: balanceTokenOut
 		});
 
 		uint256 tAmt_ = swaps.viewOriginSwap(

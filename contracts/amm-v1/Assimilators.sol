@@ -26,7 +26,7 @@ import "./interfaces/IAssimilator.sol";
 import "./lib/ABDKMath64x64.sol";
 
 library Assimilators {
-    using ABDKMath64x64 for int128;
+    using ABDKMath64x64 for uint256;
     using Address for address;
 
     IAssimilator public constant iAsmltr = IAssimilator(address(0));
@@ -51,7 +51,7 @@ library Assimilators {
         amount_ = IAssimilator(_assim).getRate();
     }
 
-    function viewRawAmount(address _assim, int128 _amt) public view returns (uint256 amount_) {
+    function viewRawAmount(address _assim, uint256 _amt) public view returns (uint256 amount_) {
         amount_ = IAssimilator(_assim).viewRawAmount(_amt);
     }
 
@@ -59,24 +59,24 @@ library Assimilators {
         address _assim,
         uint256 _baseWeight,
         uint256 _quoteWeight,
-        int128 _amount
+        uint256 _amount
     ) public view returns (uint256 amount_) {
         amount_ = IAssimilator(_assim).viewRawAmountLPRatio(_baseWeight, _quoteWeight, address(this), _amount);
     }
 
-    function viewNumeraireAmount(address _assim, uint256 _amt) internal view returns (int128 amt_) {
+    function viewNumeraireAmount(address _assim, uint256 _amt) internal view returns (uint256 amt_) {
         amt_ = IAssimilator(_assim).viewNumeraireAmount(_amt);
     }
 
     function viewNumeraireAmountAndBalance(address _assim, uint256 _amt)
         internal
         view
-        returns (int128 amt_, int128 bal_)
+        returns (uint256 amt_, uint256 bal_)
     {
         (amt_, bal_) = IAssimilator(_assim).viewNumeraireAmountAndBalance(address(this), _amt);
     }
 
-    function viewNumeraireBalance(address _assim) public view returns (int128 bal_) {
+    function viewNumeraireBalance(address _assim) public view returns (uint256 bal_) {
         bal_ = IAssimilator(_assim).viewNumeraireBalance(address(this));
     }
 
@@ -84,23 +84,23 @@ library Assimilators {
         uint256 _baseWeight,
         uint256 _quoteWeight,
         address _assim
-    ) public view returns (int128 bal_) {
+    ) public view returns (uint256 bal_) {
         bal_ = IAssimilator(_assim).viewNumeraireBalanceLPRatio(_baseWeight, _quoteWeight, address(this));
     }
 
-    function intakeRaw(address _assim, uint256 _amt) internal returns (int128 amt_) {
+    function intakeRaw(address _assim, uint256 _amt) internal returns (uint256 amt_) {
         bytes memory data = abi.encodeWithSelector(iAsmltr.intakeRaw.selector, _amt);
 
-        amt_ = abi.decode(delegate(_assim, data), (int128));
+        amt_ = abi.decode(delegate(_assim, data), (uint256));
     }
 
-    function intakeRawAndGetBalance(address _assim, uint256 _amt) internal returns (int128 amt_, int128 bal_) {
+    function intakeRawAndGetBalance(address _assim, uint256 _amt) internal returns (uint256 amt_, uint256 bal_) {
         bytes memory data = abi.encodeWithSelector(iAsmltr.intakeRawAndGetBalance.selector, _amt);
 
-        (amt_, bal_) = abi.decode(delegate(_assim, data), (int128, int128));
+        (amt_, bal_) = abi.decode(delegate(_assim, data), (uint256, uint256));
     }
 
-    function intakeNumeraire(address _assim, int128 _amt) public returns (uint256 amt_) {
+    function intakeNumeraire(address _assim, uint256 _amt) public returns (uint256 amt_) {
         bytes memory data = abi.encodeWithSelector(iAsmltr.intakeNumeraire.selector, _amt);
 
         amt_ = abi.decode(delegate(_assim, data), (uint256));
@@ -110,7 +110,7 @@ library Assimilators {
         address _assim,
         uint256 _baseWeight,
         uint256 _quoteWeight,
-        int128 _amount
+        uint256 _amount
     ) public returns (uint256 amt_) {
         bytes memory data =
             abi.encodeWithSelector(
@@ -128,32 +128,32 @@ library Assimilators {
         address _assim,
         address _dst,
         uint256 _amt
-    ) internal returns (int128 amt_) {
+    ) internal returns (uint256 amt_) {
         bytes memory data = abi.encodeWithSelector(iAsmltr.outputRaw.selector, _dst, _amt);
 
-        amt_ = abi.decode(delegate(_assim, data), (int128));
+        amt_ = abi.decode(delegate(_assim, data), (uint256));
 
-        amt_ = amt_.neg();
+        // amt_ = amt_.neg();
     }
 
     function outputRawAndGetBalance(
         address _assim,
         address _dst,
         uint256 _amt
-    ) internal returns (int128 amt_, int128 bal_) {
+    ) internal returns (uint256 amt_, uint256 bal_) {
         bytes memory data = abi.encodeWithSelector(iAsmltr.outputRawAndGetBalance.selector, _dst, _amt);
 
-        (amt_, bal_) = abi.decode(delegate(_assim, data), (int128, int128));
+        (amt_, bal_) = abi.decode(delegate(_assim, data), (uint256, uint256));
 
-        amt_ = amt_.neg();
+        // amt_ = amt_.neg();
     }
 
     function outputNumeraire(
         address _assim,
         address _dst,
-        int128 _amt
+        uint256 _amt
     ) public returns (uint256 amt_) {
-        bytes memory data = abi.encodeWithSelector(iAsmltr.outputNumeraire.selector, _dst, _amt.abs());
+        bytes memory data = abi.encodeWithSelector(iAsmltr.outputNumeraire.selector, _dst, _amt);
 
         amt_ = abi.decode(delegate(_assim, data), (uint256));
     }

@@ -23,9 +23,9 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "int128",
+        internalType: "uint256",
         name: "amount",
-        type: "int128",
+        type: "uint256",
       },
     ],
     name: "intakeNumeraire",
@@ -57,9 +57,9 @@ const _abi = [
         type: "address",
       },
       {
-        internalType: "int128",
+        internalType: "uint256",
         name: "",
-        type: "int128",
+        type: "uint256",
       },
     ],
     name: "intakeNumeraireLPRatio",
@@ -84,9 +84,9 @@ const _abi = [
     name: "intakeRaw",
     outputs: [
       {
-        internalType: "int128",
+        internalType: "uint256",
         name: "",
-        type: "int128",
+        type: "uint256",
       },
     ],
     stateMutability: "nonpayable",
@@ -103,14 +103,14 @@ const _abi = [
     name: "intakeRawAndGetBalance",
     outputs: [
       {
-        internalType: "int128",
+        internalType: "uint256",
         name: "",
-        type: "int128",
+        type: "uint256",
       },
       {
-        internalType: "int128",
+        internalType: "uint256",
         name: "",
-        type: "int128",
+        type: "uint256",
       },
     ],
     stateMutability: "nonpayable",
@@ -124,9 +124,9 @@ const _abi = [
         type: "address",
       },
       {
-        internalType: "int128",
+        internalType: "uint256",
         name: "amount",
-        type: "int128",
+        type: "uint256",
       },
     ],
     name: "outputNumeraire",
@@ -156,9 +156,9 @@ const _abi = [
     name: "outputRaw",
     outputs: [
       {
-        internalType: "int128",
+        internalType: "uint256",
         name: "",
-        type: "int128",
+        type: "uint256",
       },
     ],
     stateMutability: "nonpayable",
@@ -180,14 +180,14 @@ const _abi = [
     name: "outputRawAndGetBalance",
     outputs: [
       {
-        internalType: "int128",
+        internalType: "uint256",
         name: "",
-        type: "int128",
+        type: "uint256",
       },
       {
-        internalType: "int128",
+        internalType: "uint256",
         name: "",
-        type: "int128",
+        type: "uint256",
       },
     ],
     stateMutability: "nonpayable",
@@ -204,9 +204,9 @@ const _abi = [
     name: "viewNumeraireAmount",
     outputs: [
       {
-        internalType: "int128",
+        internalType: "uint256",
         name: "",
-        type: "int128",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -228,14 +228,14 @@ const _abi = [
     name: "viewNumeraireAmountAndBalance",
     outputs: [
       {
-        internalType: "int128",
+        internalType: "uint256",
         name: "",
-        type: "int128",
+        type: "uint256",
       },
       {
-        internalType: "int128",
+        internalType: "uint256",
         name: "",
-        type: "int128",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -252,9 +252,9 @@ const _abi = [
     name: "viewNumeraireBalance",
     outputs: [
       {
-        internalType: "int128",
+        internalType: "uint256",
         name: "",
-        type: "int128",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -281,9 +281,9 @@ const _abi = [
     name: "viewNumeraireBalanceLPRatio",
     outputs: [
       {
-        internalType: "int128",
+        internalType: "uint256",
         name: "",
-        type: "int128",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -292,9 +292,9 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "int128",
+        internalType: "uint256",
         name: "",
-        type: "int128",
+        type: "uint256",
       },
     ],
     name: "viewRawAmount",
@@ -326,9 +326,9 @@ const _abi = [
         type: "address",
       },
       {
-        internalType: "int128",
+        internalType: "uint256",
         name: "",
-        type: "int128",
+        type: "uint256",
       },
     ],
     name: "viewRawAmountLPRatio",

@@ -24,12 +24,12 @@ interface BaseToUsdAssimilatorInterface extends ethers.utils.Interface {
     "baseDecimals()": FunctionFragment;
     "baseToken()": FunctionFragment;
     "getRate()": FunctionFragment;
-    "intakeNumeraire(int128)": FunctionFragment;
-    "intakeNumeraireLPRatio(uint256,uint256,address,int128)": FunctionFragment;
+    "intakeNumeraire(uint256)": FunctionFragment;
+    "intakeNumeraireLPRatio(uint256,uint256,address,uint256)": FunctionFragment;
     "intakeRaw(uint256)": FunctionFragment;
     "intakeRawAndGetBalance(uint256)": FunctionFragment;
     "oracle()": FunctionFragment;
-    "outputNumeraire(address,int128)": FunctionFragment;
+    "outputNumeraire(address,uint256)": FunctionFragment;
     "outputRaw(address,uint256)": FunctionFragment;
     "outputRawAndGetBalance(address,uint256)": FunctionFragment;
     "usdc()": FunctionFragment;
@@ -37,8 +37,8 @@ interface BaseToUsdAssimilatorInterface extends ethers.utils.Interface {
     "viewNumeraireAmountAndBalance(address,uint256)": FunctionFragment;
     "viewNumeraireBalance(address)": FunctionFragment;
     "viewNumeraireBalanceLPRatio(uint256,uint256,address)": FunctionFragment;
-    "viewRawAmount(int128)": FunctionFragment;
-    "viewRawAmountLPRatio(uint256,uint256,address,int128)": FunctionFragment;
+    "viewRawAmount(uint256)": FunctionFragment;
+    "viewRawAmountLPRatio(uint256,uint256,address,uint256)": FunctionFragment;
   };
 
   encodeFunctionData(

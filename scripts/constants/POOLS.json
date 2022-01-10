@@ -5,10 +5,9 @@
     "SHIRE-TON",
     "PESO-USDC",
     "CHF-USDC",
-    "CHF-USDC",
-    "CHF-USDC",
-    "CHF-USDC",
-    "CHF-USDC"
+    "CHF-CHF",
+    "BASE-QUOTE",
+    "BASE-QUOTE"
   ],
   "BERG-FORT": {
     "kovan": {
@@ -44,10 +43,26 @@
   },
   "CHF-USDC": {
     "kovan": {
-      "address": "0xE5F91c1B65aFCFA5E68d9A2876c217d1e62F9576",
-      "poolId": "0xe5f91c1b65afcfa5e68d9a2876c217d1e62f9576000100000000000000000537",
-      "baseTokenAddress": "0xC11a1bdb6f239445cFBb1Ed5A25660F0358D5465",
-      "quoteTokenAddress": "0xa57c092a117C9dE50922A75674dd35ab34d82c4A"
+      "address": "0x64254bf49dC9AB7596675C1B072Fae6aF9E09E61",
+      "poolId": "0x64254BF49DC9AB7596675C1B072FAE6AF9E09E61000100000000000000000587",
+      "baseTokenAddress": "0xccd73e2A3037d4661E96CEC715279420B66D7fD1",
+      "quoteTokenAddress": "0xe73BdD7C96bA63ba23CdE85A0C1D43cCBe233d00"
+    }
+  },
+  "CHF-CHF": {
+    "kovan": {
+      "address": "0x036AC53925B82eA0D21471a165240083881A0C33",
+      "poolId": "0x036ac53925b82ea0d21471a165240083881a0c3300010000000000000000058b",
+      "baseTokenAddress": "0xECA2C447285Ed51b08C8175D4d9D6c3A0a34bCE5",
+      "quoteTokenAddress": "0x92caF200983165a6D40637AB0459dA1D603d3b76"
+    }
+  },
+  "BASE-QUOTE": {
+    "kovan": {
+      "address": "0x348f7b7F3C1f7122D7e4CAD3604027867EbEAb72",
+      "poolId": "0x348f7b7f3c1f7122d7e4cad3604027867ebeab7200010000000000000000058d",
+      "baseTokenAddress": "0xd96D076D350f973bCF776F11195Af11d86a90DBe",
+      "quoteTokenAddress": "0x7ACAa7f956B2F9fd0f400c2CF683D1675aa8FE57"
     }
   }
 }

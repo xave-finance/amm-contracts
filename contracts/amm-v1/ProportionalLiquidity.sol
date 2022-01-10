@@ -12,15 +12,18 @@ import './lib/ABDKMath64x64.sol';
 
 import './CurveMath.sol';
 
+import '../balancer-core-v2/solidity-utils/contracts/openzeppelin/SafeMath.sol';
+
 contract ProportionalLiquidity {
 	using ABDKMath64x64 for uint256;
-	using ABDKMath64x64 for int128;
-	using UnsafeMath64x64 for int128;
+	using ABDKMath64x64 for uint256;
+	using UnsafeMath64x64 for uint256;
+	using SafeMath for uint256;
 
 	event Transfer(address indexed from, address indexed to, uint256 value);
 
-	int128 public constant ONE = 0x10000000000000000;
-	int128 public constant ONE_WEI = 0x12;
+	uint256 public constant ONE = 0x10000000000000000;
+	uint256 public constant ONE_WEI = 0x12;
 
 	struct Assimilator {
 		address addr;
@@ -31,8 +34,7 @@ contract ProportionalLiquidity {
 		external
 		returns (uint256 curves_, uint256[] memory)
 	{
-		// int128 __deposit = _deposit.divu(1e18);
-		uint256 __deposit = _deposit / 1e18;
+		uint256 __deposit = _deposit.div(1e18);
 
 		uint256 _length = curve.getAssetsLength();
 
@@ -41,22 +43,20 @@ contract ProportionalLiquidity {
 		(uint256 _oGLiq, uint256[] memory _oBals) = getGrossLiquidityAndBalancesForDeposit(curve);
 
 		// Needed to calculate liquidity invariant
-		(int128 _oGLiqProp, int128[] memory _oBalsProp) = getGrossLiquidityAndBalances(curve);
+		(uint256 _oGLiqProp, uint256[] memory _oBalsProp) = getGrossLiquidityAndBalances(curve);
 
 		// No liquidity, oracle sets the ratio
 		if (_oGLiq == 0) {
 			for (uint256 i = 0; i < _length; i++) {
 				// Variable here to avoid stack-too-deep errors
-				// int128 _d = __deposit.mul(curve.weights(i));
-				uint256 _d = __deposit * (curve.weights(i));
+				uint256 _d = __deposit.mul((curve.weights(i)));
 				address assimilatorAddress = curve.getAsset(i).addr;
-				// deposits_[i] = Assimilators.intakeNumeraire(assimilatorAddress, _d.add(ONE_WEI));
-				deposits_[i] = Assimilators.intakeNumeraire(assimilatorAddress, (_d + 1));
+				deposits_[i] = Assimilators.intakeNumeraire(assimilatorAddress, _d.add(1));
 			}
 		} else {
 			// We already have an existing pool ratio
 			// which must be respected
-			// int128 _multiplier = __deposit.div(_oGLiq);
+			// uint256 _multiplier = __deposit.div(_oGLiq);
 			uint256 _multiplier = __deposit / _oGLiq;
 
 			uint256 _baseWeight = curve.weights(0) * (1e18);
@@ -64,19 +64,19 @@ contract ProportionalLiquidity {
 
 			for (uint256 i = 0; i < _length; i++) {
 				address assimilatorAddress = curve.getAsset(i).addr;
-				int128 oGBal = _oBals[i].mul(_multiplier);
+				uint256 oGBal = _oBals[i].mul(_multiplier);
 				deposits_[i] = Assimilators.intakeNumeraireLPRatio(
 					assimilatorAddress,
 					_baseWeight,
 					_quoteWeight,
-					oGBal.add(ONE_WEI)
+					oGBal.add(1)
 				);
 			}
 		}
 
-		int128 _totalShells = curve.totalSupply().divu(1e18);
+		uint256 _totalShells = curve.totalSupply().div(1e18);
 
-		int128 _newShells = __deposit;
+		uint256 _newShells = __deposit;
 
 		if (_totalShells > 0) {
 			_newShells = __deposit.div(_oGLiq);
@@ -94,11 +94,11 @@ contract ProportionalLiquidity {
 		external
 		returns (uint256 curves_, uint256[] memory)
 	{
-		int128 __deposit = _deposit.divu(1e18);
+		uint256 __deposit = _deposit.div(1e18);
 
 		uint256 _length = curve.getAssetsLength();
 
-		(int128 _oGLiq, int128[] memory _oBals) = getGrossLiquidityAndBalancesForDeposit(curve);
+		(uint256 _oGLiq, uint256[] memory _oBals) = getGrossLiquidityAndBalancesForDeposit(curve);
 
 		uint256[] memory deposits_ = new uint256[](_length);
 
@@ -106,19 +106,19 @@ contract ProportionalLiquidity {
 		if (_oGLiq == 0) {
 			for (uint256 i = 0; i < _length; i++) {
 				address assimilatorAddress = curve.getAsset(i).addr;
-				int128 deposit = __deposit.mul(curve.weights(i));
+				uint256 deposit = __deposit.mul(curve.weights(i));
 				deposits_[i] = Assimilators.viewRawAmount(
 					assimilatorAddress,
-					deposit.add(ONE_WEI)
+					deposit.add(1)
 				);
 			}
 		} else {
 			// We already have an existing pool ratio
 			// this must be respected
-			int128 _multiplier = __deposit.div(_oGLiq);
+			uint256 _multiplier = __deposit.div(_oGLiq);
 
-			uint256 _baseWeight = curve.weights(0).mulu(1e18);
-			uint256 _quoteWeight = curve.weights(1).mulu(1e18);
+			uint256 _baseWeight = curve.weights(0).mul(1e18);
+			uint256 _quoteWeight = curve.weights(1).mul(1e18);
 
 			// Deposits into the pool is determined by existing LP ratio
 			for (uint256 i = 0; i < _length; i++) {
@@ -127,21 +127,21 @@ contract ProportionalLiquidity {
 					assimilatorAddress,
 					_baseWeight,
 					_quoteWeight,
-					_oBals[i].mul(_multiplier).add(ONE_WEI)
+					_oBals[i].mul(_multiplier).add(1)
 				);
 			}
 		}
 
-		int128 _totalShells = curve.totalSupply().divu(1e18);
+		uint256 _totalShells = curve.totalSupply().div(1e18);
 
-		int128 _newShells = __deposit;
+		uint256 _newShells = __deposit;
 
 		if (_totalShells > 0) {
 			_newShells = __deposit.div(_oGLiq);
 			_newShells = _newShells.mul(_totalShells);
 		}
 
-		curves_ = _newShells.mulu(1e18);
+		curves_ = _newShells.mul(1e18);
 
 		return (curves_, deposits_);
 	}
@@ -152,14 +152,14 @@ contract ProportionalLiquidity {
 	{
 		uint256 _length = curve.getAssetsLength();
 
-		(, int128[] memory _oBals) = getGrossLiquidityAndBalances(curve);
+		(, uint256[] memory _oBals) = getGrossLiquidityAndBalances(curve);
 
 		uint256[] memory withdrawals_ = new uint256[](_length);
 
-		int128 _totalShells = curve.totalSupply().divu(1e18);
-		int128 __withdrawal = _withdrawal.divu(1e18);
+		uint256 _totalShells = curve.totalSupply().div(1e18);
+		uint256 __withdrawal = _withdrawal.div(1e18);
 
-		int128 _multiplier = __withdrawal.div(_totalShells);
+		uint256 _multiplier = __withdrawal.div(_totalShells);
 
 		for (uint256 i = 0; i < _length; i++) {
 			address assimilatorAddress = curve.getAsset(i).addr;
@@ -181,14 +181,14 @@ contract ProportionalLiquidity {
 	{
 		uint256 _length = curve.getAssetsLength();
 
-		(int128 _oGLiq, int128[] memory _oBals) = getGrossLiquidityAndBalances(curve);
+		(uint256 _oGLiq, uint256[] memory _oBals) = getGrossLiquidityAndBalances(curve);
 
 		uint256[] memory withdrawals_ = new uint256[](_length);
 
-		int128 _totalShells = curve.totalSupply().divu(1e18);
-		int128 __withdrawal = _withdrawal.divu(1e18);
+		uint256 _totalShells = curve.totalSupply().div(1e18);
+		uint256 __withdrawal = _withdrawal.div(1e18);
 
-		int128 _multiplier = __withdrawal.div(_totalShells);
+		uint256 _multiplier = __withdrawal.div(_totalShells);
 
 		for (uint256 i = 0; i < _length; i++) {
 			address assimilatorAddress = curve.getAsset(i).addr;
@@ -199,7 +199,7 @@ contract ProportionalLiquidity {
 			);
 		}
 
-		requireLiquidityInvariant(curve, _totalShells, __withdrawal.neg(), _oGLiq, _oBals);
+		requireLiquidityInvariant(curve, _totalShells, __withdrawal, _oGLiq, _oBals);
 
 		// burn(curve, msg.sender, _withdrawal);
 
@@ -212,11 +212,11 @@ contract ProportionalLiquidity {
 	{
 		uint256 _length = curve.getAssetsLength();
 
-		(, int128[] memory _oBals) = getGrossLiquidityAndBalances(curve);
+		(, uint256[] memory _oBals) = getGrossLiquidityAndBalances(curve);
 
 		uint256[] memory withdrawals_ = new uint256[](_length);
 
-		int128 _multiplier = _withdrawal.divu(1e18).div(curve.totalSupply().divu(1e18));
+		uint256 _multiplier = _withdrawal.div(1e18).div(curve.totalSupply().div(1e18));
 
 		for (uint256 i = 0; i < _length; i++) {
 			address assimilatorAddress = curve.getAsset(i).addr;
@@ -235,13 +235,13 @@ contract ProportionalLiquidity {
 	{
 		uint256 _length = curve.getAssetsLength();
 
-		int128[] memory balances_ = new int128[](_length);
-		uint256 _baseWeight = curve.weights(0).mulu(1e18);
-		uint256 _quoteWeight = curve.weights(1).mulu(1e18);
+		uint256[] memory balances_ = new uint256[](_length);
+		uint256 _baseWeight = curve.weights(0).mul(1e18);
+		uint256 _quoteWeight = curve.weights(1).mul(1e18);
 
 		for (uint256 i = 0; i < _length; i++) {
 			address assimilatorAddress = curve.getAsset(i).addr;
-			int128 _bal = Assimilators.viewNumeraireBalanceLPRatio(
+			uint256 _bal = Assimilators.viewNumeraireBalanceLPRatio(
 				_baseWeight,
 				_quoteWeight,
 				assimilatorAddress
@@ -256,15 +256,15 @@ contract ProportionalLiquidity {
 
 	function getGrossLiquidityAndBalances(FXPool curve)
 		internal
-		returns (int128 grossLiquidity_, int128[] memory)
+		returns (uint256 grossLiquidity_, uint256[] memory)
 	{
 		uint256 _length = curve.getAssetsLength();
 
-		int128[] memory balances_ = new int128[](_length);
+		uint256[] memory balances_ = new uint256[](_length);
 
 		for (uint256 i = 0; i < _length; i++) {
 			address assimilatorAddress = curve.getAsset(i).addr;
-			int128 _bal = Assimilators.viewNumeraireBalance(assimilatorAddress);
+			uint256 _bal = Assimilators.viewNumeraireBalance(assimilatorAddress);
 
 			balances_[i] = _bal;
 			grossLiquidity_ += _bal;
@@ -275,24 +275,24 @@ contract ProportionalLiquidity {
 
 	function requireLiquidityInvariant(
 		FXPool curve,
-		int128 _curves,
-		int128 _newShells,
-		int128 _oGLiq,
-		int128[] memory _oBals
+		uint256 _curves,
+		uint256 _newShells,
+		uint256 _oGLiq,
+		uint256[] memory _oBals
 	) private {
-		(int128 _nGLiq, int128[] memory _nBals) = getGrossLiquidityAndBalances(curve);
+		(uint256 _nGLiq, uint256[] memory _nBals) = getGrossLiquidityAndBalances(curve);
 
-		int128 _beta = curve.beta();
-		int128 _delta = curve.delta();
-		int128[] memory _weights = new int128[](curve.getWeightsLength());
+		uint256 _beta = curve.beta();
+		uint256 _delta = curve.delta();
+		uint256[] memory _weights = new uint256[](curve.getWeightsLength());
 
 		for (uint128 i = 0; i < _weights.length; i++) {
 			_weights[i] = curve.weights(i);
 		}
 
-		int128 _omega = CurveMath.calculateFee(_oGLiq, _oBals, _beta, _delta, _weights);
+		uint256 _omega = CurveMath.calculateFee(_oGLiq, _oBals, _beta, _delta, _weights);
 
-		int128 _psi = CurveMath.calculateFee(_nGLiq, _nBals, _beta, _delta, _weights);
+		uint256 _psi = CurveMath.calculateFee(_nGLiq, _nBals, _beta, _delta, _weights);
 
 		CurveMath.enforceLiquidityInvariant(_curves, _newShells, _oGLiq, _nGLiq, _omega, _psi);
 	}

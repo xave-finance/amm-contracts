@@ -27,11 +27,27 @@ export default async (taskArgs: any) => {
   const fromInternalBalance = (taskArgs.frominternalbalance === 'true')
 
   const poolId = await POOLS_FILE.get(`${pool}.${network}.poolId`)
+  // const poolAddress = await POOLS_FILE.get(`${pool}.${network}.address`)
 
-  const ERC20 = await ethers.getContractFactory('@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20')
+  const ERC20 = await ethers.getContractFactory('FakeToken')
 
   const baseTokenDecimals = await ERC20.attach(baseToken).decimals()
   const quoteTokenDecimals = await ERC20.attach(quoteToken).decimals()
+
+  const baseTokenBalance = await ERC20.attach(baseToken).balanceOf(deployer.address)
+  const quoteTokenBalance = await ERC20.attach(quoteToken).balanceOf(deployer.address)
+
+  if (await baseTokenBalance.toString() === '0') {
+    console.log('Minting base token')
+    await ERC20.attach(baseToken).functions.mint(deployer.address, ethers.utils.parseEther('10000'))
+    await ERC20.attach(baseToken).functions.approve(Vault.address, ethers.utils.parseEther('10000'))
+  }
+
+  if (await quoteTokenBalance.toString() === '0') {
+    console.log('Minting quote token')
+    await ERC20.attach(quoteToken).functions.mint(deployer.address, ethers.utils.parseEther('10000'))
+    await ERC20.attach(quoteToken).functions.approve(Vault.address, ethers.utils.parseEther('10000'))
+  }
 
   // console.log('baseTokenDecimals:', baseTokenDecimals)
   // console.log('quoteTokenDecimals:', quoteTokenDecimals)
@@ -42,10 +58,10 @@ export default async (taskArgs: any) => {
   // const liquidityToAdd = [ethers.utils.parseUnits(`${baseAmount}`, baseTokenDecimals), ethers.utils.parseUnits(`${quoteAmount}`, quoteTokenDecimals)]
   const liquidityToAdd = [ethers.utils.parseUnits(`${quoteAmount}`, quoteTokenDecimals), ethers.utils.parseUnits(`${baseAmount}`, baseTokenDecimals)]
   const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]'], [liquidityToAdd])
-
   const joinPoolRequest = {
-    // assets: sortAddresses([baseToken, quoteToken]),
-    assets: [quoteToken, baseToken],
+    assets: sortAddresses([baseToken, quoteToken]),
+    // assets: [quoteToken, baseToken],
+    // assets: [baseToken, quoteToken],
     maxAmountsIn: liquidityToAdd,
     userData: payload,
     // userData: '0x',
@@ -65,8 +81,7 @@ export default async (taskArgs: any) => {
     gasLimit: ethers.utils.parseUnits('0.01', 'gwei'),
     to: Vault.address,
   }
-
-  console.log('txPayload:', txPayload)
+  // console.log('txPayload:', txPayload)
 
   let singleSwapTxReceipt
 

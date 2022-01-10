@@ -21,9 +21,12 @@ import "./lib/ABDKMath64x64.sol";
 import "./interfaces/IAssimilator.sol";
 import "./interfaces/IOracle.sol";
 
+import "../balancer-core-v2/solidity-utils/contracts/openzeppelin/SafeMath.sol";
+
 contract UsdcToUsdAssimilator is IAssimilator {
-    using ABDKMath64x64 for int128;
     using ABDKMath64x64 for uint256;
+    using ABDKMath64x64 for uint256;
+    using SafeMath for uint256;
 
     // IOracle private constant oracle = IOracle(0x9211c6b3BF41A10F78539810Cf5c64e1BB78Ec60);
     // IERC20 private constant usdc = IERC20(0xa57c092a117C9dE50922A75674dd35ab34d82c4A);
@@ -42,7 +45,7 @@ contract UsdcToUsdAssimilator is IAssimilator {
         return uint256(oracle.latestAnswer());
     }
 
-    function intakeRawAndGetBalance(uint256 _amount) external override returns (int128 amount_, int128 balance_) {
+    function intakeRawAndGetBalance(uint256 _amount) external override returns (uint256 amount_, uint256 balance_) {
         bool _success = usdc.transferFrom(msg.sender, address(this), _amount);
 
         require(_success, "Curve/USDC-transfer-from-failed");
@@ -51,25 +54,25 @@ contract UsdcToUsdAssimilator is IAssimilator {
 
         uint256 _rate = getRate();
 
-        balance_ = ((_balance * _rate) / 1e8).divu(DECIMALS);
+        balance_ = ((_balance * _rate) / 1e8).div(DECIMALS);
 
-        amount_ = ((_amount * _rate) / 1e8).divu(DECIMALS);
+        amount_ = ((_amount * _rate) / 1e8).div(DECIMALS);
     }
 
-    function intakeRaw(uint256 _amount) external override returns (int128 amount_) {
+    function intakeRaw(uint256 _amount) external override returns (uint256 amount_) {
         bool _success = usdc.transferFrom(msg.sender, address(this), _amount);
 
         require(_success, "Curve/USDC-transfer-from-failed");
 
         uint256 _rate = getRate();
 
-        amount_ = ((_amount * _rate) / 1e8).divu(DECIMALS);
+        amount_ = ((_amount * _rate) / 1e8).div(DECIMALS);
     }
 
-    function intakeNumeraire(int128 _amount) external override returns (uint256 amount_) {
+    function intakeNumeraire(uint256 _amount) external override returns (uint256 amount_) {
         uint256 _rate = getRate();
 
-        amount_ = (_amount.mulu(DECIMALS) * 1e8) / _rate;
+        amount_ = (_amount.mul(DECIMALS) * 1e8) / _rate;
 
         bool _success = usdc.transferFrom(msg.sender, address(this), amount_);
 
@@ -80,9 +83,9 @@ contract UsdcToUsdAssimilator is IAssimilator {
         uint256,
         uint256,
         address,
-        int128 _amount
+        uint256 _amount
     ) external override returns (uint256 amount_) {
-        amount_ = _amount.mulu(DECIMALS);
+        amount_ = _amount.mul(DECIMALS);
 
         bool _success = usdc.transferFrom(msg.sender, address(this), amount_);
 
@@ -92,7 +95,7 @@ contract UsdcToUsdAssimilator is IAssimilator {
     function outputRawAndGetBalance(address _dst, uint256 _amount)
         external
         override
-        returns (int128 amount_, int128 balance_)
+        returns (uint256 amount_, uint256 balance_)
     {
         uint256 _rate = getRate();
 
@@ -104,12 +107,12 @@ contract UsdcToUsdAssimilator is IAssimilator {
 
         uint256 _balance = usdc.balanceOf(address(this));
 
-        amount_ = _usdcAmount.divu(DECIMALS);
+        amount_ = _usdcAmount.div(DECIMALS);
 
-        balance_ = ((_balance * _rate) / 1e8).divu(DECIMALS);
+        balance_ = ((_balance * _rate) / 1e8).div(DECIMALS);
     }
 
-    function outputRaw(address _dst, uint256 _amount) external override returns (int128 amount_) {
+    function outputRaw(address _dst, uint256 _amount) external override returns (uint256 amount_) {
         uint256 _rate = getRate();
 
         uint256 _usdcAmount = (_amount * _rate) / 1e8;
@@ -118,48 +121,48 @@ contract UsdcToUsdAssimilator is IAssimilator {
 
         require(_success, "Curve/USDC-transfer-failed");
 
-        amount_ = _usdcAmount.divu(DECIMALS);
+        amount_ = _usdcAmount.div(DECIMALS);
     }
 
-    function outputNumeraire(address _dst, int128 _amount) external override returns (uint256 amount_) {
+    function outputNumeraire(address _dst, uint256 _amount) external override returns (uint256 amount_) {
         uint256 _rate = getRate();
 
-        amount_ = (_amount.mulu(DECIMALS) * 1e8) / _rate;
+        amount_ = (_amount.mul(DECIMALS) * 1e8) / _rate;
 
         bool _success = usdc.transfer(_dst, amount_);
 
         require(_success, "Curve/USDC-transfer-failed");
     }
 
-    function viewRawAmount(int128 _amount) external view override returns (uint256 amount_) {
+    function viewRawAmount(uint256 _amount) external view override returns (uint256 amount_) {
         uint256 _rate = getRate();
 
-        amount_ = (_amount.mulu(DECIMALS) * 1e8) / _rate;
+        amount_ = (_amount.mul(DECIMALS) * 1e8) / _rate;
     }
 
     function viewRawAmountLPRatio(
         uint256,
         uint256,
         address,
-        int128 _amount
+        uint256 _amount
     ) external pure override returns (uint256 amount_) {
-        amount_ = _amount.mulu(DECIMALS);
+        amount_ = _amount.mul(DECIMALS);
     }
 
-    function viewNumeraireAmount(uint256 _amount) external view override returns (int128 amount_) {
+    function viewNumeraireAmount(uint256 _amount) external view override returns (uint256 amount_) {
         uint256 _rate = getRate();
 
-        amount_ = ((_amount * _rate) / 1e8).divu(DECIMALS);
+        amount_ = ((_amount * _rate) / 1e8).div(DECIMALS);
     }
 
-    function viewNumeraireBalance(address _addr) public view override returns (int128 balance_) {
+    function viewNumeraireBalance(address _addr) public view override returns (uint256 balance_) {
         uint256 _rate = getRate();
 
         uint256 _balance = usdc.balanceOf(_addr);
 
-        if (_balance <= 0) return ABDKMath64x64.fromUInt(0);
+        if (_balance <= 0) return 0;
 
-        balance_ = ((_balance * _rate) / 1e8).divu(DECIMALS);
+        balance_ = ((_balance * _rate) / 1e8).div(DECIMALS);
     }
 
     // views the numeraire value of the current balance of the reserve wrt to USD
@@ -168,24 +171,24 @@ contract UsdcToUsdAssimilator is IAssimilator {
         uint256,
         uint256,
         address _addr
-    ) external view override returns (int128 balance_) {
+    ) external view override returns (uint256 balance_) {
         uint256 _balance = usdc.balanceOf(_addr);
 
-        return _balance.divu(DECIMALS);
+        return _balance.div(DECIMALS);
     }
 
     function viewNumeraireAmountAndBalance(address _addr, uint256 _amount)
         external
         view
         override
-        returns (int128 amount_, int128 balance_)
+        returns (uint256 amount_, uint256 balance_)
     {
         uint256 _rate = getRate();
 
-        amount_ = ((_amount * _rate) / 1e8).divu(DECIMALS);
+        amount_ = ((_amount * _rate) / 1e8).div(DECIMALS);
 
         uint256 _balance = usdc.balanceOf(_addr);
 
-        balance_ = ((_balance * _rate) / 1e8).divu(DECIMALS);
+        balance_ = ((_balance * _rate) / 1e8).div(DECIMALS);
     }
 }

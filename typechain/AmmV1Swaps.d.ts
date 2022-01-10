@@ -24,7 +24,7 @@ interface AmmV1SwapsInterface extends ethers.utils.Interface {
     "ONE()": FunctionFragment;
     "originSwap(address,address,address,uint256,address)": FunctionFragment;
     "targetSwap(address,address,address,uint256,address)": FunctionFragment;
-    "viewOriginSwap(address,(int128,int128),address,address,uint256)": FunctionFragment;
+    "viewOriginSwap(address,(uint256,uint256),address,address,uint256)": FunctionFragment;
     "viewTargetSwap(address,address,address,uint256)": FunctionFragment;
   };
 

@@ -23,7 +23,7 @@ import "./interfaces/IAssimilator.sol";
 import "./interfaces/IOracle.sol";
 
 contract BaseToUsdAssimilator is IAssimilator {
-    using ABDKMath64x64 for int128;
+    using ABDKMath64x64 for uint256;
     using ABDKMath64x64 for uint256;
 
     using SafeMath for uint256;
@@ -46,7 +46,7 @@ contract BaseToUsdAssimilator is IAssimilator {
     }
 
     // takes raw baseToken amount, transfers it in, calculates corresponding numeraire amount and returns it
-    function intakeRawAndGetBalance(uint256 _amount) external override returns (int128 amount_, int128 balance_) {
+    function intakeRawAndGetBalance(uint256 _amount) external override returns (uint256 amount_, uint256 balance_) {
         bool _transferSuccess = baseToken.transferFrom(msg.sender, address(this), _amount);
 
         require(_transferSuccess, "Curve/baseToken-transfer-from-failed");
@@ -55,27 +55,27 @@ contract BaseToUsdAssimilator is IAssimilator {
 
         uint256 _rate = getRate();
 
-        balance_ = ((_balance * _rate) / 1e8).divu(baseDecimals);
+        balance_ = ((_balance * _rate) / 1e8).div(baseDecimals);
 
-        amount_ = ((_amount * _rate) / 1e8).divu(baseDecimals);
+        amount_ = ((_amount * _rate) / 1e8).div(baseDecimals);
     }
 
     // takes raw baseToken amount, transfers it in, calculates corresponding numeraire amount and returns it
-    function intakeRaw(uint256 _amount) external override returns (int128 amount_) {
+    function intakeRaw(uint256 _amount) external override returns (uint256 amount_) {
         bool _transferSuccess = baseToken.transferFrom(msg.sender, address(this), _amount);
 
         require(_transferSuccess, "Curve/baseToken-transfer-from-failed");
 
         uint256 _rate = getRate();
 
-        amount_ = ((_amount * _rate) / 1e8).divu(baseDecimals);
+        amount_ = ((_amount * _rate) / 1e8).div(baseDecimals);
     }
 
     // takes a numeraire amount, calculates the raw amount of baseToken, transfers it in and returns the corresponding raw amount
-    function intakeNumeraire(int128 _amount) external override returns (uint256 amount_) {
+    function intakeNumeraire(uint256 _amount) external override returns (uint256 amount_) {
         uint256 _rate = getRate();
 
-        amount_ = (_amount.mulu(baseDecimals) * 1e8) / _rate;
+        amount_ = (_amount.mul(baseDecimals) * 1e8) / _rate;
 
         bool _transferSuccess = baseToken.transferFrom(msg.sender, address(this), amount_);
 
@@ -87,7 +87,7 @@ contract BaseToUsdAssimilator is IAssimilator {
         uint256 _baseWeight,
         uint256 _quoteWeight,
         address _addr,
-        int128 _amount
+        uint256 _amount
     ) external override returns (uint256 amount_) {
         uint256 _baseTokenBal = baseToken.balanceOf(_addr);
 
@@ -102,7 +102,7 @@ contract BaseToUsdAssimilator is IAssimilator {
         // Rate is in 1e6
         uint256 _rate = _usdcBal.mul(baseDecimals).div(_baseTokenBal);
 
-        amount_ = (_amount.mulu(baseDecimals) * 1e6) / _rate;
+        amount_ = (_amount.mul(baseDecimals) * 1e6) / _rate;
 
         bool _transferSuccess = baseToken.transferFrom(msg.sender, address(this), amount_);
 
@@ -113,7 +113,7 @@ contract BaseToUsdAssimilator is IAssimilator {
     function outputRawAndGetBalance(address _dst, uint256 _amount)
         external
         override
-        returns (int128 amount_, int128 balance_)
+        returns (uint256 amount_, uint256 balance_)
     {
         uint256 _rate = getRate();
 
@@ -125,13 +125,13 @@ contract BaseToUsdAssimilator is IAssimilator {
 
         uint256 _balance = baseToken.balanceOf(address(this));
 
-        amount_ = _baseTokenAmount.divu(baseDecimals);
+        amount_ = _baseTokenAmount.div(baseDecimals);
 
-        balance_ = ((_balance * _rate) / 1e8).divu(baseDecimals);
+        balance_ = ((_balance * _rate) / 1e8).div(baseDecimals);
     }
 
     // takes a raw amount of baseToken and transfers it out, returns numeraire value of the raw amount
-    function outputRaw(address _dst, uint256 _amount) external override returns (int128 amount_) {
+    function outputRaw(address _dst, uint256 _amount) external override returns (uint256 amount_) {
         uint256 _rate = getRate();
 
         uint256 _baseTokenAmount = (_amount * _rate) / 1e8;
@@ -140,14 +140,14 @@ contract BaseToUsdAssimilator is IAssimilator {
 
         require(_transferSuccess, "Curve/baseToken-transfer-failed");
 
-        amount_ = _baseTokenAmount.divu(baseDecimals);
+        amount_ = _baseTokenAmount.div(baseDecimals);
     }
 
     // takes a numeraire value of baseToken, figures out the raw amount, transfers raw amount out, and returns raw amount
-    function outputNumeraire(address _dst, int128 _amount) external override returns (uint256 amount_) {
+    function outputNumeraire(address _dst, uint256 _amount) external override returns (uint256 amount_) {
         uint256 _rate = getRate();
 
-        amount_ = (_amount.mulu(baseDecimals) * 1e8) / _rate;
+        amount_ = (_amount.mul(baseDecimals) * 1e8) / _rate;
 
         bool _transferSuccess = baseToken.transfer(_dst, amount_);
 
@@ -155,17 +155,17 @@ contract BaseToUsdAssimilator is IAssimilator {
     }
 
     // takes a numeraire amount and returns the raw amount
-    function viewRawAmount(int128 _amount) external view override returns (uint256 amount_) {
+    function viewRawAmount(uint256 _amount) external view override returns (uint256 amount_) {
         uint256 _rate = getRate();
 
-        amount_ = (_amount.mulu(baseDecimals) * 1e8) / _rate;
+        amount_ = (_amount.mul(baseDecimals) * 1e8) / _rate;
     }
 
     function viewRawAmountLPRatio(
         uint256 _baseWeight,
         uint256 _quoteWeight,
         address _addr,
-        int128 _amount
+        uint256 _amount
     ) external view override returns (uint256 amount_) {
         uint256 _baseTokenBal = baseToken.balanceOf(_addr);
 
@@ -180,25 +180,25 @@ contract BaseToUsdAssimilator is IAssimilator {
         // Rate is in 1e6
         uint256 _rate = _usdcBal.mul(baseDecimals).div(_baseTokenBal);
 
-        amount_ = (_amount.mulu(baseDecimals) * 1e6) / _rate;
+        amount_ = (_amount.mul(baseDecimals) * 1e6) / _rate;
     }
 
     // takes a raw amount and returns the numeraire amount
-    function viewNumeraireAmount(uint256 _amount) external view override returns (int128 amount_) {
+    function viewNumeraireAmount(uint256 _amount) external view override returns (uint256 amount_) {
         uint256 _rate = getRate();
 
-        amount_ = ((_amount * _rate) / 1e8).divu(baseDecimals);
+        amount_ = ((_amount * _rate) / 1e8).div(baseDecimals);
     }
 
     // views the numeraire value of the current balance of the reserve, in this case baseToken
-    function viewNumeraireBalance(address _addr) external view override returns (int128 balance_) {
+    function viewNumeraireBalance(address _addr) external view override returns (uint256 balance_) {
         uint256 _rate = getRate();
 
         uint256 _balance = baseToken.balanceOf(_addr);
 
-        if (_balance <= 0) return ABDKMath64x64.fromUInt(0);
+        if (_balance <= 0) return 0;
 
-        balance_ = ((_balance * _rate) / 1e8).divu(baseDecimals);
+        balance_ = ((_balance * _rate) / 1e8).div(baseDecimals);
     }
 
     // views the numeraire value of the current balance of the reserve, in this case baseToken
@@ -206,15 +206,15 @@ contract BaseToUsdAssimilator is IAssimilator {
         external
         view
         override
-        returns (int128 amount_, int128 balance_)
+        returns (uint256 amount_, uint256 balance_)
     {
         uint256 _rate = getRate();
 
-        amount_ = ((_amount * _rate) / 1e8).divu(baseDecimals);
+        amount_ = ((_amount * _rate) / 1e8).div(baseDecimals);
 
         uint256 _balance = baseToken.balanceOf(_addr);
 
-        balance_ = ((_balance * _rate) / 1e8).divu(baseDecimals);
+        balance_ = ((_balance * _rate) / 1e8).div(baseDecimals);
     }
 
     // views the numeraire value of the current balance of the reserve, in this case baseToken
@@ -224,16 +224,16 @@ contract BaseToUsdAssimilator is IAssimilator {
         uint256 _baseWeight,
         uint256 _quoteWeight,
         address _addr
-    ) external view override returns (int128 balance_) {
+    ) external view override returns (uint256 balance_) {
         uint256 _baseTokenBal = baseToken.balanceOf(_addr);
 
-        if (_baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
+        if (_baseTokenBal <= 0) return 0;
 
         uint256 _usdcBal = usdc.balanceOf(_addr).mul(1e18).div(_quoteWeight);
 
         // Rate is in 1e6
         uint256 _rate = _usdcBal.mul(1e18).div(_baseTokenBal.mul(1e18).div(_baseWeight));
 
-        balance_ = ((_baseTokenBal * _rate) / 1e6).divu(1e18);
+        balance_ = ((_baseTokenBal * _rate) / 1e6).div(1e18);
     }
 }

@@ -401,10 +401,6 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.FakeToken__factory>;
     getContractFactory(
-      name: "DepositRelayer",
-      signerOrOptions?: ethers.Signer | FactoryOptions
-    ): Promise<Contracts.DepositRelayer__factory>;
-    getContractFactory(
       name: "FXPool",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.FXPool__factory>;
@@ -906,11 +902,6 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.FakeToken>;
-    getContractAt(
-      name: "DepositRelayer",
-      address: string,
-      signer?: ethers.Signer
-    ): Promise<Contracts.DepositRelayer>;
     getContractAt(
       name: "FXPool",
       address: string,

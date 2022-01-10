@@ -55,9 +55,9 @@ contract ERC20 is IERC20 {
      * construction.
      */
     constructor (string memory name_, string memory symbol_) public {
-        _name = "Mocked Swiss Franc";
-        _symbol = "CHF";
-        _decimals = 8;
+        _name = name_;
+        _symbol = symbol_;
+        _decimals = 18;
     }
 
     /**

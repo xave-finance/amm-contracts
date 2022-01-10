@@ -95,11 +95,11 @@ const _forceDeploy = async (
 	try {
 		deployTxReceipt = await deployer.sendTransaction(txPayload as any)
 
-		const reciepit = await deployTxReceipt.wait()
+		const reciept = await deployTxReceipt.wait()
 
-		console.log('reciepit:', reciepit)
+		console.log('reciept:', reciept)
 	} catch (Error) {
-		// console.error(Error)
+		console.error(Error)
 	}
 
 	console.log(`Transaction Hash:`, `https://${network}.etherscan.io/tx/${deployTxReceipt?.hash}`)
@@ -112,28 +112,35 @@ const freshContractsDeploy = async (taskArgs: any) => {
 	console.log(`Deploying with account: ${deployer.address}`)
 
 	const network = taskArgs.to
-	const force = taskArgs.force
-	const verify = taskArgs.verify
+	const force = taskArgs.force === 'true'
+	const verify = taskArgs.verify === 'true'
 
 	/** Deploy Base Token */
 	const FakeTokenFactory = new FakeToken__factory(deployer)
-	const baseToken = await FakeTokenFactory.deploy('Base Token', 'BASE') // MAKE SURE TO MANUALLY CHANGE DECIMALS IN ERC20.sol
+	const baseToken = await FakeTokenFactory.deploy('Base Token', 'BASE', 8) // MAKE SURE TO MANUALLY CHANGE DECIMALS IN ERC20.sol
 	await baseToken.deployed()
+	console.log(`Base Token: ${baseToken.address}`)
+	await TOKENS_FILE.set(`${await baseToken.symbol()}.${process.env.HARDHAT_NETWORK}`, baseToken.address).save()
+  await TOKENS_FILE.append(`SYMBOLS_LIST`, await baseToken.symbol()).save()
 
 	/** Deploy Quote Token */
-	const quoteToken = await FakeTokenFactory.deploy('Quote Token', 'QUOTE') // MAKE SURE TO MANUALLY CHANGE DECIMALS IN ERC20.sol
+	const quoteToken = await FakeTokenFactory.deploy('Quote Token', 'QUOTE', 6) // MAKE SURE TO MANUALLY CHANGE DECIMALS IN ERC20.sol
 	await quoteToken.deployed()
+	console.log(`Quote Token: ${quoteToken.address}`)
+	await TOKENS_FILE.set(`${await quoteToken.symbol()}.${process.env.HARDHAT_NETWORK}`, quoteToken.address).save()
+  await TOKENS_FILE.append(`SYMBOLS_LIST`, await quoteToken.symbol()).save()
 
 	/** Deploy Base Assimilator */
 	const BaseToUsdAssimilatorFactory = new BaseToUsdAssimilator__factory(deployer)
 	const baseToUsdAssimilator = await BaseToUsdAssimilatorFactory.deploy(
 		await baseToken.decimals(),
-		await baseToken.address,
-		await quoteToken.address,
+		baseToken.address,
+		quoteToken.address,
 		// '<ORACLE_ADDRESS>'
-		'0xed0616BeF04D374969f302a34AE4A63882490A8C',
+		'0xed0616BeF04D374969f302a34AE4A63882490A8C'
 	)
 	await baseToUsdAssimilator.deployed()
+	console.log(`BaseToUSD Assimilator: ${baseToUsdAssimilator.address}`)
 
 	/** Deploy Quote Assimilator */
 	const UsdcToUsdAssimilatorFactory = new UsdcToUsdAssimilator__factory(deployer)
@@ -144,16 +151,19 @@ const freshContractsDeploy = async (taskArgs: any) => {
 		quoteToken.address
 	)
 	await usdcToUsdAssimilator.deployed()
+	console.log(`USDCToUSD Assimilator: ${usdcToUsdAssimilator.address}`)
 
 	/** Deploy Assimilators */
 	const AssimilatorsLib = new Assimilators__factory(deployer)
 	const assimilators = await AssimilatorsLib.deploy()
 	await assimilators.deployed()
+	console.log(`Assimilator: ${assimilators.address}`)
 
 	/** Deploy Curve Math */
 	const CurveMathLib = new CurveMath__factory(deployer)
 	const curveMath = await CurveMathLib.deploy()
 	await curveMath.deployed()
+	console.log(`Curve Math: ${curveMath.address}`)
 
 	/** Deploy Proportional Liquidity */
 	const ProportionalLiquidityFactory = await ethers.getContractFactory('ProportionalLiquidity', {
@@ -164,6 +174,7 @@ const freshContractsDeploy = async (taskArgs: any) => {
 	})
 	const proportionalLiquidityContract = await ProportionalLiquidityFactory.deploy()
 	await proportionalLiquidityContract.deployed()
+	console.log(`Proportional Liquidity: ${proportionalLiquidityContract.address}`)
 
 	/** Deploy Swaps */
 	const SwapsFactory = await ethers.getContractFactory('AmmV1Swaps', {
@@ -174,6 +185,7 @@ const freshContractsDeploy = async (taskArgs: any) => {
 	})
 	const swapsContract = await SwapsFactory.deploy()
 	await swapsContract.deployed()
+	console.log(`Swaps: ${swapsContract.address}`)
 
 	const { tokens, assets } = _prepareFXPoolConstructor(
 		await baseToken.address,
@@ -187,7 +199,7 @@ const freshContractsDeploy = async (taskArgs: any) => {
 			Assimilators: await assimilators.address,
 			CurveMath: await curveMath.address,
 		},
-	}) 
+	})
 
 	const constructorArgs = [
 		Vault.address,
@@ -206,13 +218,51 @@ const freshContractsDeploy = async (taskArgs: any) => {
 	let fxPool
 
 	if (force) {
-		_forceDeploy(deployer, network, FXPoolFactory, constructorArgs)
+		await _forceDeploy(deployer, network, FXPoolFactory, constructorArgs)
 	} else {
-		fxPool = await FXPoolFactory.deploy(...constructorArgs)
-		await fxPool.deployed()
+		try {
+			fxPool = await FXPoolFactory.deploy(...constructorArgs)
+			await fxPool.deployed()
+			console.log(`FX Pool: ${fxPool.address}`)
+
+			const poolId = await fxPool.getPoolId()
+			console.log('FX Pool ID:', poolId)
+
+			await POOLS_FILE.set(`${await baseToken.symbol()}-${await quoteToken.symbol()}.${network}.address`, fxPool.address).save()
+			await POOLS_FILE.set(`${await baseToken.symbol()}-${await quoteToken.symbol()}.${network}.poolId`, poolId).save()
+			await POOLS_FILE.set(
+				`${await baseToken.symbol()}-${await quoteToken.symbol()}.${network}.baseTokenAddress`,
+				baseToken.address
+			).save()
+			await POOLS_FILE.set(
+				`${await baseToken.symbol()}-${await quoteToken.symbol()}.${network}.quoteTokenAddress`,
+				quoteToken.address
+			).save()
+			await POOLS_FILE.append(`POOLS_LIST`, `${await baseToken.symbol()}-${await quoteToken.symbol()}`).save()
+		} catch (DeployError) {
+			console.error(`Deploy FX Pool Error:`, DeployError)
+		}
 	}
 
 	if (verify) {
+		console.log('Waiting for 250 seconds before attempting to verify deployed contracts.')
+		await sleep(250000)
+		await verifyContract(hre, baseToken.address, ['Base Token', 'BASE', 8])
+		await verifyContract(hre, quoteToken.address, ['Quote Token', 'QUOTE', 6])
+		await verifyContract(hre, baseToUsdAssimilator.address, [
+			await baseToken.decimals(),
+			baseToken.address,
+			quoteToken.address,
+			'0xed0616BeF04D374969f302a34AE4A63882490A8C',
+		])
+		await verifyContract(hre, usdcToUsdAssimilator.address, [
+			'0x9211c6b3BF41A10F78539810Cf5c64e1BB78Ec60',
+			quoteToken.address,
+		])
+		await verifyContract(hre, assimilators.address, [])
+		await verifyContract(hre, curveMath.address, [])
+		await verifyContract(hre, proportionalLiquidityContract.address, [])
+		await verifyContract(hre, swapsContract.address, [])
 		await verifyContract(hre, fxPool.address, constructorArgs)
 	}
 }
@@ -254,14 +304,54 @@ const constantContractsDeploy = async (taskArgs: any) => {
 		DEPLOY_PARAMS.SWAPS,
 	]
 
+	// JUST WANT TO VERIFY
+	// if (true) {
+	// 	await verifyContract(hre, '0x348f7b7F3C1f7122D7e4CAD3604027867EbEAb72', constructorArgs)
+	// 	return
+	// }
+
+	console.log(`Using constants:`)
+	console.table(DEPLOY_PARAMS)
+
+	const ERC20 = await ethers.getContractFactory('@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20')
+	const baseToken = await ERC20.attach(DEPLOY_PARAMS.BASE_TOKEN,)
+  const quoteToken = await ERC20.attach(DEPLOY_PARAMS.QUOTE_TOKEN)
+
+	let fxPool
+
 	if (force) {
-		_forceDeploy(deployer, network, FXPoolFactory, constructorArgs)
+		await _forceDeploy(deployer, network, FXPoolFactory, constructorArgs)
+	} else {
+		try {
+			fxPool = await FXPoolFactory.deploy(...constructorArgs)
+			await fxPool.deployed()
+			console.log(`FX Pool: ${fxPool.address}`)
+
+			const poolId = await fxPool.getPoolId()
+			console.log('FX Pool ID:', poolId)
+
+			await POOLS_FILE.set(`${await baseToken.symbol()}-${await quoteToken.symbol()}.${network}.address`, fxPool.address).save()
+			await POOLS_FILE.set(`${await baseToken.symbol()}-${await quoteToken.symbol()}.${network}.poolId`, poolId).save()
+			await POOLS_FILE.set(
+				`${await baseToken.symbol()}-${await quoteToken.symbol()}.${network}.baseTokenAddress`,
+				baseToken.address
+			).save()
+			await POOLS_FILE.set(
+				`${await baseToken.symbol()}-${await quoteToken.symbol()}.${network}.quoteTokenAddress`,
+				quoteToken.address
+			).save()
+			await POOLS_FILE.append(`POOLS_LIST`, `${await baseToken.symbol()}-${await quoteToken.symbol()}`).save()
+		} catch (DeployError) {
+			console.error(`Deploy FX Pool Error:`, DeployError)
+		}
+		// @todo Save to POOLS.json record
 	}
 
 	if (verify) {
+		console.log(`Waiting for 150 seconds before attempting to verify.`);
 		await sleep(150000)
 
-		// await verifyContract(hre, )
+		await verifyContract(hre, fxPool.address, constructorArgs)
 	}
 }
 

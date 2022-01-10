@@ -23,8 +23,8 @@ interface AssimilatorsInterface extends ethers.utils.Interface {
     "iAsmltr()": FunctionFragment;
     "viewNumeraireBalance(address)": FunctionFragment;
     "viewNumeraireBalanceLPRatio(uint256,uint256,address)": FunctionFragment;
-    "viewRawAmount(address,int128)": FunctionFragment;
-    "viewRawAmountLPRatio(address,uint256,uint256,int128)": FunctionFragment;
+    "viewRawAmount(address,uint256)": FunctionFragment;
+    "viewRawAmountLPRatio(address,uint256,uint256,uint256)": FunctionFragment;
   };
 
   encodeFunctionData(functionFragment: "iAsmltr", values?: undefined): string;

@@ -13,8 +13,8 @@ import '../FXPool.sol';
 import '../balancer-core-v2/solidity-utils/contracts/openzeppelin/SafeMath.sol';
 
 contract AmmV1Swaps {
-	using ABDKMath64x64 for int128;
-	using UnsafeMath64x64 for int128;
+	using ABDKMath64x64 for uint256;
+	using UnsafeMath64x64 for uint256;
 	using ABDKMath64x64 for uint256;
 	using SafeMath for uint256;
 
@@ -26,7 +26,7 @@ contract AmmV1Swaps {
 		uint256 targetAmount
 	);
 
-	int128 public constant ONE = 0x10000000000000000;
+	uint256 public constant ONE = 0x10000000000000000;
 
 	function getOriginAndTarget(
 		FXPool pool,
@@ -45,9 +45,9 @@ contract AmmV1Swaps {
 	function _getDimensions(FXPool pool)
 		private
 		view
-		returns (CurveMath.CurveDimensions memory dimensions, int128[] memory weights)
+		returns (CurveMath.CurveDimensions memory dimensions, uint256[] memory weights)
 	{
-		weights = new int128[](pool.getWeightsLength());
+		weights = new uint256[](pool.getWeightsLength());
 
 		{
 			for (uint128 i = 0; i < weights.length; i++) {
@@ -66,14 +66,14 @@ contract AmmV1Swaps {
 
 	function _calculateTrade(
 		FXPool pool,
-		int128 _oGLiq,
-		int128 _nGLiq,
-		int128[] memory _oBals,
-		int128[] memory _nBals,
-		int128 _amt,
+		uint256 _oGLiq,
+		uint256 _nGLiq,
+		uint256[] memory _oBals,
+		uint256[] memory _nBals,
+		uint256 _amt,
 		FXPool.Assimilator memory _o
-	) private view returns (int128) {
-		(CurveMath.CurveDimensions memory dimensions, int128[] memory weights) = _getDimensions(
+	) private view returns (uint256) {
+		(CurveMath.CurveDimensions memory dimensions, uint256[] memory weights) = _getDimensions(
 			pool
 		);
 
@@ -108,17 +108,17 @@ contract AmmV1Swaps {
 				);
 
 		(
-			int128 _amt,
-			int128 _oGLiq,
-			int128 _nGLiq,
-			int128[] memory _oBals,
-			int128[] memory _nBals
+			uint256 _amt,
+			uint256 _oGLiq,
+			uint256 _nGLiq,
+			uint256[] memory _oBals,
+			uint256[] memory _nBals
 		) = getOriginSwapData(pool, _o.ix, _t.ix, _o.addr, _originAmount);
 
-		int128 _calculatedAmt = _calculateTrade(pool, _oGLiq, _nGLiq, _oBals, _nBals, _amt, _o);
+		uint256 _calculatedAmt = _calculateTrade(pool, _oGLiq, _nGLiq, _oBals, _nBals, _amt, _o);
 		_amt = _calculatedAmt;
 
-		_amt = _amt.us_mul(ONE - pool.epsilon());
+		_amt = _amt.mul(ONE - pool.epsilon());
 
 		tAmt_ = Assimilators.outputNumeraire(_t.addr, _recipient, _amt);
 
@@ -145,7 +145,7 @@ contract AmmV1Swaps {
 					Assimilators.viewNumeraireAmount(_o.addr, _originAmount)
 				);
 
-		(int128 _amt, , , int128[] memory _nBals, int128[] memory _oBals) = viewOriginSwapData(
+		(uint256 _amt, , , uint256[] memory _nBals, uint256[] memory _oBals) = viewOriginSwapData(
 			pool,
 			_o.ix,
 			_t.ix,
@@ -153,7 +153,7 @@ contract AmmV1Swaps {
 			_o.addr
 		);
 
-		(CurveMath.CurveDimensions memory dimensions, int128[] memory weights) = _getDimensions(
+		(CurveMath.CurveDimensions memory dimensions, uint256[] memory weights) = _getDimensions(
 			pool
 		);
 
@@ -162,9 +162,9 @@ contract AmmV1Swaps {
 
 		_amt = CurveMath.calculateTrade(dimensions, weights, liquidity, balances, _amt, _t.ix);
 
-		_amt = _amt.us_mul(ONE - dimensions.epsilon);
+		_amt = _amt.mul(ONE - dimensions.epsilon);
 
-		tAmt_ = Assimilators.viewRawAmount(_t.addr, _amt.abs());
+		tAmt_ = Assimilators.viewRawAmount(_t.addr, _amt);
 	}
 
 	function targetSwap(
@@ -201,14 +201,14 @@ contract AmmV1Swaps {
 		}
 
 		(
-			int128 _amt,
-			int128 _oGLiq,
-			int128 _nGLiq,
-			int128[] memory _oBals,
-			int128[] memory _nBals
+			uint256 _amt,
+			uint256 _oGLiq,
+			uint256 _nGLiq,
+			uint256[] memory _oBals,
+			uint256[] memory _nBals
 		) = getTargetSwapData(pool, _t.ix, _o.ix, _t.addr, _recipient, _targetAmount);
 
-		int128 _calculatedAmt = _calculateTrade(pool, _oGLiq, _nGLiq, _oBals, _nBals, _amt, _o);
+		uint256 _calculatedAmt = _calculateTrade(pool, _oGLiq, _nGLiq, _oBals, _nBals, _amt, _o);
 		_amt = _calculatedAmt;
 
 		// If the origin is the quote currency (i.e. usdc)
@@ -216,10 +216,10 @@ contract AmmV1Swaps {
 
 		// curve.assets[1].addr = quoteCurrency
 		if (pool.getAsset(1).addr == _o.addr) {
-			_amt = _amt.mul(Assimilators.getRate(_t.addr).divu(1e8));
+			_amt = _amt.mul(Assimilators.getRate(_t.addr).div(1e8));
 		}
 
-		_amt = _amt.us_mul(ONE + pool.epsilon());
+		_amt = _amt.mul(ONE + pool.epsilon());
 
 		oAmt_ = Assimilators.intakeNumeraire(_o.addr, _amt);
 
@@ -259,14 +259,14 @@ contract AmmV1Swaps {
 		}
 
 		(
-			int128 _amt,
-			int128 _oGLiq,
-			int128 _nGLiq,
-			int128[] memory _nBals,
-			int128[] memory _oBals
+			uint256 _amt,
+			uint256 _oGLiq,
+			uint256 _nGLiq,
+			uint256[] memory _nBals,
+			uint256[] memory _oBals
 		) = viewTargetSwapData(pool, _t.ix, _o.ix, _targetAmount, _t.addr);
 
-		int128 _calculatedAmt = _calculateTrade(pool, _oGLiq, _nGLiq, _oBals, _nBals, _amt, _o);
+		uint256 _calculatedAmt = _calculateTrade(pool, _oGLiq, _nGLiq, _oBals, _nBals, _amt, _o);
 		_amt = _calculatedAmt;
 
 		// If the origin is the quote currency (i.e. usdc)
@@ -274,10 +274,10 @@ contract AmmV1Swaps {
 
 		// curve.assets[1].addr = quoteCurrency
 		if (pool.getAsset(1).addr == _o.addr) {
-			_amt = _amt.mul(Assimilators.getRate(_t.addr).divu(1e8));
+			_amt = _amt.mul(Assimilators.getRate(_t.addr).div(1e8));
 		}
 
-		_amt = _amt.us_mul(ONE + pool.epsilon());
+		_amt = _amt.mul(ONE + pool.epsilon());
 
 		oAmt_ = Assimilators.viewRawAmount(_o.addr, _amt);
 	}
@@ -292,17 +292,17 @@ contract AmmV1Swaps {
 	)
 		private
 		returns (
-			int128 amt_,
-			int128 oGLiq_,
-			int128 nGLiq_,
-			int128[] memory,
-			int128[] memory
+			uint256 amt_,
+			uint256 oGLiq_,
+			uint256 nGLiq_,
+			uint256[] memory,
+			uint256[] memory
 		)
 	{
 		uint256 _length = pool.getAssetsLength();
 
-		int128[] memory oBals_ = new int128[](_length);
-		int128[] memory nBals_ = new int128[](_length);
+		uint256[] memory oBals_ = new uint256[](_length);
+		uint256[] memory nBals_ = new uint256[](_length);
 		// FXPool.Assimilator[] memory _reserves = pool.assets;
 		FXPool.Assimilator[] memory _reserves = pool.getAssets();
 
@@ -310,7 +310,7 @@ contract AmmV1Swaps {
 			if (i != _inputIx)
 				nBals_[i] = oBals_[i] = Assimilators.viewNumeraireBalance(_reserves[i].addr);
 			else {
-				int128 _bal;
+				uint256 _bal;
 				(amt_, _bal) = Assimilators.intakeRawAndGetBalance(_assim, _amt);
 
 				oBals_[i] = _bal.sub(amt_);
@@ -322,7 +322,7 @@ contract AmmV1Swaps {
 		}
 
 		nGLiq_ = nGLiq_.sub(amt_);
-		nBals_[_outputIx] = ABDKMath64x64.sub(nBals_[_outputIx], amt_);
+		nBals_[_outputIx] = SafeMath.sub(nBals_[_outputIx], amt_);
 
 		return (amt_, oGLiq_, nGLiq_, oBals_, nBals_);
 	}
@@ -337,24 +337,24 @@ contract AmmV1Swaps {
 	)
 		private
 		returns (
-			int128 amt_,
-			int128 oGLiq_,
-			int128 nGLiq_,
-			int128[] memory,
-			int128[] memory
+			uint256 amt_,
+			uint256 oGLiq_,
+			uint256 nGLiq_,
+			uint256[] memory,
+			uint256[] memory
 		)
 	{
 		uint256 _length = pool.getAssetsLength();
 
-		int128[] memory oBals_ = new int128[](_length);
-		int128[] memory nBals_ = new int128[](_length);
+		uint256[] memory oBals_ = new uint256[](_length);
+		uint256[] memory nBals_ = new uint256[](_length);
 		FXPool.Assimilator[] memory _reserves = pool.getAssets();
 
 		for (uint256 i = 0; i < _length; i++) {
 			if (i != _inputIx)
 				nBals_[i] = oBals_[i] = Assimilators.viewNumeraireBalance(_reserves[i].addr);
 			else {
-				int128 _bal;
+				uint256 _bal;
 				(amt_, _bal) = Assimilators.outputRawAndGetBalance(_assim, _recipient, _amt);
 
 				oBals_[i] = _bal.sub(amt_);
@@ -366,7 +366,7 @@ contract AmmV1Swaps {
 		}
 
 		nGLiq_ = nGLiq_.sub(amt_);
-		nBals_[_outputIx] = ABDKMath64x64.sub(nBals_[_outputIx], amt_);
+		nBals_[_outputIx] = SafeMath.sub(nBals_[_outputIx], amt_);
 
 		return (amt_, oGLiq_, nGLiq_, oBals_, nBals_);
 	}
@@ -381,22 +381,22 @@ contract AmmV1Swaps {
 		private
 		view
 		returns (
-			int128 amt_,
-			int128 oGLiq_,
-			int128 nGLiq_,
-			int128[] memory,
-			int128[] memory
+			uint256 amt_,
+			uint256 oGLiq_,
+			uint256 nGLiq_,
+			uint256[] memory,
+			uint256[] memory
 		)
 	{
 		uint256 _length = pool.getAssetsLength();
-		int128[] memory nBals_ = new int128[](_length);
-		int128[] memory oBals_ = new int128[](_length);
+		uint256[] memory nBals_ = new uint256[](_length);
+		uint256[] memory oBals_ = new uint256[](_length);
 
 		for (uint256 i = 0; i < _length; i++) {
 			if (i != _inputIx)
 				nBals_[i] = oBals_[i] = Assimilators.viewNumeraireBalance(pool.getAsset(i).addr);
 			else {
-				int128 _bal;
+				uint256 _bal;
 				(amt_, _bal) = Assimilators.viewNumeraireAmountAndBalance(_assim, _amt);
 
 				oBals_[i] = _bal;
@@ -408,7 +408,7 @@ contract AmmV1Swaps {
 		}
 
 		nGLiq_ = nGLiq_.sub(amt_);
-		nBals_[_outputIx] = ABDKMath64x64.sub(nBals_[_outputIx], amt_);
+		nBals_[_outputIx] = SafeMath.sub(nBals_[_outputIx], amt_);
 
 		return (amt_, oGLiq_, nGLiq_, nBals_, oBals_);
 	}
@@ -423,24 +423,24 @@ contract AmmV1Swaps {
 		private
 		view
 		returns (
-			int128 amt_,
-			int128 oGLiq_,
-			int128 nGLiq_,
-			int128[] memory,
-			int128[] memory
+			uint256 amt_,
+			uint256 oGLiq_,
+			uint256 nGLiq_,
+			uint256[] memory,
+			uint256[] memory
 		)
 	{
 		uint256 _length = pool.getAssetsLength();
-		int128[] memory nBals_ = new int128[](_length);
-		int128[] memory oBals_ = new int128[](_length);
+		uint256[] memory nBals_ = new uint256[](_length);
+		uint256[] memory oBals_ = new uint256[](_length);
 
 		for (uint256 i = 0; i < _length; i++) {
 			if (i != _inputIx)
 				nBals_[i] = oBals_[i] = Assimilators.viewNumeraireBalance(pool.getAsset(i).addr);
 			else {
-				int128 _bal;
+				uint256 _bal;
 				(amt_, _bal) = Assimilators.viewNumeraireAmountAndBalance(_assim, _amt);
-				amt_ = amt_.neg();
+				amt_ = amt_;
 
 				oBals_[i] = _bal;
 				nBals_[i] = _bal.add(amt_);
@@ -451,7 +451,7 @@ contract AmmV1Swaps {
 		}
 
 		nGLiq_ = nGLiq_.sub(amt_);
-		nBals_[_outputIx] = ABDKMath64x64.sub(nBals_[_outputIx], amt_);
+		nBals_[_outputIx] = SafeMath.sub(nBals_[_outputIx], amt_);
 
 		return (amt_, oGLiq_, nGLiq_, nBals_, oBals_);
 	}

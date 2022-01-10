@@ -20,7 +20,7 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface CurveMathInterface extends ethers.utils.Interface {
   functions: {
-    "calculateFee(int128,int128[],int128,int128,int128[])": FunctionFragment;
+    "calculateFee(uint256,uint256[],uint256,uint256,uint256[])": FunctionFragment;
   };
 
   encodeFunctionData(
