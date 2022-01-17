@@ -156,8 +156,8 @@ export class ProportionalLiquidity extends BaseContract {
     viewProportionalDeposit(
       curve: string,
       _deposit: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+      overrides?: CallOverrides
+    ): Promise<[BigNumber, BigNumber[]] & { curves_: BigNumber }>;
 
     viewProportionalWithdraw(
       curve: string,
@@ -191,8 +191,8 @@ export class ProportionalLiquidity extends BaseContract {
   viewProportionalDeposit(
     curve: string,
     _deposit: BigNumberish,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+    overrides?: CallOverrides
+  ): Promise<[BigNumber, BigNumber[]] & { curves_: BigNumber }>;
 
   viewProportionalWithdraw(
     curve: string,
@@ -282,7 +282,7 @@ export class ProportionalLiquidity extends BaseContract {
     viewProportionalDeposit(
       curve: string,
       _deposit: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     viewProportionalWithdraw(
@@ -318,7 +318,7 @@ export class ProportionalLiquidity extends BaseContract {
     viewProportionalDeposit(
       curve: string,
       _deposit: BigNumberish,
-      overrides?: Overrides & { from?: string | Promise<string> }
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     viewProportionalWithdraw(

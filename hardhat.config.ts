@@ -81,11 +81,17 @@ export default {
 	},
 	networks: {
 		hardhat: {
+			chainId: 1,
+			// forking: {
+			// 	url: `https://eth-kovan.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
+			// 	blockNumber: 29238122,
+			// 	// blockNumber: 28764216,
+			// },
 			forking: {
-				url: `https://eth-kovan.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
-				// blockNumber: 28132012,
-				blockNumber: 28764216,
-			},
+        enabled: true,
+        url: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
+        blockNumber: 13453242
+      },
 			accounts: {
 				accountsBalance: '100000000000000000000000', // 100000 ETH
 				count: 5,

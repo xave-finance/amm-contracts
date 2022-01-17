@@ -73,7 +73,7 @@ contract DepositRelayer {
 
 	}
 
-	function viewDeposit(bytes32 poolId, uint256 amount) external returns (uint256, uint256[] memory) {
+	function previewProportionalDeposit(bytes32 poolId, uint256 amount) external returns (uint256, uint256[] memory) {
 		(uint256 lpTokens, uint256[] memory requiredTokens) = _deposit(poolId, msg.sender, msg.sender, amount);
 
 		return (lpTokens, requiredTokens);

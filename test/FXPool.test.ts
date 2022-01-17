@@ -3,16 +3,28 @@ import { ethers, waffle } from 'hardhat'
 import { solidity } from 'ethereum-waffle'
 import { map, includes, kebabCase } from 'lodash'
 import Vault from '@balancer-labs/v2-deployments/deployed/kovan/Vault.json'
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 
+import { FakeToken } from '../typechain/FakeToken'
+import { BaseToUsdAssimilator } from '../typechain/BaseToUsdAssimilator'
+import { UsdcToUsdAssimilator } from '../typechain/UsdcToUsdAssimilator'
+import { Assimilators } from '../typechain/Assimilators'
+import { CurveMath } from '../typechain/CurveMath'
+import { ProportionalLiquidity } from '../typechain/ProportionalLiquidity'
+import { AmmV1Swaps } from '../typechain/AmmV1Swaps'
 import { TestFXPool } from '../typechain/TestFXPool'
+
 import { FakeToken__factory } from '../typechain/factories/FakeToken__factory'
+import { BaseToUsdAssimilator__factory } from '../typechain/factories/BaseToUsdAssimilator__factory'
+import { UsdcToUsdAssimilator__factory } from '../typechain/factories/UsdcToUsdAssimilator__factory'
+import { Assimilators__factory } from '../typechain/factories/Assimilators__factory'
+import { CurveMath__factory } from '../typechain/factories/CurveMath__factory'
+import { } from '../typechain/factories/TestFXPool__factory'
 
 import { deployTestCustomPool } from './helpers/deployTestCustomPool'
 import { decimal, fp, addBNArrays } from './common/v2-helpers/numbers'
 import { incurPoolFee } from './helpers/feeCalculator'
 
-import { FakeToken } from '../typechain/FakeToken'
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
 
 import { CustomPoolDeployParams } from '../scripts/types/CustomPool'
 
@@ -23,6 +35,12 @@ describe('FX Pool', () => {
 
 	let tokenA: FakeToken
 	let tokenB: FakeToken
+	let baseToUsdAssimilator: BaseToUsdAssimilator
+	let usdcToUsdAssimilator: UsdcToUsdAssimilator
+	let assimilators: Assimilators
+	let curveMath: CurveMath
+	let proportionalLiquidity: ProportionalLiquidity
+	let ammV1Swaps: AmmV1Swaps
 
 	let pool: TestFXPool
 
@@ -31,13 +49,59 @@ describe('FX Pool', () => {
 	})
 
 	sharedBeforeEach('deploy tokens', async () => {
-		const MockERC20Deployer = new FakeToken__factory(tokenSigner)
+		const MockERC20Deployer = new FakeToken__factory(halodaoSigner)
 
-		tokenA = await MockERC20Deployer.deploy('Token A', 'A')
-		tokenB = await MockERC20Deployer.deploy('Token B', 'B')
+		tokenA = await MockERC20Deployer.deploy('Token A', 'A', 8)
+		tokenB = await MockERC20Deployer.deploy('Token B', 'B', 6)
 
 		await tokenA.deployed()
 		await tokenB.deployed()
+	})
+
+	sharedBeforeEach('deploy assimilators', async () => {
+		const BaseToUsdAssimilatorDeployer = new BaseToUsdAssimilator__factory(halodaoSigner)
+		const UsdcToUsdAssimilatorDeployer = new UsdcToUsdAssimilator__factory(halodaoSigner)
+		const AssimilatorsDeployer = new Assimilators__factory(halodaoSigner)
+
+		const CHF_TO_USD_ORACLE = '0xed0616BeF04D374969f302a34AE4A63882490A8C'
+		const USDC_TO_USD_ORACLE = '0x9211c6b3BF41A10F78539810Cf5c64e1BB78Ec60'
+
+		baseToUsdAssimilator = await BaseToUsdAssimilatorDeployer.deploy(8, tokenA.address, tokenB.address, CHF_TO_USD_ORACLE)
+		await baseToUsdAssimilator.deployed()
+
+		usdcToUsdAssimilator = await UsdcToUsdAssimilatorDeployer.deploy(USDC_TO_USD_ORACLE, tokenB.address)
+		await usdcToUsdAssimilator.deployed()
+
+		assimilators = await AssimilatorsDeployer.deploy()
+		await assimilators.deployed()
+	})
+
+	sharedBeforeEach('deploy curve math', async () => {
+		const CurveMathDeployer = new CurveMath__factory(halodaoSigner)
+		curveMath = await CurveMathDeployer.deploy()
+		await curveMath.deployed()
+	})
+
+	sharedBeforeEach('deploy proportional liquidity', async () => {
+		const ProportionalLiquidityFactory = await ethers.getContractFactory('ProportionalLiquidity', {
+			libraries: {
+				Assimilators: assimilators.address,
+				CurveMath: curveMath.address,
+			},
+		})
+		const proportionalLiquidityContract = await ProportionalLiquidityFactory.deploy()
+		await proportionalLiquidityContract.deployed()
+	})
+
+	sharedBeforeEach('deploy AMM V1 swaps', async() => {
+		const SwapsFactory = await ethers.getContractFactory('AmmV1Swaps', {
+			libraries: {
+				Assimilators: assimilators.address,
+				// CurveMath: curveMath.address,
+			},
+		})
+		const swapsContract = await SwapsFactory.deploy()
+		await swapsContract.deployed()
 	})
 
 	async function deployPool() {

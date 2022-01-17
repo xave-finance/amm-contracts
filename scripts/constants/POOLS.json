@@ -7,6 +7,16 @@
     "CHF-USDC",
     "CHF-CHF",
     "BASE-QUOTE",
+    "BASE-QUOTE",
+    "BASE-QUOTE",
+    "BASE-QUOTE",
+    "BASE-QUOTE",
+    "BASE-QUOTE",
+    "BASE-QUOTE",
+    "BASE-QUOTE",
+    "BASE-QUOTE",
+    "BASE-QUOTE",
+    "BASE-QUOTE",
     "BASE-QUOTE"
   ],
   "BERG-FORT": {
@@ -59,10 +69,10 @@
   },
   "BASE-QUOTE": {
     "kovan": {
-      "address": "0x348f7b7F3C1f7122D7e4CAD3604027867EbEAb72",
-      "poolId": "0x348f7b7f3c1f7122d7e4cad3604027867ebeab7200010000000000000000058d",
-      "baseTokenAddress": "0xd96D076D350f973bCF776F11195Af11d86a90DBe",
-      "quoteTokenAddress": "0x7ACAa7f956B2F9fd0f400c2CF683D1675aa8FE57"
+      "address": "0x13D119549AD78Cf620Dbdb85CB1b2C9440F27DF2",
+      "poolId": "0x13d119549ad78cf620dbdb85cb1b2c9440f27df20001000000000000000005a3",
+      "baseTokenAddress": "0x008486BF13E7eaf140A0168b7f7cb724a01B2092",
+      "quoteTokenAddress": "0x7c4e10f2A9e8e23882675e48e8979708349341Ee"
     }
   }
 }

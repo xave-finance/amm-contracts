@@ -37,13 +37,15 @@ export default async (taskArgs: any) => {
   const baseTokenBalance = await ERC20.attach(baseToken).balanceOf(deployer.address)
   const quoteTokenBalance = await ERC20.attach(quoteToken).balanceOf(deployer.address)
 
-  if (await baseTokenBalance.toString() === '0') {
+  // console.log('baseTokenBalance:', baseTokenBalance.toString())
+
+  if (baseTokenBalance.toString() === '0') {
     console.log('Minting base token')
     await ERC20.attach(baseToken).functions.mint(deployer.address, ethers.utils.parseEther('10000'))
     await ERC20.attach(baseToken).functions.approve(Vault.address, ethers.utils.parseEther('10000'))
   }
 
-  if (await quoteTokenBalance.toString() === '0') {
+  if (quoteTokenBalance.toString() === '0') {
     console.log('Minting quote token')
     await ERC20.attach(quoteToken).functions.mint(deployer.address, ethers.utils.parseEther('10000'))
     await ERC20.attach(quoteToken).functions.approve(Vault.address, ethers.utils.parseEther('10000'))
@@ -58,6 +60,7 @@ export default async (taskArgs: any) => {
   // const liquidityToAdd = [ethers.utils.parseUnits(`${baseAmount}`, baseTokenDecimals), ethers.utils.parseUnits(`${quoteAmount}`, quoteTokenDecimals)]
   const liquidityToAdd = [ethers.utils.parseUnits(`${quoteAmount}`, quoteTokenDecimals), ethers.utils.parseUnits(`${baseAmount}`, baseTokenDecimals)]
   const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]'], [liquidityToAdd])
+  console.log('sortAddresses([baseToken, quoteToken]):', sortAddresses([baseToken, quoteToken]))
   const joinPoolRequest = {
     assets: sortAddresses([baseToken, quoteToken]),
     // assets: [quoteToken, baseToken],

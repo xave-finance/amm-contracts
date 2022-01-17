@@ -24,7 +24,7 @@ interface AssimilatorsInterface extends ethers.utils.Interface {
     "viewNumeraireBalance(address)": FunctionFragment;
     "viewNumeraireBalanceLPRatio(uint256,uint256,address)": FunctionFragment;
     "viewRawAmount(address,uint256)": FunctionFragment;
-    "viewRawAmountLPRatio(address,uint256,uint256,uint256)": FunctionFragment;
+    "viewRawAmountLPRatio(address,uint256,uint256,uint256,address)": FunctionFragment;
   };
 
   encodeFunctionData(functionFragment: "iAsmltr", values?: undefined): string;
@@ -42,7 +42,7 @@ interface AssimilatorsInterface extends ethers.utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "viewRawAmountLPRatio",
-    values: [string, BigNumberish, BigNumberish, BigNumberish]
+    values: [string, BigNumberish, BigNumberish, BigNumberish, string]
   ): string;
 
   decodeFunctionResult(functionFragment: "iAsmltr", data: BytesLike): Result;
@@ -135,6 +135,7 @@ export class Assimilators extends BaseContract {
       _baseWeight: BigNumberish,
       _quoteWeight: BigNumberish,
       _amount: BigNumberish,
+      pool: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { amount_: BigNumber }>;
   };
@@ -164,6 +165,7 @@ export class Assimilators extends BaseContract {
     _baseWeight: BigNumberish,
     _quoteWeight: BigNumberish,
     _amount: BigNumberish,
+    pool: string,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -193,6 +195,7 @@ export class Assimilators extends BaseContract {
       _baseWeight: BigNumberish,
       _quoteWeight: BigNumberish,
       _amount: BigNumberish,
+      pool: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -225,6 +228,7 @@ export class Assimilators extends BaseContract {
       _baseWeight: BigNumberish,
       _quoteWeight: BigNumberish,
       _amount: BigNumberish,
+      pool: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -255,6 +259,7 @@ export class Assimilators extends BaseContract {
       _baseWeight: BigNumberish,
       _quoteWeight: BigNumberish,
       _amount: BigNumberish,
+      pool: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

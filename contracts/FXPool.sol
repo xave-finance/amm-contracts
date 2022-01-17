@@ -103,7 +103,6 @@ contract FXPool is BaseMinimalSwapInfoPool {
 		uint256 swapFeePercentage,
 		uint256 pauseWindowDuration,
 		uint256 bufferPeriodDuration,
-		// address owner,
 		ProportionalLiquidity proportionalLiquidty_,
 		AmmV1Swaps swaps_
 	)
@@ -162,6 +161,10 @@ contract FXPool is BaseMinimalSwapInfoPool {
 			// alpha = 5;
 		}
 	}
+
+	// function previewProportionalDeposit(,,,) external view returns (uint256) {
+
+	// }
 
 	function includeAsset(
 		address _numeraire,
@@ -367,25 +370,26 @@ contract FXPool is BaseMinimalSwapInfoPool {
 			'Invalid length of maxAmountsIn payload.'
 		);
 
-		// bptAmountOut = 3000000000000000;
+		bptAmountOut = 3000000000000000;
 
-		// amountsIn = new uint256[](2);
-		// amountsIn[0] = maxAmountsIn[0];
-		// amountsIn[1] = maxAmountsIn[1];
+		amountsIn = new uint256[](2);
+		amountsIn[0] = maxAmountsIn[0];
+		amountsIn[1] = maxAmountsIn[1];
 
 		// CALL VIEW PROPORTIONAL DEPOSIT
 		// () = proportionalLiquidity.viewProportionalDeposit();
 
-		(uint256 curves, uint256[] memory deposits) = proportionalLiquidity.proportionalDeposit(
-			FXPool(address(this)),
-			maxAmountsIn[0]
-		);
+		// (uint256 curves, uint256[] memory deposits) = proportionalLiquidity.viewProportionalDeposit(
+		// 	FXPool(address(this)),
+		// 	maxAmountsIn[0]
+		// );
 
-		bptAmountOut = curves;
+		// // bptAmountOut = curves;
+		// bptAmountOut = curves;
 
-		amountsIn = new uint256[](2);
-		amountsIn[0] = deposits[0];
-		amountsIn[1] = deposits[1];
+		// amountsIn = new uint256[](2);
+		// amountsIn[0] = deposits[0];
+		// amountsIn[1] = deposits[1];
 	}
 
 	function _onJoinPool(
@@ -409,34 +413,24 @@ contract FXPool is BaseMinimalSwapInfoPool {
 		uint256[] memory maxAmountsIn = abi.decode(userData, (uint256[]));
 		require(balances.length == 2 && maxAmountsIn.length == 2, 'Invalid format');
 
-		(uint256 curvesMinted, uint256[] memory deposits) = proportionalLiquidity
-			.proportionalDeposit(FXPool(this), maxAmountsIn[0] / 2);
+		(uint256 curves, uint256[] memory deposits) = proportionalLiquidity.viewProportionalDeposit(
+			FXPool(address(this)),
+			maxAmountsIn[0]
+		);
 
-		// uint256 curvesMinted = maxAmountsIn[0];
+		// bptAmountOut = curves;
+		bptAmountOut = curves;
 
-		bptAmountOut = curvesMinted;
-		amountsIn = deposits;
-
-		// transferFrom()
-
-		// (uint256 curves, uint256[] memory deposits) = proportionalLiquidity.proportionalDeposit(
-		// 	FXPool(address(this)),
-		// 	maxAmountsIn[0]
-		// );
+		amountsIn = new uint256[](2);
+		amountsIn[0] = deposits[0];
+		amountsIn[1] = deposits[1];
 
 		{
 			dueProtocolFeeAmounts = new uint256[](2);
-			dueProtocolFeeAmounts[0] = 2;
-			dueProtocolFeeAmounts[1] = 2;
+			dueProtocolFeeAmounts[0] = 0;
+			dueProtocolFeeAmounts[1] = 0;
 		}
 
-		// // bptAmountOut = curves;
-		// bptAmountOut = 3e18;
-
-		// {
-		// 	// amountsIn = deposits;
-		// 	amountsIn = maxAmountsIn;
-		// }
 	}
 
 	function _onExitPool(

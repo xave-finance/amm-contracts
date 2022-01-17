@@ -22,6 +22,8 @@ import "./lib/ABDKMath64x64.sol";
 import "./interfaces/IAssimilator.sol";
 import "./interfaces/IOracle.sol";
 
+import "hardhat/console.sol";
+
 contract BaseToUsdAssimilator is IAssimilator {
     using ABDKMath64x64 for uint256;
     using ABDKMath64x64 for uint256;
@@ -157,6 +159,12 @@ contract BaseToUsdAssimilator is IAssimilator {
     // takes a numeraire amount and returns the raw amount
     function viewRawAmount(uint256 _amount) external view override returns (uint256 amount_) {
         uint256 _rate = getRate();
+
+        console.log("Base To USD Assimilator");
+        console.log("Rate");
+        console.log(_rate);
+        console.log("_amount");
+        console.log(_amount);
 
         amount_ = (_amount.mul(baseDecimals) * 1e8) / _rate;
     }

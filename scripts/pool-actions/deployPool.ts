@@ -247,18 +247,18 @@ const freshContractsDeploy = async (taskArgs: any) => {
 	if (verify) {
 		console.log('Waiting for 250 seconds before attempting to verify deployed contracts.')
 		await sleep(250000)
-		await verifyContract(hre, baseToken.address, ['Base Token', 'BASE', 8])
-		await verifyContract(hre, quoteToken.address, ['Quote Token', 'QUOTE', 6])
-		await verifyContract(hre, baseToUsdAssimilator.address, [
-			await baseToken.decimals(),
-			baseToken.address,
-			quoteToken.address,
-			'0xed0616BeF04D374969f302a34AE4A63882490A8C',
-		])
-		await verifyContract(hre, usdcToUsdAssimilator.address, [
-			'0x9211c6b3BF41A10F78539810Cf5c64e1BB78Ec60',
-			quoteToken.address,
-		])
+		// await verifyContract(hre, baseToken.address, ['Base Token', 'BASE', 8])
+		// await verifyContract(hre, quoteToken.address, ['Quote Token', 'QUOTE', 6])
+		// await verifyContract(hre, baseToUsdAssimilator.address, [
+		// 	await baseToken.decimals(),
+		// 	baseToken.address,
+		// 	quoteToken.address,
+		// 	'0xed0616BeF04D374969f302a34AE4A63882490A8C',
+		// ])
+		// await verifyContract(hre, usdcToUsdAssimilator.address, [
+		// 	'0x9211c6b3BF41A10F78539810Cf5c64e1BB78Ec60',
+		// 	quoteToken.address,
+		// ])
 		await verifyContract(hre, assimilators.address, [])
 		await verifyContract(hre, curveMath.address, [])
 		await verifyContract(hre, proportionalLiquidityContract.address, [])
@@ -277,18 +277,15 @@ const constantContractsDeploy = async (taskArgs: any) => {
 
 	const DEPLOY_PARAMS = DEPLOY_POOL_CONSTANTS[network as 'kovan']
 
-	const FXPoolFactory = await ethers.getContractFactory('FXPool', {
-		libraries: {
-			Assimilators: DEPLOY_PARAMS.ASSIMILATORS,
-			CurveMath: DEPLOY_PARAMS.CURVE_MATH,
-		},
-	})
-
 	const { assets, tokens } = _prepareFXPoolConstructor(
-		DEPLOY_PARAMS.BASE_TOKEN,
-		DEPLOY_PARAMS.QUOTE_TOKEN,
-		DEPLOY_PARAMS.BASE_ASSIMILATOR,
-		DEPLOY_PARAMS.QUOTE_ASSIMILATOR
+		// DEPLOY_PARAMS.BASE_TOKEN,
+		// DEPLOY_PARAMS.QUOTE_TOKEN,
+		// DEPLOY_PARAMS.BASE_ASSIMILATOR,
+		// DEPLOY_PARAMS.QUOTE_ASSIMILATOR
+		'0x008486BF13E7eaf140A0168b7f7cb724a01B2092',
+		'0x7c4e10f2A9e8e23882675e48e8979708349341Ee',
+		'0x9e7A854E962aA8BB0E010Dad13FBB22C94935867',
+		'0xa44f1922A3b2Effc53D3d8AcbAd02d4ABc744384',
 	)
 	const constructorArgs = [
 		Vault.address,
@@ -306,9 +303,16 @@ const constantContractsDeploy = async (taskArgs: any) => {
 
 	// JUST WANT TO VERIFY
 	// if (true) {
-	// 	await verifyContract(hre, '0x348f7b7F3C1f7122D7e4CAD3604027867EbEAb72', constructorArgs)
+	// 	await verifyContract(hre, '0x52031682FDa01930102f730B1ba0C909C6821c4d', constructorArgs)
 	// 	return
 	// }
+
+	const FXPoolFactory = await ethers.getContractFactory('FXPool', {
+		libraries: {
+			Assimilators: DEPLOY_PARAMS.ASSIMILATORS,
+			CurveMath: DEPLOY_PARAMS.CURVE_MATH,
+		},
+	})
 
 	console.log(`Using constants:`)
 	console.table(DEPLOY_PARAMS)

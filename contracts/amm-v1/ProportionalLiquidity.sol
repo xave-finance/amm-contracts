@@ -14,6 +14,8 @@ import './CurveMath.sol';
 
 import '../balancer-core-v2/solidity-utils/contracts/openzeppelin/SafeMath.sol';
 
+import "hardhat/console.sol";
+
 contract ProportionalLiquidity {
 	using ABDKMath64x64 for uint256;
 	using ABDKMath64x64 for uint256;
@@ -91,9 +93,11 @@ contract ProportionalLiquidity {
 	}
 
 	function viewProportionalDeposit(FXPool curve, uint256 _deposit)
-		external
+		external view
 		returns (uint256 curves_, uint256[] memory)
 	{
+		console.log("DEPOSIT:::");
+		console.log(_deposit);
 		uint256 __deposit = _deposit.div(1e18);
 
 		uint256 _length = curve.getAssetsLength();
@@ -111,6 +115,10 @@ contract ProportionalLiquidity {
 					assimilatorAddress,
 					deposit.add(1)
 				);
+				console.log("<deposit_[i]>");
+				// console.log("assimilator: ", assimilatorAddress);
+				console.log(deposits_[i]);
+				console.log("<deposit_[i]/>");
 			}
 		} else {
 			// We already have an existing pool ratio
@@ -127,7 +135,8 @@ contract ProportionalLiquidity {
 					assimilatorAddress,
 					_baseWeight,
 					_quoteWeight,
-					_oBals[i].mul(_multiplier).add(1)
+					_oBals[i].mul(_multiplier).add(1),
+					address(this)
 				);
 			}
 		}
@@ -230,7 +239,7 @@ contract ProportionalLiquidity {
 	}
 
 	function getGrossLiquidityAndBalancesForDeposit(FXPool curve)
-		internal
+		internal view
 		returns (uint256 grossLiquidity_, uint256[] memory)
 	{
 		uint256 _length = curve.getAssetsLength();

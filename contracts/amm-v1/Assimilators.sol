@@ -59,9 +59,11 @@ library Assimilators {
         address _assim,
         uint256 _baseWeight,
         uint256 _quoteWeight,
-        uint256 _amount
+        uint256 _amount,
+        address pool
     ) public view returns (uint256 amount_) {
-        amount_ = IAssimilator(_assim).viewRawAmountLPRatio(_baseWeight, _quoteWeight, address(this), _amount);
+        // TODO Consider changing this contract to library OR change L65: address(this) to use FXPool address
+        amount_ = IAssimilator(_assim).viewRawAmountLPRatio(_baseWeight, _quoteWeight, pool, _amount);
     }
 
     function viewNumeraireAmount(address _assim, uint256 _amt) internal view returns (uint256 amt_) {
