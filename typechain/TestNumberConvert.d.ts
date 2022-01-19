@@ -21,15 +21,51 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 interface TestNumberConvertInterface extends ethers.utils.Interface {
   functions: {
     "fromInt128ToUint256(int128)": FunctionFragment;
+    "viewMaxInt128()": FunctionFragment;
+    "viewMaxInt128ToInt256()": FunctionFragment;
+    "viewMaxInt128ToInt256Bytes()": FunctionFragment;
+    "viewMaxInt128toUint256()": FunctionFragment;
   };
 
   encodeFunctionData(
     functionFragment: "fromInt128ToUint256",
     values: [BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "viewMaxInt128",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "viewMaxInt128ToInt256",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "viewMaxInt128ToInt256Bytes",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "viewMaxInt128toUint256",
+    values?: undefined
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "fromInt128ToUint256",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "viewMaxInt128",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "viewMaxInt128ToInt256",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "viewMaxInt128ToInt256Bytes",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "viewMaxInt128toUint256",
     data: BytesLike
   ): Result;
 
@@ -84,6 +120,14 @@ export class TestNumberConvert extends BaseContract {
       input: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
+
+    viewMaxInt128(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    viewMaxInt128ToInt256(overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    viewMaxInt128ToInt256Bytes(overrides?: CallOverrides): Promise<[string]>;
+
+    viewMaxInt128toUint256(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
   fromInt128ToUint256(
@@ -91,11 +135,27 @@ export class TestNumberConvert extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  viewMaxInt128(overrides?: CallOverrides): Promise<BigNumber>;
+
+  viewMaxInt128ToInt256(overrides?: CallOverrides): Promise<BigNumber>;
+
+  viewMaxInt128ToInt256Bytes(overrides?: CallOverrides): Promise<string>;
+
+  viewMaxInt128toUint256(overrides?: CallOverrides): Promise<BigNumber>;
+
   callStatic: {
     fromInt128ToUint256(
       input: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    viewMaxInt128(overrides?: CallOverrides): Promise<BigNumber>;
+
+    viewMaxInt128ToInt256(overrides?: CallOverrides): Promise<BigNumber>;
+
+    viewMaxInt128ToInt256Bytes(overrides?: CallOverrides): Promise<string>;
+
+    viewMaxInt128toUint256(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {};
@@ -105,11 +165,33 @@ export class TestNumberConvert extends BaseContract {
       input: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    viewMaxInt128(overrides?: CallOverrides): Promise<BigNumber>;
+
+    viewMaxInt128ToInt256(overrides?: CallOverrides): Promise<BigNumber>;
+
+    viewMaxInt128ToInt256Bytes(overrides?: CallOverrides): Promise<BigNumber>;
+
+    viewMaxInt128toUint256(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
     fromInt128ToUint256(
       input: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    viewMaxInt128(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    viewMaxInt128ToInt256(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    viewMaxInt128ToInt256Bytes(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    viewMaxInt128toUint256(
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };

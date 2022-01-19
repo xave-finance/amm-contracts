@@ -4,7 +4,7 @@ import '@typechain/hardhat'
 import '@openzeppelin/hardhat-upgrades'
 import '@nomiclabs/hardhat-waffle'
 import '@nomiclabs/hardhat-etherscan'
-require("@tenderly/hardhat-tenderly")
+require('@tenderly/hardhat-tenderly')
 
 import './test/common/setupTests'
 
@@ -17,7 +17,7 @@ const MNEMONIC_SEED = process.env.MNEMONIC_SEED || ''
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || ''
 const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY || ''
 const TENDERLY_USERNAME = process.env.TENDERLY_USERNAME || ''
-const TENDERLY_PROJECT= process.env.TENDERLY_PROJECT || ''
+const TENDERLY_PROJECT = process.env.TENDERLY_PROJECT || ''
 
 initializePoolTasks()
 initializeSwapTasks()
@@ -82,21 +82,15 @@ export default {
 	networks: {
 		hardhat: {
 			chainId: 1,
-			// forking: {
-			// 	url: `https://eth-kovan.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
-			// 	blockNumber: 29238122,
-			// 	// blockNumber: 28764216,
-			// },
-			forking: {
-        enabled: true,
-        url: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
-        blockNumber: 13453242
-      },
 			accounts: {
-				accountsBalance: '100000000000000000000000', // 100000 ETH
-				count: 5,
+				mnemonic: MNEMONIC_SEED,
+				accountsBalance: '300000000000000000000000',
 			},
+
+			blockGasLimit: 20000000,
+			allowUnlimitedContractSize: true,
 		},
+
 		kovan: {
 			url: `https://kovan.infura.io/v3/${INFURA_PROJECT_ID}`,
 			accounts: {
@@ -115,6 +109,6 @@ export default {
 	},
 	tenderly: {
 		username: TENDERLY_USERNAME,
-		project: TENDERLY_PROJECT
-	}
+		project: TENDERLY_PROJECT,
+	},
 }

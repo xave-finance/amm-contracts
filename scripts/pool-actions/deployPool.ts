@@ -117,18 +117,24 @@ const freshContractsDeploy = async (taskArgs: any) => {
 
 	/** Deploy Base Token */
 	const FakeTokenFactory = new FakeToken__factory(deployer)
-	const baseToken = await FakeTokenFactory.deploy('Base Token', 'BASE', 8) // MAKE SURE TO MANUALLY CHANGE DECIMALS IN ERC20.sol
+	const baseToken = await FakeTokenFactory.deploy('Base Token', 'BASE') // MAKE SURE TO MANUALLY CHANGE DECIMALS IN ERC20.sol
 	await baseToken.deployed()
 	console.log(`Base Token: ${baseToken.address}`)
-	await TOKENS_FILE.set(`${await baseToken.symbol()}.${process.env.HARDHAT_NETWORK}`, baseToken.address).save()
-  await TOKENS_FILE.append(`SYMBOLS_LIST`, await baseToken.symbol()).save()
+	await TOKENS_FILE.set(
+		`${await baseToken.symbol()}.${process.env.HARDHAT_NETWORK}`,
+		baseToken.address
+	).save()
+	await TOKENS_FILE.append(`SYMBOLS_LIST`, await baseToken.symbol()).save()
 
 	/** Deploy Quote Token */
-	const quoteToken = await FakeTokenFactory.deploy('Quote Token', 'QUOTE', 6) // MAKE SURE TO MANUALLY CHANGE DECIMALS IN ERC20.sol
+	const quoteToken = await FakeTokenFactory.deploy('Quote Token', 'QUOTE') // MAKE SURE TO MANUALLY CHANGE DECIMALS IN ERC20.sol
 	await quoteToken.deployed()
 	console.log(`Quote Token: ${quoteToken.address}`)
-	await TOKENS_FILE.set(`${await quoteToken.symbol()}.${process.env.HARDHAT_NETWORK}`, quoteToken.address).save()
-  await TOKENS_FILE.append(`SYMBOLS_LIST`, await quoteToken.symbol()).save()
+	await TOKENS_FILE.set(
+		`${await quoteToken.symbol()}.${process.env.HARDHAT_NETWORK}`,
+		quoteToken.address
+	).save()
+	await TOKENS_FILE.append(`SYMBOLS_LIST`, await quoteToken.symbol()).save()
 
 	/** Deploy Base Assimilator */
 	const BaseToUsdAssimilatorFactory = new BaseToUsdAssimilator__factory(deployer)
@@ -228,8 +234,14 @@ const freshContractsDeploy = async (taskArgs: any) => {
 			const poolId = await fxPool.getPoolId()
 			console.log('FX Pool ID:', poolId)
 
-			await POOLS_FILE.set(`${await baseToken.symbol()}-${await quoteToken.symbol()}.${network}.address`, fxPool.address).save()
-			await POOLS_FILE.set(`${await baseToken.symbol()}-${await quoteToken.symbol()}.${network}.poolId`, poolId).save()
+			await POOLS_FILE.set(
+				`${await baseToken.symbol()}-${await quoteToken.symbol()}.${network}.address`,
+				fxPool.address
+			).save()
+			await POOLS_FILE.set(
+				`${await baseToken.symbol()}-${await quoteToken.symbol()}.${network}.poolId`,
+				poolId
+			).save()
 			await POOLS_FILE.set(
 				`${await baseToken.symbol()}-${await quoteToken.symbol()}.${network}.baseTokenAddress`,
 				baseToken.address
@@ -238,7 +250,10 @@ const freshContractsDeploy = async (taskArgs: any) => {
 				`${await baseToken.symbol()}-${await quoteToken.symbol()}.${network}.quoteTokenAddress`,
 				quoteToken.address
 			).save()
-			await POOLS_FILE.append(`POOLS_LIST`, `${await baseToken.symbol()}-${await quoteToken.symbol()}`).save()
+			await POOLS_FILE.append(
+				`POOLS_LIST`,
+				`${await baseToken.symbol()}-${await quoteToken.symbol()}`
+			).save()
 		} catch (DeployError) {
 			console.error(`Deploy FX Pool Error:`, DeployError)
 		}
@@ -285,7 +300,7 @@ const constantContractsDeploy = async (taskArgs: any) => {
 		'0x008486BF13E7eaf140A0168b7f7cb724a01B2092',
 		'0x7c4e10f2A9e8e23882675e48e8979708349341Ee',
 		'0x9e7A854E962aA8BB0E010Dad13FBB22C94935867',
-		'0xa44f1922A3b2Effc53D3d8AcbAd02d4ABc744384',
+		'0xa44f1922A3b2Effc53D3d8AcbAd02d4ABc744384'
 	)
 	const constructorArgs = [
 		Vault.address,
@@ -317,9 +332,11 @@ const constantContractsDeploy = async (taskArgs: any) => {
 	console.log(`Using constants:`)
 	console.table(DEPLOY_PARAMS)
 
-	const ERC20 = await ethers.getContractFactory('@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20')
-	const baseToken = await ERC20.attach(DEPLOY_PARAMS.BASE_TOKEN,)
-  const quoteToken = await ERC20.attach(DEPLOY_PARAMS.QUOTE_TOKEN)
+	const ERC20 = await ethers.getContractFactory(
+		'@openzeppelin/contracts/token/ERC20/ERC20.sol:ERC20'
+	)
+	const baseToken = await ERC20.attach(DEPLOY_PARAMS.BASE_TOKEN)
+	const quoteToken = await ERC20.attach(DEPLOY_PARAMS.QUOTE_TOKEN)
 
 	let fxPool
 
@@ -334,8 +351,14 @@ const constantContractsDeploy = async (taskArgs: any) => {
 			const poolId = await fxPool.getPoolId()
 			console.log('FX Pool ID:', poolId)
 
-			await POOLS_FILE.set(`${await baseToken.symbol()}-${await quoteToken.symbol()}.${network}.address`, fxPool.address).save()
-			await POOLS_FILE.set(`${await baseToken.symbol()}-${await quoteToken.symbol()}.${network}.poolId`, poolId).save()
+			await POOLS_FILE.set(
+				`${await baseToken.symbol()}-${await quoteToken.symbol()}.${network}.address`,
+				fxPool.address
+			).save()
+			await POOLS_FILE.set(
+				`${await baseToken.symbol()}-${await quoteToken.symbol()}.${network}.poolId`,
+				poolId
+			).save()
 			await POOLS_FILE.set(
 				`${await baseToken.symbol()}-${await quoteToken.symbol()}.${network}.baseTokenAddress`,
 				baseToken.address
@@ -344,7 +367,10 @@ const constantContractsDeploy = async (taskArgs: any) => {
 				`${await baseToken.symbol()}-${await quoteToken.symbol()}.${network}.quoteTokenAddress`,
 				quoteToken.address
 			).save()
-			await POOLS_FILE.append(`POOLS_LIST`, `${await baseToken.symbol()}-${await quoteToken.symbol()}`).save()
+			await POOLS_FILE.append(
+				`POOLS_LIST`,
+				`${await baseToken.symbol()}-${await quoteToken.symbol()}`
+			).save()
 		} catch (DeployError) {
 			console.error(`Deploy FX Pool Error:`, DeployError)
 		}
@@ -352,7 +378,7 @@ const constantContractsDeploy = async (taskArgs: any) => {
 	}
 
 	if (verify) {
-		console.log(`Waiting for 150 seconds before attempting to verify.`);
+		console.log(`Waiting for 150 seconds before attempting to verify.`)
 		await sleep(150000)
 
 		await verifyContract(hre, fxPool.address, constructorArgs)
