@@ -19,9 +19,12 @@ import {IVault} from "@balancer-labs/v2-vault/contracts/interfaces/IVault.sol";
 
 // TODO
 contract FXPool is BaseMinimalSwapInfoPool {
+
+
 	//using LogExpMath for uint256;
 	//using FixedPoint for uint256;
 	// using ABDKMath64x64 for uint256;
+	
 	using ABDKMath64x64 for int128;
 	using SafeMath for uint256;
 
@@ -540,11 +543,16 @@ contract FXPool is BaseMinimalSwapInfoPool {
 	 * Callers must call one of the three `_processSwapFeeAmount` functions when swap fees are computed,
 	 * and upscale `amount`.
 	 */
-	function _processSwapFeeAmount(
-		uint256 index, /*index*/
-		uint256 amount /*amount*/
-	) internal override {
-		// solhint-disable-previous-line no-empty-blocks
-		super._processSwapFeeAmount(index, amount);
-	}
+	 
+	 // called internally?
+//	function _processSwapFeeAmount(
+//		uint256 index, /*index*/
+//		uint256 amount /*amount*/
+//	) internal  {
+//		// solhint-disable-previous-line no-empty-blocks
+//		super._processSwapFeeAmount(index, amount);
+//	}
+	
+
+
 }
