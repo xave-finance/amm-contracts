@@ -10,7 +10,7 @@ import './lib/ABDKMath64x64.sol';
 
 import '../FXPool.sol';
 
-import '../balancer-core-v2/solidity-utils/contracts/openzeppelin/SafeMath.sol';
+import '@openzeppelin/contracts/math/SafeMath.sol';
 
 contract AmmV1Swaps {
 	using ABDKMath64x64 for uint256;

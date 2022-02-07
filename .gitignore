@@ -353,3 +353,7 @@ MigrationBackup/
 
 build/
 cache/
+
+
+# HaloDao Ignore
+typechain

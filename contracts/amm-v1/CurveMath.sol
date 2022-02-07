@@ -2,8 +2,7 @@ pragma solidity ^0.7.3;
 
 import './lib/UnsafeMath64x64.sol';
 import './lib/ABDKMath64x64.sol';
-
-import '../balancer-core-v2/solidity-utils/contracts/openzeppelin/SafeMath.sol';
+import '@openzeppelin/contracts/math/SafeMath.sol';
 
 library CurveMath {
 	uint256 private constant ONE = 0x10000000000000000;

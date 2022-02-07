@@ -4,16 +4,13 @@ pragma solidity ^0.7.3;
 pragma experimental ABIEncoderV2;
 
 import './Assimilators.sol';
-
 import "../FXPool.sol";
 
 import './lib/UnsafeMath64x64.sol';
 import './lib/ABDKMath64x64.sol';
-
 import './CurveMath.sol';
 
-import '../balancer-core-v2/solidity-utils/contracts/openzeppelin/SafeMath.sol';
-
+import '@openzeppelin/contracts/math/SafeMath.sol';
 import "hardhat/console.sol";
 
 contract ProportionalLiquidity {

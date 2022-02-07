@@ -1,26 +1,26 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.7.1;
 pragma experimental ABIEncoderV2;
 
-import './balancer-core-v2/pool-utils/contracts/BaseMinimalSwapInfoPool.sol';
 import './amm-v1/ProportionalLiquidity.sol';
-
 import './amm-v1/Assimilators.sol';
-
 import './amm-v1/interfaces/IOracle.sol';
-
 import './amm-v1/lib/ABDKMath64x64.sol';
-
 import './amm-v1/CurveMath.sol';
-
 import './amm-v1/Swaps.sol';
 
-import './balancer-core-v2/solidity-utils/contracts/openzeppelin/SafeMath.sol';
+import '@openzeppelin/contracts/math/SafeMath.sol';
+import "@balancer-labs/v2-vault/contracts/interfaces/IBasePool.sol";
 
+import {BaseMinimalSwapInfoPool} from '@balancer-labs/v2-pool-utils/contracts/BaseMinimalSwapInfoPool.sol';
+import {BasePool} from '@balancer-labs/v2-pool-utils/contracts/BaseMinimalSwapInfoPool.sol';
+import {IVault} from "@balancer-labs/v2-vault/contracts/interfaces/IVault.sol";
+
+
+// TODO
 contract FXPool is BaseMinimalSwapInfoPool {
-	using LogExpMath for uint256;
-	using FixedPoint for uint256;
+	//using LogExpMath for uint256;
+	//using FixedPoint for uint256;
 	// using ABDKMath64x64 for uint256;
 	using ABDKMath64x64 for int128;
 	using SafeMath for uint256;

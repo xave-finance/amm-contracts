@@ -21,7 +21,7 @@ import "./lib/ABDKMath64x64.sol";
 import "./interfaces/IAssimilator.sol";
 import "./interfaces/IOracle.sol";
 
-import "../balancer-core-v2/solidity-utils/contracts/openzeppelin/SafeMath.sol";
+import '@openzeppelin/contracts/math/SafeMath.sol';
 
 contract UsdcToUsdAssimilator is IAssimilator {
     using ABDKMath64x64 for uint256;
