@@ -20,6 +20,5 @@
 ### Reviewers Checklist:
 
 - [ ] Code is readable and understandable; any unclear parts have explanations
-- [ ] UI/UX changes match the corresponding figma/other design resources, if applicable
 - [ ] I have successfully ran tests locally
 
