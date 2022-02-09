@@ -2,7 +2,7 @@
 
 ## Description of Changes
 
-<!-- Enter description of changes here. -->
+<!-- Enter a short summary of your changes here. You may also describe the solution taken to solve the problem indicated on the Jira ticket.  -->
 
 [Link to Jira Ticket](https://halodao.atlassian.net/browse/HDEV-)
 
