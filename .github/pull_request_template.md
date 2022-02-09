@@ -10,15 +10,14 @@
 
 ### Developer Checklist:
 
-- [x] I have followed the guidelines in our Contributing document
-- [x] This PR has a corresponding JIRA ticket
-- [x] My branch conforms with our naming convention i.e. `feature/HDEV-XXX-description`
-- [x] I have written new tests for your core changes, as applicable
-- [x] I have successfully ran tests locally
-- [x] I have formatted my code using format document in VSCode
+- [ ] I have followed the guidelines in our Contributing document
+- [ ] This PR has a corresponding JIRA ticket
+- [ ] My branch conforms with our naming convention i.e. `feature/HDEV-XXX-description`
+- [ ] I have written new tests for your core changes, as applicable
+- [ ] I have successfully ran tests locally
+- [ ] I have formatted my code using format document in VSCode
 
 ### Reviewers Checklist:
 
 - [ ] Code is readable and understandable; any unclear parts have explanations
 - [ ] I have successfully ran tests locally
-
