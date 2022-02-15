@@ -6,7 +6,7 @@
 	"license": "GPL-3.0-or-later",
 	"scripts": {
 		"clean": "npx hardhat clean",
-		"compile": "SKIP_LOAD=true hardhat compile",
+		"compile": "hardhat compile",
 		"deploy:token": "ts-node scripts/cli/deployTokenCLI.ts",
 		"deploy:pool": "ts-node scripts/cli/deployPoolCLI.ts",
 		"deploy:relayer": "ts-node scripts/cli/deployRelayerCLI.ts",
