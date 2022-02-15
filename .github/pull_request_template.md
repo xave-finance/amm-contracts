@@ -2,7 +2,7 @@
 
 ## Description of Changes
 
-<!-- Enter description of changes here. -->
+<!-- Enter a short summary of your changes here. You may also describe the solution taken to solve the problem indicated on the Jira ticket.  -->
 
 [Link to Jira Ticket](https://halodao.atlassian.net/browse/HDEV-)
 
@@ -10,16 +10,14 @@
 
 ### Developer Checklist:
 
-- [x] I have followed the guidelines in our Contributing document
-- [x] This PR has a corresponding JIRA ticket
-- [x] My branch conforms with our naming convention i.e. `feature/HDEV-XXX-description`
-- [x] I have written new tests for your core changes, as applicable
-- [x] I have successfully ran tests locally
-- [x] I have formatted my code using format document in VSCode
+- [ ] I have followed the guidelines in our Contributing document
+- [ ] This PR has a corresponding JIRA ticket
+- [ ] My branch conforms with our naming convention i.e. `feature/HDEV-XXX-description`
+- [ ] I have written new tests for your core changes, as applicable
+- [ ] I have successfully ran tests locally
+- [ ] I have formatted my code using format document in VSCode
 
 ### Reviewers Checklist:
 
 - [ ] Code is readable and understandable; any unclear parts have explanations
-- [ ] UI/UX changes match the corresponding figma/other design resources, if applicable
 - [ ] I have successfully ran tests locally
-
