@@ -4,9 +4,11 @@ import '@typechain/hardhat'
 import '@openzeppelin/hardhat-upgrades'
 import '@nomiclabs/hardhat-waffle'
 import '@nomiclabs/hardhat-etherscan'
-require('@tenderly/hardhat-tenderly')
+import '@nomiclabs/hardhat-ethers'
+import 'hardhat-gas-reporter'
+//import '@tenderly/hardhat-tenderly'
 
-import './test/common/setupTests'
+//import './test/common/setupTests'
 
 import initializePoolTasks from './scripts//pool-actions/'
 import initializeSwapTasks from './scripts/swaps/'
@@ -81,22 +83,30 @@ export default {
 		},
 	},
 	networks: {
+		//hardhat: {
+		//	chainId: 1337,
+		//	// forking: {
+		//	// 	url: `https://eth-kovan.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
+		//	// 	blockNumber: 29238122,
+		//	// 	// blockNumber: 28764216,
+		//	// },
+		//	//forking: {
+		//	//	enabled: true,
+		//	//	url: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
+		//	//	blockNumber: 13453242,
+		//	//},
+		//	accounts: {
+		//		accountsBalance: '100000000000000000000000', // 100000 ETH
+		//		count: 5,
+		//	},
+		//},
+
 		hardhat: {
-			chainId: 1,
-			// forking: {
-			// 	url: `https://eth-kovan.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
-			// 	blockNumber: 29238122,
-			// 	// blockNumber: 28764216,
-			// },
-			forking: {
-				enabled: true,
-				url: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
-				blockNumber: 13453242,
-			},
+			chainId: 1337,
 			accounts: {
-				accountsBalance: '100000000000000000000000', // 100000 ETH
-				count: 5,
+				mnemonic: MNEMONIC_SEED,
 			},
+			allowUnlimitedContractSize: true,
 		},
 		kovan: {
 			url: `https://kovan.infura.io/v3/${INFURA_PROJECT_ID}`,
