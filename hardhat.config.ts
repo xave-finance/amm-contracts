@@ -22,7 +22,6 @@ const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY || ''
 const TENDERLY_USERNAME = process.env.TENDERLY_USERNAME || ''
 const TENDERLY_PROJECT = process.env.TENDERLY_PROJECT || ''
 
-// TODO: Configure
 //initializePoolTasks()
 //initializeSwapTasks()
 //initializeRelayerTasks()

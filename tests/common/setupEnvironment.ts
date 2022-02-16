@@ -37,7 +37,6 @@ export const setupEnvironment = async (): Promise<TestEnv> => {
 
 	mockTokenArray = await deployAllMockTokensAndOracles(await deployer.getAddress())
 
-	// TODO: improve using something like: const MOCK_TOKEN_REFERENCE = mockToken.find((t) => t.name === tokenName)
 	const XSGD = mockTokenArray[1].tokenInstance
 	const USDC = mockTokenArray[0].tokenInstance
 	const XSGDOracle = mockTokenArray[1].oracleInstance

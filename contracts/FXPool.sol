@@ -177,7 +177,7 @@ contract FXPool is BaseMinimalSwapInfoPool {
 		address _reserveApproveTo,
 		uint256 _weight
 	) private {
-		// TODO: Make sure to require caller is Orchestrator
+		
 		require(_numeraire != address(0), 'Curve/numeraire-cannot-be-zeroth-address');
 
 		require(
