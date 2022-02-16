@@ -6,6 +6,7 @@ import '@nomiclabs/hardhat-waffle'
 import '@nomiclabs/hardhat-etherscan'
 import '@nomiclabs/hardhat-ethers'
 import 'hardhat-gas-reporter'
+import 'hardhat-tracer'
 //import '@tenderly/hardhat-tenderly'
 
 //import './test/common/setupTests'

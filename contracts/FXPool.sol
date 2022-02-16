@@ -2,12 +2,12 @@
 pragma solidity ^0.7.1;
 pragma experimental ABIEncoderV2;
 
-import './amm-v1/ProportionalLiquidity.sol';
-import './amm-v1/Assimilators.sol';
-import './amm-v1/interfaces/IOracle.sol';
-import './amm-v1/lib/ABDKMath64x64.sol';
-import './amm-v1/CurveMath.sol';
-import './amm-v1/Swaps.sol';
+import './core/ProportionalLiquidity.sol';
+import './core/Assimilators.sol';
+import './core/interfaces/IOracle.sol';
+import './core/lib/ABDKMath64x64.sol';
+import './core/CurveMath.sol';
+import './core/Swaps.sol';
 
 import '@openzeppelin/contracts/math/SafeMath.sol';
 import "@balancer-labs/v2-vault/contracts/interfaces/IBasePool.sol";
@@ -17,7 +17,7 @@ import {BasePool} from '@balancer-labs/v2-pool-utils/contracts/BaseMinimalSwapIn
 import {IVault} from "@balancer-labs/v2-vault/contracts/interfaces/IVault.sol";
 
 
-// TODO
+
 contract FXPool is BaseMinimalSwapInfoPool {
 
 
