@@ -1,0 +1,28 @@
+name: Build
+
+on:
+  push:
+    branches: [master, develop]
+  pull_request:
+    branches: [master, develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [14.x]
+
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v2
+        - uses: actions/setup-node@v2
+          with:
+            node-version: ${{ matrix.node-version }}
+
+        - run: yarn install
+          env:
+            INFURA_PROJECT_ID: ${{ secrets.INFURA_PROJECT_ID }}
+            ALCHEMY_PROJECT_ID: ${{ secrets.ALCHEMY_PROJECT_ID }}
+            MNEMONIC: ${{ secrets.MNEMONIC }}

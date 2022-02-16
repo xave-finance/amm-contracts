@@ -1,0 +1,2 @@
+# npx hardhat compile && npx hardhat deploy-pool --to kovan --basetoken PESO --quotetoken USDC --network kovan
+clear && npx hardhat compile && npx hardhat deploy-pool --to kovan --basetoken CHF --quotetoken USDC --network kovan

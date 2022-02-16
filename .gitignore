@@ -354,4 +354,6 @@ MigrationBackup/
 build/
 cache/
 
-typechain/
+
+# HaloDao Ignore
+typechain

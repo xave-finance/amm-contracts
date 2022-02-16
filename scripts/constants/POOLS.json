@@ -1,0 +1,78 @@
+{
+  "POOLS_LIST": [
+    "BERG-FORT",
+    "FORT-SHIRE",
+    "SHIRE-TON",
+    "PESO-USDC",
+    "CHF-USDC",
+    "CHF-CHF",
+    "BASE-QUOTE",
+    "BASE-QUOTE",
+    "BASE-QUOTE",
+    "BASE-QUOTE",
+    "BASE-QUOTE",
+    "BASE-QUOTE",
+    "BASE-QUOTE",
+    "BASE-QUOTE",
+    "BASE-QUOTE",
+    "BASE-QUOTE",
+    "BASE-QUOTE",
+    "BASE-QUOTE"
+  ],
+  "BERG-FORT": {
+    "kovan": {
+      "address": "0xbc1734e2975590B9B8261D1fbEF34f1A13c4bf93",
+      "poolId": "0xbc1734e2975590b9b8261d1fbef34f1a13c4bf9300010000000000000000041e",
+      "baseTokenAddress": "0xBAbaEEb6d26Eb640D0475DAcA2b365658e45B81D",
+      "quoteTokenAddress": "0x4048e8Ef4ddF1A5E46b213408b878816AD67Dc00"
+    }
+  },
+  "FORT-SHIRE": {
+    "kovan": {
+      "address": "0xf41aC5d09E022D016b3110CAd76119B79306cBE7",
+      "poolId": "0xf41ac5d09e022d016b3110cad76119b79306cbe7000100000000000000000436",
+      "baseTokenAddress": "0x4048e8Ef4ddF1A5E46b213408b878816AD67Dc00",
+      "quoteTokenAddress": "0x95C29AAbcB6aE30147d271D800c4Df14e3e569fA"
+    }
+  },
+  "SHIRE-TON": {
+    "kovan": {
+      "address": "0xa6Ca1A4C5648aFcDA07BA3ff75a05167AbcEa092",
+      "poolId": "0xa6ca1a4c5648afcda07ba3ff75a05167abcea0920001000000000000000004cd",
+      "baseTokenAddress": "0x95C29AAbcB6aE30147d271D800c4Df14e3e569fA",
+      "quoteTokenAddress": "0xF559A88Bc17B5a9D9859cE9Cab53d1B13A2fe30A"
+    }
+  },
+  "PESO-USDC": {
+    "kovan": {
+      "address": "0xf6267e5e317044C43fe98479828C8812EdE1ED9f",
+      "poolId": "0xf6267e5e317044c43fe98479828c8812ede1ed9f0001000000000000000004d4",
+      "baseTokenAddress": "0xaE70265126c20F64A6b011b86F8E7852B0010eCe",
+      "quoteTokenAddress": "0xa57c092a117C9dE50922A75674dd35ab34d82c4A"
+    }
+  },
+  "CHF-USDC": {
+    "kovan": {
+      "address": "0x64254bf49dC9AB7596675C1B072Fae6aF9E09E61",
+      "poolId": "0x64254BF49DC9AB7596675C1B072FAE6AF9E09E61000100000000000000000587",
+      "baseTokenAddress": "0xccd73e2A3037d4661E96CEC715279420B66D7fD1",
+      "quoteTokenAddress": "0xe73BdD7C96bA63ba23CdE85A0C1D43cCBe233d00"
+    }
+  },
+  "CHF-CHF": {
+    "kovan": {
+      "address": "0x036AC53925B82eA0D21471a165240083881A0C33",
+      "poolId": "0x036ac53925b82ea0d21471a165240083881a0c3300010000000000000000058b",
+      "baseTokenAddress": "0xECA2C447285Ed51b08C8175D4d9D6c3A0a34bCE5",
+      "quoteTokenAddress": "0x92caF200983165a6D40637AB0459dA1D603d3b76"
+    }
+  },
+  "BASE-QUOTE": {
+    "kovan": {
+      "address": "0x13D119549AD78Cf620Dbdb85CB1b2C9440F27DF2",
+      "poolId": "0x13d119549ad78cf620dbdb85cb1b2c9440f27df20001000000000000000005a3",
+      "baseTokenAddress": "0x008486BF13E7eaf140A0168b7f7cb724a01B2092",
+      "quoteTokenAddress": "0x7c4e10f2A9e8e23882675e48e8979708349341Ee"
+    }
+  }
+}
