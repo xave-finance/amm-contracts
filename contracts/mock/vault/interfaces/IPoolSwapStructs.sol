@@ -15,9 +15,9 @@
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
-import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/IERC20.sol";
+import '@balancer-labs/v2-solidity-utils/contracts/openzeppelin/IERC20.sol';
 
-import "./IVault.sol";
+import '../../../interfaces/IVault.sol';
 
 interface IPoolSwapStructs {
     // This is not really an interface - it just defines common structs used by other interfaces: IGeneralPool and

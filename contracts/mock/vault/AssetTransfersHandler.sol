@@ -15,17 +15,17 @@
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
-import "@balancer-labs/v2-solidity-utils/contracts/math/Math.sol";
-import "@balancer-labs/v2-solidity-utils/contracts/helpers/BalancerErrors.sol";
-import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/IERC20.sol";
-import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/SafeERC20.sol";
-import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/Address.sol";
-import "@balancer-labs/v2-solidity-utils/contracts/misc/IWETH.sol";
+import '@balancer-labs/v2-solidity-utils/contracts/math/Math.sol';
+import '@balancer-labs/v2-solidity-utils/contracts/helpers/BalancerErrors.sol';
+import '@balancer-labs/v2-solidity-utils/contracts/openzeppelin/IERC20.sol';
+import '@balancer-labs/v2-solidity-utils/contracts/openzeppelin/SafeERC20.sol';
+import '@balancer-labs/v2-solidity-utils/contracts/openzeppelin/Address.sol';
+import '@balancer-labs/v2-solidity-utils/contracts/misc/IWETH.sol';
 
-import "./interfaces/IAsset.sol";
-import "./interfaces/IVault.sol";
+import './interfaces/IAsset.sol';
+import '../../interfaces/IVault.sol';
 
-import "./AssetHelpers.sol";
+import './AssetHelpers.sol';
 
 abstract contract AssetTransfersHandler is AssetHelpers {
     using SafeERC20 for IERC20;
@@ -61,7 +61,7 @@ abstract contract AssetTransfersHandler is AssetHelpers {
             // A check for this condition is also introduced by the compiler, but this one provides a revert reason.
             // Note we're checking for the Vault's total balance, *not* ETH sent in this transaction.
             _require(address(this).balance >= amount, Errors.INSUFFICIENT_ETH);
-            _WETH().deposit{ value: amount }();
+            _WETH().deposit{value: amount}();
         } else {
             IERC20 token = _asIERC20(asset);
 

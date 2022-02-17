@@ -15,10 +15,10 @@
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
-import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/IERC20.sol";
+import '@balancer-labs/v2-solidity-utils/contracts/openzeppelin/IERC20.sol';
 
-import "./IVault.sol";
-import "./IAuthorizer.sol";
+import '../../../interfaces/IVault.sol';
+import './IAuthorizer.sol';
 
 interface IProtocolFeesCollector {
     event SwapFeePercentageChanged(uint256 newSwapFeePercentage);
