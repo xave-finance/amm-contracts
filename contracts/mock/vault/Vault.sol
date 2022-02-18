@@ -15,13 +15,13 @@
 pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
-import "@balancer-labs/v2-solidity-utils/contracts/misc/IWETH.sol";
+import '@balancer-labs/v2-solidity-utils/contracts/misc/IWETH.sol';
 
-import "./interfaces/IAuthorizer.sol";
+import '../../interfaces/IAuthorizer.sol';
 
-import "./VaultAuthorization.sol";
-import "./FlashLoans.sol";
-import "./Swaps.sol";
+import './VaultAuthorization.sol';
+import './FlashLoans.sol';
+import './Swaps.sol';
 
 /**
  * @dev The `Vault` is Balancer V2's core contract. A single instance of it exists for the entire network, and it is the

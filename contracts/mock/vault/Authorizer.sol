@@ -14,10 +14,10 @@
 
 pragma solidity ^0.7.0;
 
-import "@balancer-labs/v2-solidity-utils/contracts/helpers/InputHelpers.sol";
-import "@balancer-labs/v2-solidity-utils/contracts/helpers/BalancerErrors.sol";
+import '@balancer-labs/v2-solidity-utils/contracts/helpers/InputHelpers.sol';
+import '@balancer-labs/v2-solidity-utils/contracts/helpers/BalancerErrors.sol';
 
-import "./interfaces/IAuthorizer.sol";
+import '../../interfaces/IAuthorizer.sol';
 
 /**
  * @dev Basic Authorizer implementation, based on OpenZeppelin's Access Control.
@@ -31,8 +31,8 @@ import "./interfaces/IAuthorizer.sol";
 contract Authorizer is IAuthorizer {
     address public constant EVERYWHERE = address(-1);
 
-    bytes32 public constant GRANT_PERMISSION = keccak256("GRANT_PERMISSION");
-    bytes32 public constant REVOKE_PERMISSION = keccak256("REVOKE_PERMISSION");
+    bytes32 public constant GRANT_PERMISSION = keccak256('GRANT_PERMISSION');
+    bytes32 public constant REVOKE_PERMISSION = keccak256('REVOKE_PERMISSION');
 
     mapping(bytes32 => bool) public hasPermission;
 

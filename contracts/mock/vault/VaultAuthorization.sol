@@ -23,7 +23,7 @@ import '@balancer-labs/v2-solidity-utils/contracts/helpers/SignaturesValidator.s
 import '@balancer-labs/v2-solidity-utils/contracts/openzeppelin/ReentrancyGuard.sol';
 
 import '../../interfaces/IVault.sol';
-import './interfaces/IAuthorizer.sol';
+import '../../interfaces/IAuthorizer.sol';
 
 /**
  * @dev Manages access control of Vault permissioned functions by relying on the Authorizer and signature validation.
