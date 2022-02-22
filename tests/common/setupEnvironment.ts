@@ -5,6 +5,7 @@ import { MockAggregator } from '../../typechain/MockAggregator'
 import { ethers } from 'hardhat'
 import {
   deployAllMockTokensAndOracles,
+  deployAssimilatorFactory,
   deployMockBalancerVault,
   deployMockOracle,
   deployMockPool,
@@ -13,6 +14,7 @@ import {
 } from './contractDeployers'
 import { mockToken } from '../constants/mockTokenList'
 import { MockToken } from '../../typechain/MockToken'
+import { AssimilatorFactory } from '../../typechain/AssimilatorFactory'
 
 export interface TestEnv {
   WETH: MockWETH9
@@ -24,6 +26,7 @@ export interface TestEnv {
   USDC: MockToken
   XSGDOracle: MockAggregator
   USDCOracle: MockAggregator
+  assimilatorFactory: AssimilatorFactory
 }
 
 export const setupEnvironment = async (): Promise<TestEnv> => {
@@ -42,5 +45,7 @@ export const setupEnvironment = async (): Promise<TestEnv> => {
   const XSGDOracle = mockTokenArray[1].oracleInstance
   const USDCOracle = mockTokenArray[0].oracleInstance
 
-  return { WETH, vault, mockPool, mockOracle, mockTokenArray, XSGD, USDC, XSGDOracle, USDCOracle }
+  const assimilatorFactory = await deployAssimilatorFactory(USDCOracle.address, USDC.address)
+
+  return { WETH, vault, mockPool, mockOracle, mockTokenArray, XSGD, USDC, XSGDOracle, USDCOracle, assimilatorFactory }
 }

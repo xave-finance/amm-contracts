@@ -8,6 +8,7 @@ import { MockWETH9 } from '../../typechain/MockWETH9'
 import { MockPool } from '../../typechain/MockPool'
 import { MockToken } from '../../typechain/MockToken'
 import { MockAggregator } from '../../typechain/MockAggregator'
+import { AssimilatorFactory } from '../../typechain/AssimilatorFactory'
 
 export const deployMockBalancerVault = async (adminAddress: string, WETHAddress: string): Promise<Vault> => {
   const vault = await deploy('Vault', {
@@ -51,8 +52,17 @@ export const deployMockOracle = async (latestAnswer: string): Promise<MockAggreg
   const mockOracle = await mockOracleFactory.deploy()
   await mockOracle.deployed()
 
-  await mockOracle.setAnswer(parseUnits(latestAnswer, 8))
+  await mockOracle.setAnswer(latestAnswer)
   return mockOracle as MockAggregator
+}
+
+export const deployAssimilatorFactory = async (usdcOracle: string, usdc: string): Promise<AssimilatorFactory> => {
+  const AssimilatorFactoryFactory = await ethers.getContractFactory('AssimilatorFactory')
+  const assimilatorFactory = await AssimilatorFactoryFactory.deploy(usdcOracle, usdc)
+
+  await assimilatorFactory.deployed()
+
+  return assimilatorFactory as AssimilatorFactory
 }
 
 export interface MockTokenAndOracle {
