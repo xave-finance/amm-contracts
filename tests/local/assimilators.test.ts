@@ -53,6 +53,7 @@ describe('Assimilators', () => {
     expect(await xsgdAssimilatorContract.baseToken(), 'Base token not set').to.be.equals(testEnv.XSGD.address)
     expect(await xsgdAssimilatorContract.baseDecimals(), 'Base token not set').to.be.equals(`${mockToken[1].decimal}`)
   })
+
   it('Base assimilator calculation tests', async () => {
     const xsgdAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.XSGD.address)
     const xsgdAssimilatorContract = await getAssimilatorContract(xsgdAssimilatorAddress)
