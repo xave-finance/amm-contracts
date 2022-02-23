@@ -9,6 +9,6 @@
 		"noImplicitAny": true,
 		"allowJs": true
 	},
-	"include": ["./scripts", "./test"],
+	"include": ["./scripts", "./tests"],
 	"files": ["./hardhat.config.ts"]
 }

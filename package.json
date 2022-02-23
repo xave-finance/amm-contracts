@@ -6,7 +6,7 @@
   "license": "GPL-3.0-or-later",
   "scripts": {
     "clean": "npx hardhat clean",
-    "compile": "npx hardhat compile",
+    "compile": "hardhat compile",
     "deploy:token": "ts-node scripts/cli/deployTokenCLI.ts",
     "deploy:pool": "ts-node scripts/cli/deployPoolCLI.ts",
     "deploy:relayer": "ts-node scripts/cli/deployRelayerCLI.ts",
@@ -16,7 +16,8 @@
     "verify": "npx hardhat run scripts/verifyContract.ts --network kovan",
     "verify2": "npx hardhat run scripts/verifyTwo.ts --network kovan",
     "node": "npx hardhat node",
-    "test": "npx hardhat test",
+    "test": "npx hardhat test --logs",
+    "test-local": "npx hardhat test tests/local/*.test.ts --logs",
     "typecheck": "yarn compile && tsc --noEmit",
     "recompile": "rm -rf artifacts && rm -rf cache && npx hardhat compile",
     "load-balancer-contracts": "sh scripts/shell/load-balancer-contracts.sh"
@@ -61,6 +62,7 @@
     "ethereum-waffle": "^3.4.0",
     "ethers": "^5.5.1",
     "hardhat": "^2.6.7",
+    "hardhat-tracer": "^1.0.0-alpha.6",
     "inquirer": "^8.2.0",
     "lodash": "^4.17.21",
     "open": "^8.3.0",
