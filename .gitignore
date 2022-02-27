@@ -358,3 +358,4 @@ cache/
 # HaloDao Ignore
 typechain
 .DS_Store
+scoping
