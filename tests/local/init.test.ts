@@ -56,9 +56,7 @@ describe('Scaffold setup ', () => {
 
       const MOCK_TOKEN_REFERENCE = mockToken.find((t) => t.name === tokenName)
 
-      expect(await token.oracleInstance.latestAnswer()).to.be.equals(
-        parseUnits(MOCK_TOKEN_REFERENCE!.mockOraclePrice, 8)
-      )
+      expect(await token.oracleInstance.latestAnswer()).to.be.equals(MOCK_TOKEN_REFERENCE!.mockOraclePrice)
     }
   })
 })

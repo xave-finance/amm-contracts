@@ -8,6 +8,8 @@ import { MockWETH9 } from '../../typechain/MockWETH9'
 import { MockPool } from '../../typechain/MockPool'
 import { MockToken } from '../../typechain/MockToken'
 import { MockAggregator } from '../../typechain/MockAggregator'
+import { AssimilatorFactory } from '../../typechain/AssimilatorFactory'
+import { MockABDK } from '../../typechain/MockABDK'
 
 export const deployMockBalancerVault = async (adminAddress: string, WETHAddress: string): Promise<Vault> => {
   const vault = await deploy('Vault', {
@@ -51,8 +53,29 @@ export const deployMockOracle = async (latestAnswer: string): Promise<MockAggreg
   const mockOracle = await mockOracleFactory.deploy()
   await mockOracle.deployed()
 
-  await mockOracle.setAnswer(parseUnits(latestAnswer, 8))
+  await mockOracle.setAnswer(latestAnswer)
   return mockOracle as MockAggregator
+}
+
+export const deployAssimilatorFactory = async (
+  usdcOracleAddress: string,
+  usdcAddress: string
+): Promise<AssimilatorFactory> => {
+  const AssimilatorFactoryFactory = await ethers.getContractFactory('AssimilatorFactory')
+  const assimilatorFactory = await AssimilatorFactoryFactory.deploy(usdcOracleAddress, usdcAddress)
+
+  await assimilatorFactory.deployed()
+
+  return assimilatorFactory as AssimilatorFactory
+}
+
+export const deployMockABDKLib = async (): Promise<MockABDK> => {
+  const MockABDKLibFactory = await ethers.getContractFactory('MockABDK')
+  const mockABDKLib = await MockABDKLibFactory.deploy()
+
+  await mockABDKLib.deployed()
+
+  return mockABDKLib as MockABDK
 }
 
 export interface MockTokenAndOracle {
