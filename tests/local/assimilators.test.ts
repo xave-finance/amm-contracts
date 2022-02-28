@@ -108,20 +108,14 @@ describe('Assimilators', () => {
       await xsgdAssimilatorContract.viewNumeraireAmount(INPUT_AMOUNT),
       'View numeraire amount calculation is incorrect'
     ).to.equals(
-      await testEnv.mockABDK.divu(
-        calculateNumeraireAmount(INPUT_AMOUNT, xsgdRateFromAssimilator),
-        xsgdAssimilatorDecimals
-      )
+      await calculateNumeraireAmount(INPUT_AMOUNT, xsgdRateFromAssimilator, xsgdAssimilatorDecimals, testEnv.mockABDK)
     )
 
     expect(
       await xsgdAssimilatorContract.viewNumeraireBalance(mockCurveAddress),
       'View numeraire balance calculation is incorrect'
     ).to.equals(
-      await testEnv.mockABDK.divu(
-        calculateNumeraireBalance(usdcBalance, xsgdRateFromAssimilator),
-        xsgdAssimilatorDecimals
-      )
+      await calculateNumeraireBalance(usdcBalance, xsgdRateFromAssimilator, xsgdAssimilatorDecimals, testEnv.mockABDK)
     )
 
     const { amount_, balance_ } = await xsgdAssimilatorContract.viewNumeraireAmountAndBalance(
@@ -130,17 +124,11 @@ describe('Assimilators', () => {
     )
 
     expect(amount_).to.be.equals(
-      await testEnv.mockABDK.divu(
-        calculateNumeraireAmount(INPUT_AMOUNT, xsgdRateFromAssimilator),
-        xsgdAssimilatorDecimals
-      ),
+      await calculateNumeraireAmount(INPUT_AMOUNT, xsgdRateFromAssimilator, xsgdAssimilatorDecimals, testEnv.mockABDK),
       'amount_ in viewNumeraireAmountAndBalance calculation is incorrect'
     )
     expect(balance_).to.be.equals(
-      await testEnv.mockABDK.divu(
-        calculateNumeraireBalance(usdcBalance, xsgdRateFromAssimilator),
-        xsgdAssimilatorDecimals
-      ),
+      await calculateNumeraireBalance(usdcBalance, xsgdRateFromAssimilator, xsgdAssimilatorDecimals, testEnv.mockABDK),
       'balance_ in viewNumeraireAmountAndBalance calculation is incorrect'
     )
 
@@ -148,10 +136,7 @@ describe('Assimilators', () => {
       await xsgdAssimilatorContract.viewNumeraireBalanceLPRatio(baseWeight, quoteWeight, mockCurveAddress),
       'View Numeraire Balance LP Ratio calculation is incorrect'
     ).to.equals(
-      await testEnv.mockABDK.divu(
-        calculateNumeraireBalanceLPRatio(usdcBalance, quoteWeight, xsgdBalance, baseWeight),
-        ONE_ETHER
-      )
+      await calculateNumeraireBalanceLPRatio(usdcBalance, quoteWeight, xsgdBalance, baseWeight, testEnv.mockABDK)
     )
   })
 
@@ -179,21 +164,15 @@ describe('Assimilators', () => {
       'View raw amount LP ratio calculation is incorrect'
     ).to.equals(await testEnv.mockABDK.mulu(INPUT_AMOUNT, USDC_DECIMALS))
 
-    // @todo viewNumeraireAmount  amount_ = ((_amount * _rate) / 1e8).divu(baseDecimals);
-
     expect(
       await usdcAssimilatorContract.viewNumeraireAmount(INPUT_AMOUNT),
       'View numeraire amount calculation is incorrect'
-    ).to.equals(
-      await testEnv.mockABDK.divu(calculateNumeraireAmount(INPUT_AMOUNT, usdcRateFromAssimilator), USDC_DECIMALS)
-    )
+    ).to.equals(await calculateNumeraireAmount(INPUT_AMOUNT, usdcRateFromAssimilator, USDC_DECIMALS, testEnv.mockABDK))
 
     expect(
       await usdcAssimilatorContract.viewNumeraireBalance(mockCurveAddress),
       'View numeraire balance calculation is incorrect'
-    ).to.equals(
-      await testEnv.mockABDK.divu(calculateNumeraireBalance(usdcBalance, usdcRateFromAssimilator), USDC_DECIMALS)
-    )
+    ).to.equals(await calculateNumeraireBalance(usdcBalance, usdcRateFromAssimilator, USDC_DECIMALS, testEnv.mockABDK))
 
     const { amount_, balance_ } = await usdcAssimilatorContract.viewNumeraireAmountAndBalance(
       mockCurveAddress,
@@ -201,11 +180,11 @@ describe('Assimilators', () => {
     )
 
     expect(amount_).to.be.equals(
-      await testEnv.mockABDK.divu(calculateNumeraireAmount(INPUT_AMOUNT, usdcRateFromAssimilator), USDC_DECIMALS),
+      await calculateNumeraireAmount(INPUT_AMOUNT, usdcRateFromAssimilator, USDC_DECIMALS, testEnv.mockABDK),
       'amount_ in viewNumeraireAmountAndBalance calculation is incorrect'
     )
     expect(balance_).to.be.equals(
-      await testEnv.mockABDK.divu(calculateNumeraireBalance(usdcBalance, usdcRateFromAssimilator), USDC_DECIMALS),
+      await calculateNumeraireBalance(usdcBalance, usdcRateFromAssimilator, USDC_DECIMALS, testEnv.mockABDK),
       'balance_ in viewNumeraireAmountAndBalance calculation is incorrect'
     )
 
@@ -213,10 +192,7 @@ describe('Assimilators', () => {
       await usdcAssimilatorContract.viewNumeraireBalanceLPRatio(baseWeight, quoteWeight, mockCurveAddress),
       'View Numeraire Balance LP Ratio calculation is incorrect'
     ).to.equals(
-      await testEnv.mockABDK.divu(
-        calculateNumeraireBalanceLPRatio(usdcBalance, quoteWeight, usdcBalance, baseWeight),
-        ONE_ETHER
-      )
+      await calculateNumeraireBalanceLPRatio(usdcBalance, quoteWeight, usdcBalance, baseWeight, testEnv.mockABDK)
     )
   })
 })
