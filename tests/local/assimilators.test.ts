@@ -115,7 +115,7 @@ describe('Assimilators', () => {
       await xsgdAssimilatorContract.viewNumeraireBalance(mockCurveAddress),
       'View numeraire balance calculation is incorrect'
     ).to.equals(
-      await calculateNumeraireBalance(usdcBalance, xsgdRateFromAssimilator, xsgdAssimilatorDecimals, testEnv.mockABDK)
+      await calculateNumeraireBalance(xsgdBalance, xsgdRateFromAssimilator, xsgdAssimilatorDecimals, testEnv.mockABDK)
     )
 
     const { amount_, balance_ } = await xsgdAssimilatorContract.viewNumeraireAmountAndBalance(
@@ -128,7 +128,7 @@ describe('Assimilators', () => {
       'amount_ in viewNumeraireAmountAndBalance calculation is incorrect'
     )
     expect(balance_).to.be.equals(
-      await calculateNumeraireBalance(usdcBalance, xsgdRateFromAssimilator, xsgdAssimilatorDecimals, testEnv.mockABDK),
+      await calculateNumeraireBalance(xsgdBalance, xsgdRateFromAssimilator, xsgdAssimilatorDecimals, testEnv.mockABDK),
       'balance_ in viewNumeraireAmountAndBalance calculation is incorrect'
     )
 
