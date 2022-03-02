@@ -85,32 +85,71 @@ describe('Assimilators', () => {
     )
   })
 
-  it('XSGD-USD assimilator calculation tests', async () => {
+  it('Base assimilators calculation tests', async () => {
     const mockCurveAddress = adminAddress // illustrate calculation using current EOA account
     const xsgdAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.XSGD.address)
-    const xsgdAssimilatorContract = await getAssimilatorContract(xsgdAssimilatorAddress)
-    const xsgdRateFromAssimilator = await xsgdAssimilatorContract.getRate()
+    const eursAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.EURS.address)
+    const fxPHPAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.fxPHP.address)
 
-    const xsgdAssimilatorDecimals = await xsgdAssimilatorContract.baseDecimals()
-    const convertedAmountToUintDecimal = await testEnv.mockABDK.mulu(INPUT_AMOUNT, xsgdAssimilatorDecimals)
     const baseWeight = await testEnv.mockABDK.mulu(parseUnits('0.5'), ONE_ETHER) // from ProportionalLiquidity line 106
     const quoteWeight = await testEnv.mockABDK.mulu(parseUnits('0.5'), ONE_ETHER) // from ProportionalLiquidity line 107
 
     const usdcBalance = await testEnv.USDC.balanceOf(mockCurveAddress)
     const xsgdBalance = await testEnv.XSGD.balanceOf(mockCurveAddress)
+    const eursBalance = await testEnv.EURS.balanceOf(mockCurveAddress)
+    const fxPHPBalance = await testEnv.fxPHP.balanceOf(mockCurveAddress)
 
-    expect(xsgdRateFromAssimilator, 'Rate from assimilator is not equal to oracle price').to.equals(
+    /**
+     * `getRate()` assertions
+     **/
+    const xsgdAssimilatorContract = await getAssimilatorContract(xsgdAssimilatorAddress)
+    const xsgdRateFromAssimilator = await xsgdAssimilatorContract.getRate()
+    expect(xsgdRateFromAssimilator, 'Rate from XSGD assimilator is not equal to oracle price').to.equals(
       mockToken[1].mockOraclePrice
     )
 
+    const eursAssimilatorContract = await getAssimilatorContract(eursAssimilatorAddress)
+    const eursRateFromAssimilator = await eursAssimilatorContract.getRate()
+    expect(eursRateFromAssimilator, 'Rate from EURS assimilator is not equal to oracle price').to.equals(
+      mockToken[2].mockOraclePrice
+    )
+
+    const fxPHPAssimilatorContract = await getAssimilatorContract(fxPHPAssimilatorAddress)
+    const fxPHPRateFromAssimilator = await fxPHPAssimilatorContract.getRate()
+    expect(fxPHPRateFromAssimilator, 'Rate from fxPHP assimilator is not equal to oracle price').to.equals(
+      mockToken[3].mockOraclePrice
+    )
+
+    /**
+     * `viewRawAmount()` assertions
+     **/
+    const xsgdAssimilatorDecimals = await xsgdAssimilatorContract.baseDecimals()
+    const xsgdInputAmountUInt = await testEnv.mockABDK.mulu(INPUT_AMOUNT, xsgdAssimilatorDecimals)
     expect(
       await xsgdAssimilatorContract.viewRawAmount(INPUT_AMOUNT),
-      'View raw amount calculation is incorrect'
-    ).to.equals(calculateRawAmount(convertedAmountToUintDecimal, xsgdRateFromAssimilator))
+      'View raw amount calculation (XGSD) is incorrect'
+    ).to.equals(calculateRawAmount(xsgdInputAmountUInt, xsgdRateFromAssimilator))
 
+    const eursAssimilatorDecimals = await eursAssimilatorContract.baseDecimals()
+    const eursInputAmountUInt = await testEnv.mockABDK.mulu(INPUT_AMOUNT, eursAssimilatorDecimals)
+    expect(
+      await eursAssimilatorContract.viewRawAmount(INPUT_AMOUNT),
+      'View raw amount calculation (EURS) is incorrect'
+    ).to.equals(calculateRawAmount(eursInputAmountUInt, eursRateFromAssimilator))
+
+    const fxPHPAssimilatorDecimals = await fxPHPAssimilatorContract.baseDecimals()
+    const fxPHPInputAmountUInt = await testEnv.mockABDK.mulu(INPUT_AMOUNT, fxPHPAssimilatorDecimals)
+    expect(
+      await fxPHPAssimilatorContract.viewRawAmount(INPUT_AMOUNT),
+      'View raw amount calculation (fxPHP) is incorrect'
+    ).to.equals(calculateRawAmount(fxPHPInputAmountUInt, fxPHPRateFromAssimilator))
+
+    /**
+     * `viewRawAmountLPRatio()` assertions
+     **/
     expect(
       await xsgdAssimilatorContract.viewRawAmountLPRatio(baseWeight, quoteWeight, adminAddress, INPUT_AMOUNT),
-      'View raw amount LP ratio calculation is incorrect'
+      'View raw amount LP ratio calculation (XSGD) is incorrect'
     ).to.equals(
       calculateRawAmountLpRatio(
         usdcBalance,
@@ -118,72 +157,13 @@ describe('Assimilators', () => {
         quoteWeight,
         xsgdAssimilatorDecimals,
         xsgdBalance,
-        convertedAmountToUintDecimal
+        xsgdInputAmountUInt
       )
     )
 
     expect(
-      await xsgdAssimilatorContract.viewNumeraireAmount(INPUT_AMOUNT),
-      'View numeraire amount calculation is incorrect'
-    ).to.equals(
-      await calculateNumeraireAmount(INPUT_AMOUNT, xsgdRateFromAssimilator, xsgdAssimilatorDecimals, testEnv.mockABDK)
-    )
-
-    expect(
-      await xsgdAssimilatorContract.viewNumeraireBalance(mockCurveAddress),
-      'View numeraire balance calculation is incorrect'
-    ).to.equals(
-      await calculateNumeraireBalance(xsgdBalance, xsgdRateFromAssimilator, xsgdAssimilatorDecimals, testEnv.mockABDK)
-    )
-
-    const { amount_, balance_ } = await xsgdAssimilatorContract.viewNumeraireAmountAndBalance(
-      mockCurveAddress,
-      INPUT_AMOUNT
-    )
-
-    expect(amount_).to.be.equals(
-      await calculateNumeraireAmount(INPUT_AMOUNT, xsgdRateFromAssimilator, xsgdAssimilatorDecimals, testEnv.mockABDK),
-      'amount_ in viewNumeraireAmountAndBalance calculation is incorrect'
-    )
-    expect(balance_).to.be.equals(
-      await calculateNumeraireBalance(xsgdBalance, xsgdRateFromAssimilator, xsgdAssimilatorDecimals, testEnv.mockABDK),
-      'balance_ in viewNumeraireAmountAndBalance calculation is incorrect'
-    )
-
-    expect(
-      await xsgdAssimilatorContract.viewNumeraireBalanceLPRatio(baseWeight, quoteWeight, mockCurveAddress),
-      'View Numeraire Balance LP Ratio calculation is incorrect'
-    ).to.equals(
-      await calculateNumeraireBalanceLPRatio(usdcBalance, quoteWeight, xsgdBalance, baseWeight, testEnv.mockABDK)
-    )
-  })
-
-  it('EURS-USD assimilator calculation tests', async () => {
-    const mockCurveAddress = adminAddress // illustrate calculation using current EOA account
-    const eursAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.EURS.address)
-    const eursAssimilatorContract = await getAssimilatorContract(eursAssimilatorAddress)
-    const eursRateFromAssimilator = await eursAssimilatorContract.getRate()
-
-    const eursAssimilatorDecimals = await eursAssimilatorContract.baseDecimals()
-    const convertedAmountToUintDecimal = await testEnv.mockABDK.mulu(INPUT_AMOUNT, eursAssimilatorDecimals)
-    const baseWeight = await testEnv.mockABDK.mulu(parseUnits('0.5'), ONE_ETHER) // from ProportionalLiquidity line 106
-    const quoteWeight = await testEnv.mockABDK.mulu(parseUnits('0.5'), ONE_ETHER) // from ProportionalLiquidity line 107
-
-    const usdcBalance = await testEnv.USDC.balanceOf(mockCurveAddress)
-    const eursBalance = await testEnv.EURS.balanceOf(mockCurveAddress)
-
-    expect(eursRateFromAssimilator, 'Rate from assimilator is not equal to oracle price').to.equals(
-      mockToken[2].mockOraclePrice
-    )
-
-    expect(
-      await eursAssimilatorContract.viewRawAmount(INPUT_AMOUNT),
-      'View raw amount calculation is incorrect'
-    ).to.equals(calculateRawAmount(convertedAmountToUintDecimal, eursRateFromAssimilator))
-
-    expect(
       await eursAssimilatorContract.viewRawAmountLPRatio(baseWeight, quoteWeight, adminAddress, INPUT_AMOUNT),
-      'View raw amount LP ratio calculation is incorrect'
+      'View raw amount LP ratio calculation (EURS) is incorrect'
     ).to.equals(
       calculateRawAmountLpRatio(
         usdcBalance,
@@ -191,72 +171,13 @@ describe('Assimilators', () => {
         quoteWeight,
         eursAssimilatorDecimals,
         eursBalance,
-        convertedAmountToUintDecimal
+        eursInputAmountUInt
       )
     )
 
     expect(
-      await eursAssimilatorContract.viewNumeraireAmount(INPUT_AMOUNT),
-      'View numeraire amount calculation is incorrect'
-    ).to.equals(
-      await calculateNumeraireAmount(INPUT_AMOUNT, eursRateFromAssimilator, eursAssimilatorDecimals, testEnv.mockABDK)
-    )
-
-    expect(
-      await eursAssimilatorContract.viewNumeraireBalance(mockCurveAddress),
-      'View numeraire balance calculation is incorrect'
-    ).to.equals(
-      await calculateNumeraireBalance(eursBalance, eursRateFromAssimilator, eursAssimilatorDecimals, testEnv.mockABDK)
-    )
-
-    const { amount_, balance_ } = await eursAssimilatorContract.viewNumeraireAmountAndBalance(
-      mockCurveAddress,
-      INPUT_AMOUNT
-    )
-
-    expect(amount_).to.be.equals(
-      await calculateNumeraireAmount(INPUT_AMOUNT, eursRateFromAssimilator, eursAssimilatorDecimals, testEnv.mockABDK),
-      'amount_ in viewNumeraireAmountAndBalance calculation is incorrect'
-    )
-    expect(balance_).to.be.equals(
-      await calculateNumeraireBalance(eursBalance, eursRateFromAssimilator, eursAssimilatorDecimals, testEnv.mockABDK),
-      'balance_ in viewNumeraireAmountAndBalance calculation is incorrect'
-    )
-
-    expect(
-      await eursAssimilatorContract.viewNumeraireBalanceLPRatio(baseWeight, quoteWeight, mockCurveAddress),
-      'View Numeraire Balance LP Ratio calculation is incorrect'
-    ).to.equals(
-      await calculateNumeraireBalanceLPRatio(usdcBalance, quoteWeight, eursBalance, baseWeight, testEnv.mockABDK)
-    )
-  })
-
-  it('fxPHP-USD assimilator calculation tests', async () => {
-    const mockCurveAddress = adminAddress // illustrate calculation using current EOA account
-    const fxPHPAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.fxPHP.address)
-    const fxPHPAssimilatorContract = await getAssimilatorContract(fxPHPAssimilatorAddress)
-    const fxPHPRateFromAssimilator = await fxPHPAssimilatorContract.getRate()
-
-    const fxPHPAssimilatorDecimals = await fxPHPAssimilatorContract.baseDecimals()
-    const convertedAmountToUintDecimal = await testEnv.mockABDK.mulu(INPUT_AMOUNT, fxPHPAssimilatorDecimals)
-    const baseWeight = await testEnv.mockABDK.mulu(parseUnits('0.5'), ONE_ETHER) // from ProportionalLiquidity line 106
-    const quoteWeight = await testEnv.mockABDK.mulu(parseUnits('0.5'), ONE_ETHER) // from ProportionalLiquidity line 107
-
-    const usdcBalance = await testEnv.USDC.balanceOf(mockCurveAddress)
-    const fxPHPBalance = await testEnv.fxPHP.balanceOf(mockCurveAddress)
-
-    expect(fxPHPRateFromAssimilator, 'Rate from assimilator is not equal to oracle price').to.equals(
-      mockToken[3].mockOraclePrice
-    )
-
-    expect(
-      await fxPHPAssimilatorContract.viewRawAmount(INPUT_AMOUNT),
-      'View raw amount calculation is incorrect'
-    ).to.equals(calculateRawAmount(convertedAmountToUintDecimal, fxPHPRateFromAssimilator))
-
-    expect(
       await fxPHPAssimilatorContract.viewRawAmountLPRatio(baseWeight, quoteWeight, adminAddress, INPUT_AMOUNT),
-      'View raw amount LP ratio calculation is incorrect'
+      'View raw amount LP ratio calculation (fxPHP) is incorrect'
     ).to.equals(
       calculateRawAmountLpRatio(
         usdcBalance,
@@ -264,20 +185,54 @@ describe('Assimilators', () => {
         quoteWeight,
         fxPHPAssimilatorDecimals,
         fxPHPBalance,
-        convertedAmountToUintDecimal
+        fxPHPInputAmountUInt
       )
+    )
+
+    /**
+     * `viewNumeraireAmount()` assertions
+     **/
+    expect(
+      await xsgdAssimilatorContract.viewNumeraireAmount(INPUT_AMOUNT),
+      'View numeraire amount calculation (XSGD) is incorrect'
+    ).to.equals(
+      await calculateNumeraireAmount(INPUT_AMOUNT, xsgdRateFromAssimilator, xsgdAssimilatorDecimals, testEnv.mockABDK)
+    )
+
+    expect(
+      await eursAssimilatorContract.viewNumeraireAmount(INPUT_AMOUNT),
+      'View numeraire amount calculation (EURS) is incorrect'
+    ).to.equals(
+      await calculateNumeraireAmount(INPUT_AMOUNT, eursRateFromAssimilator, eursAssimilatorDecimals, testEnv.mockABDK)
     )
 
     expect(
       await fxPHPAssimilatorContract.viewNumeraireAmount(INPUT_AMOUNT),
-      'View numeraire amount calculation is incorrect'
+      'View numeraire amount calculation (fxPHP) is incorrect'
     ).to.equals(
       await calculateNumeraireAmount(INPUT_AMOUNT, fxPHPRateFromAssimilator, fxPHPAssimilatorDecimals, testEnv.mockABDK)
     )
 
+    /**
+     * `viewNumeraireBalance()` assertions
+     **/
+    expect(
+      await xsgdAssimilatorContract.viewNumeraireBalance(mockCurveAddress),
+      'View numeraire balance calculation (XSGD) is incorrect'
+    ).to.equals(
+      await calculateNumeraireBalance(xsgdBalance, xsgdRateFromAssimilator, xsgdAssimilatorDecimals, testEnv.mockABDK)
+    )
+
+    expect(
+      await eursAssimilatorContract.viewNumeraireBalance(mockCurveAddress),
+      'View numeraire balance calculation (EURS) is incorrect'
+    ).to.equals(
+      await calculateNumeraireBalance(eursBalance, eursRateFromAssimilator, eursAssimilatorDecimals, testEnv.mockABDK)
+    )
+
     expect(
       await fxPHPAssimilatorContract.viewNumeraireBalance(mockCurveAddress),
-      'View numeraire balance calculation is incorrect'
+      'View numeraire balance calculation (fxPHP) is incorrect'
     ).to.equals(
       await calculateNumeraireBalance(
         fxPHPBalance,
@@ -287,39 +242,78 @@ describe('Assimilators', () => {
       )
     )
 
-    const { amount_, balance_ } = await fxPHPAssimilatorContract.viewNumeraireAmountAndBalance(
-      mockCurveAddress,
-      INPUT_AMOUNT
+    /**
+     * `viewNumeraireBalance()` assertions
+     **/
+    const { amount_: xsgdAmount_, balance_: xsgdBalance_ } =
+      await xsgdAssimilatorContract.viewNumeraireAmountAndBalance(mockCurveAddress, INPUT_AMOUNT)
+    expect(xsgdAmount_).to.be.equals(
+      await calculateNumeraireAmount(INPUT_AMOUNT, xsgdRateFromAssimilator, xsgdAssimilatorDecimals, testEnv.mockABDK),
+      'amount_ in viewNumeraireAmountAndBalance calculation (XSGD) is incorrect'
+    )
+    expect(xsgdBalance_).to.be.equals(
+      await calculateNumeraireBalance(xsgdBalance, xsgdRateFromAssimilator, xsgdAssimilatorDecimals, testEnv.mockABDK),
+      'balance_ in viewNumeraireAmountAndBalance calculation (XSGD) is incorrect'
     )
 
-    expect(amount_).to.be.equals(
+    const { amount_: eursAmount_, balance_: eursBalance_ } =
+      await eursAssimilatorContract.viewNumeraireAmountAndBalance(mockCurveAddress, INPUT_AMOUNT)
+    expect(eursAmount_).to.be.equals(
+      await calculateNumeraireAmount(INPUT_AMOUNT, eursRateFromAssimilator, eursAssimilatorDecimals, testEnv.mockABDK),
+      'amount_ in viewNumeraireAmountAndBalance calculation (EURS) is incorrect'
+    )
+    expect(eursBalance_).to.be.equals(
+      await calculateNumeraireBalance(eursBalance, eursRateFromAssimilator, eursAssimilatorDecimals, testEnv.mockABDK),
+      'balance_ in viewNumeraireAmountAndBalance calculation (EURS) is incorrect'
+    )
+
+    const { amount_: fxPHPAmount_, balance_: fxPHPBalance_ } =
+      await fxPHPAssimilatorContract.viewNumeraireAmountAndBalance(mockCurveAddress, INPUT_AMOUNT)
+    expect(fxPHPAmount_).to.be.equals(
       await calculateNumeraireAmount(
         INPUT_AMOUNT,
         fxPHPRateFromAssimilator,
         fxPHPAssimilatorDecimals,
         testEnv.mockABDK
       ),
-      'amount_ in viewNumeraireAmountAndBalance calculation is incorrect'
+      'amount_ in viewNumeraireAmountAndBalance calculation (fxPHP) is incorrect'
     )
-    expect(balance_).to.be.equals(
+    expect(fxPHPBalance_).to.be.equals(
       await calculateNumeraireBalance(
         fxPHPBalance,
         fxPHPRateFromAssimilator,
         fxPHPAssimilatorDecimals,
         testEnv.mockABDK
       ),
-      'balance_ in viewNumeraireAmountAndBalance calculation is incorrect'
+      'balance_ in viewNumeraireAmountAndBalance calculation (fxPHP) is incorrect'
+    )
+
+    /**
+     * `viewNumeraireBalanceLPRatio()` assertions
+     **/
+    expect(
+      await xsgdAssimilatorContract.viewNumeraireBalanceLPRatio(baseWeight, quoteWeight, mockCurveAddress),
+      'View Numeraire Balance LP Ratio calculation (XSGD) is incorrect'
+    ).to.equals(
+      await calculateNumeraireBalanceLPRatio(usdcBalance, quoteWeight, xsgdBalance, baseWeight, testEnv.mockABDK)
+    )
+
+    expect(
+      await eursAssimilatorContract.viewNumeraireBalanceLPRatio(baseWeight, quoteWeight, mockCurveAddress),
+      'View Numeraire Balance LP Ratio calculation (EURS) is incorrect'
+    ).to.equals(
+      await calculateNumeraireBalanceLPRatio(usdcBalance, quoteWeight, eursBalance, baseWeight, testEnv.mockABDK)
     )
 
     expect(
       await fxPHPAssimilatorContract.viewNumeraireBalanceLPRatio(baseWeight, quoteWeight, mockCurveAddress),
-      'View Numeraire Balance LP Ratio calculation is incorrect'
+      'View Numeraire Balance LP Ratio calculation (fxPHP) is incorrect'
     ).to.equals(
       await calculateNumeraireBalanceLPRatio(usdcBalance, quoteWeight, fxPHPBalance, baseWeight, testEnv.mockABDK)
     )
   })
 
-  it('USDC-USD assimilator calculation tests', async () => {
+  it('USDC USD assimilator calculation tests', async () => {
     const mockCurveAddress = adminAddress // illustrate calculation using current EOA account
     const USDC_DECIMALS = ONE_TO_THE_SIX // assigning for reference purposes
     const usdcAssimilatorAddress = await testEnv.assimilatorFactory.usdcAssimilator()
