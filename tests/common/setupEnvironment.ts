@@ -26,8 +26,12 @@ export interface TestEnv {
   mockTokenArray: MockTokenAndOracle[]
   XSGD: MockToken
   USDC: MockToken
+  EURS: MockToken
+  fxPHP: MockToken
   XSGDOracle: MockAggregator
   USDCOracle: MockAggregator
+  EURSOracle: MockAggregator
+  fxPHPOracle: MockAggregator
   assimilatorFactory: AssimilatorFactory
   mockABDK: MockABDK
 }
@@ -44,10 +48,14 @@ export const setupEnvironment = async (): Promise<TestEnv> => {
 
   mockTokenArray = await deployAllMockTokensAndOracles(await deployer.getAddress())
 
-  const XSGD = mockTokenArray[1].tokenInstance
   const USDC = mockTokenArray[0].tokenInstance
-  const XSGDOracle = mockTokenArray[1].oracleInstance
+  const XSGD = mockTokenArray[1].tokenInstance
+  const EURS = mockTokenArray[2].tokenInstance
+  const fxPHP = mockTokenArray[3].tokenInstance
   const USDCOracle = mockTokenArray[0].oracleInstance
+  const XSGDOracle = mockTokenArray[1].oracleInstance
+  const EURSOracle = mockTokenArray[2].oracleInstance
+  const fxPHPOracle = mockTokenArray[3].oracleInstance
 
   const assimilatorFactory = await deployAssimilatorFactory(USDCOracle.address, USDC.address)
 
@@ -59,8 +67,12 @@ export const setupEnvironment = async (): Promise<TestEnv> => {
     mockTokenArray,
     XSGD,
     USDC,
+    EURS,
+    fxPHP,
     XSGDOracle,
     USDCOracle,
+    EURSOracle,
+    fxPHPOracle,
     assimilatorFactory,
     mockABDK,
   }
