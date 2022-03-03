@@ -69,19 +69,57 @@ describe('Assimilators', () => {
     ).to.emit(testEnv.assimilatorFactory, 'NewAssimilator')
   })
 
-  it('Gets newly deployed base assimilator from the assimilator factory with immutable params set properly', async () => {
+  it('Gets newly deployed XSGD-USD assimilator from the assimilator factory with immutable params set properly', async () => {
     const xsgdAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.XSGD.address)
-    expect(xsgdAssimilatorAddress, 'Assimilator not created and returns zero address').to.not.equals(
+    expect(xsgdAssimilatorAddress, 'XSGD-USD assimilator not created and returns zero address').to.not.equals(
       ethers.constants.AddressZero
     )
 
     const xsgdAssimilatorContract = await getAssimilatorContract(xsgdAssimilatorAddress)
 
-    expect(await xsgdAssimilatorContract.usdc(), 'USDC not set').to.be.equals(testEnv.USDC.address)
-    expect(await xsgdAssimilatorContract.oracle(), 'Oracle not set').to.be.equals(testEnv.XSGDOracle.address)
-    expect(await xsgdAssimilatorContract.baseToken(), 'Base token not set').to.be.equals(testEnv.XSGD.address)
-    expect(await xsgdAssimilatorContract.baseDecimals(), 'Base decimals not set').to.be.equals(
+    expect(await xsgdAssimilatorContract.usdc(), 'USDC address incorrect').to.be.equals(testEnv.USDC.address)
+    expect(await xsgdAssimilatorContract.oracle(), 'XSGD Oracle address incorrect').to.be.equals(
+      testEnv.XSGDOracle.address
+    )
+    expect(await xsgdAssimilatorContract.baseToken(), 'XSGD address incorrect').to.be.equals(testEnv.XSGD.address)
+    expect(await xsgdAssimilatorContract.baseDecimals(), 'XSGD decimals incorrect').to.be.equals(
       parseUnits('1', `${mockToken[1].decimal}`)
+    )
+  })
+
+  it('Gets newly deployed EURS-USD assimilator from the assimilator factory with immutable params set properly', async () => {
+    const eursAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.EURS.address)
+    expect(eursAssimilatorAddress, 'EURS-USD assimilator not created and returns zero address').to.not.equals(
+      ethers.constants.AddressZero
+    )
+
+    const eursAssimilatorContract = await getAssimilatorContract(eursAssimilatorAddress)
+
+    expect(await eursAssimilatorContract.usdc(), 'USDC address incorrect').to.be.equals(testEnv.USDC.address)
+    expect(await eursAssimilatorContract.oracle(), 'EURS Oracle address incorrect').to.be.equals(
+      testEnv.EURSOracle.address
+    )
+    expect(await eursAssimilatorContract.baseToken(), 'EURS address incorrect').to.be.equals(testEnv.EURS.address)
+    expect(await eursAssimilatorContract.baseDecimals(), 'EURS decimals incorrect').to.be.equals(
+      parseUnits('1', `${mockToken[2].decimal}`)
+    )
+  })
+
+  it('Gets newly deployed fxPHP-USD assimilator from the assimilator factory with immutable params set properly', async () => {
+    const fxPHPAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.fxPHP.address)
+    expect(fxPHPAssimilatorAddress, 'fxPHP-USD assimilator not created and returns zero address').to.not.equals(
+      ethers.constants.AddressZero
+    )
+
+    const fxPHPAssimilatorContract = await getAssimilatorContract(fxPHPAssimilatorAddress)
+
+    expect(await fxPHPAssimilatorContract.usdc(), 'USDC address incorrect').to.be.equals(testEnv.USDC.address)
+    expect(await fxPHPAssimilatorContract.oracle(), 'fxPHP Oracle address incorrect').to.be.equals(
+      testEnv.fxPHPOracle.address
+    )
+    expect(await fxPHPAssimilatorContract.baseToken(), 'fxPHP address incorrect').to.be.equals(testEnv.fxPHP.address)
+    expect(await fxPHPAssimilatorContract.baseDecimals(), 'fxPHP decimals incorrect').to.be.equals(
+      parseUnits('1', `${mockToken[3].decimal}`)
     )
   })
 
