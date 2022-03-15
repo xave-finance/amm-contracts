@@ -15,8 +15,8 @@
 
 pragma solidity ^0.7.3;
 
-import "./interfaces/IOracle.sol";
-import "./Assimilators.sol";
+import './interfaces/IOracle.sol';
+import './Assimilators.sol';
 
 contract Storage {
     struct Curve {
@@ -49,12 +49,10 @@ contract Storage {
     // Curve parameters
     Curve public curve;
 
-    // Ownable
-    address public owner;
-
-    string public name;
-    string public symbol;
-    uint8 public constant decimals = 18;
+    // @todo double check if need to remove since its in the BPT TOken
+    // string public name;
+    // string public symbol;
+    // uint8 public constant decimals = 18;
 
     address[] public derivatives;
     address[] public numeraires;
@@ -63,5 +61,5 @@ contract Storage {
     // Curve operational state
     bool public frozen = false;
     bool public emergency = false;
-    bool internal notEntered = true;
+    // bool internal notEntered = true;
 }

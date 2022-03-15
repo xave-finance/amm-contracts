@@ -25,7 +25,7 @@ export const MAX_INT256: BigNumber = maxInt(256)
 export const MAX_GAS_LIMIT = 8e6
 export const MAX_WEIGHTED_TOKENS = 100
 
-export const INTIAL_MINT = '1000000'
+export const INTIAL_MINT = '1000000000000000000000000000000'
 
 export const ONE_TO_THE_EIGHT_NUM = 100000000
 export const ONE_TO_THE_EIGHT: BigNumber = BigNumber.from(`${ONE_TO_THE_EIGHT_NUM}`)

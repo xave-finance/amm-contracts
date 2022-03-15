@@ -21,6 +21,7 @@ import '@balancer-labs/v2-solidity-utils/contracts/openzeppelin/IERC20.sol';
 import '../interfaces/IVault.sol';
 import './vault/interfaces/IGeneralPool.sol';
 import './vault/interfaces/IMinimalSwapInfoPool.sol';
+import 'hardhat/console.sol';
 
 contract MockPool is IGeneralPool, IMinimalSwapInfoPool {
     using FixedPoint for uint256;
@@ -28,8 +29,8 @@ contract MockPool is IGeneralPool, IMinimalSwapInfoPool {
     IVault private immutable _vault;
     bytes32 private immutable _poolId;
 
-    constructor(IVault vault, IVault.PoolSpecialization specialization) {
-        _poolId = vault.registerPool(specialization);
+    constructor(IVault vault) {
+        _poolId = vault.registerPool(IVault.PoolSpecialization.TWO_TOKEN);
         _vault = vault;
     }
 
@@ -78,17 +79,22 @@ contract MockPool is IGeneralPool, IMinimalSwapInfoPool {
         uint256 protocolSwapFeePercentage,
         bytes memory userData
     ) external override returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts) {
-        emit OnJoinPoolCalled(
-            poolId,
-            sender,
-            recipient,
-            currentBalances,
-            lastChangeBlock,
-            protocolSwapFeePercentage,
-            userData
-        );
+        //emit OnJoinPoolCalled(
+        //    poolId,
+        //    sender,
+        //    recipient,
+        //    currentBalances,
+        //    lastChangeBlock,
+        //    protocolSwapFeePercentage,
+        //    userData
+        //);
 
-        (amountsIn, dueProtocolFeeAmounts) = abi.decode(userData, (uint256[], uint256[]));
+        uint256 mockAmount = 1000;
+        uint256 mockFee = 1;
+        amountsIn[0] = mockAmount;
+        amountsIn[1] = mockAmount;
+        dueProtocolFeeAmounts[0] = mockFee;
+        dueProtocolFeeAmounts[1] = mockFee;
     }
 
     function onExitPool(
@@ -100,17 +106,22 @@ contract MockPool is IGeneralPool, IMinimalSwapInfoPool {
         uint256 protocolSwapFeePercentage,
         bytes memory userData
     ) external override returns (uint256[] memory amountsOut, uint256[] memory dueProtocolFeeAmounts) {
-        emit OnExitPoolCalled(
-            poolId,
-            sender,
-            recipient,
-            currentBalances,
-            lastChangeBlock,
-            protocolSwapFeePercentage,
-            userData
-        );
-
-        (amountsOut, dueProtocolFeeAmounts) = abi.decode(userData, (uint256[], uint256[]));
+        // emit OnExitPoolCalled(
+        //     poolId,
+        //     sender,
+        //     recipient,
+        //     currentBalances,
+        //     lastChangeBlock,
+        //     protocolSwapFeePercentage,
+        //     userData
+        // );
+        uint256 mockAmount = 1000;
+        uint256 mockFee = 1;
+        amountsOut[0] = mockAmount;
+        amountsOut[1] = mockAmount;
+        dueProtocolFeeAmounts[0] = mockFee;
+        dueProtocolFeeAmounts[1] = mockFee;
+        //  (amountsOut, dueProtocolFeeAmounts) = abi.decode(userData, (uint256[], uint256[]));
     }
 
     // Amounts in are multiplied by the multiplier, amounts out are divided by it

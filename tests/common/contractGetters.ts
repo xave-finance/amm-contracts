@@ -1,5 +1,6 @@
 import { ethers } from 'hardhat'
 import { BaseToUsdAssimilator } from '../../typechain/BaseToUsdAssimilator'
+import { FXPool } from '../../typechain/FXPool'
 import { UsdcToUsdAssimilator } from '../../typechain/UsdcToUsdAssimilator'
 
 export const getAssimilatorContract = async (assimilatorAddress: string): Promise<BaseToUsdAssimilator> => {

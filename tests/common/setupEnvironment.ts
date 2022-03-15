@@ -10,6 +10,7 @@ import {
   deployMockBalancerVault,
   deployMockOracle,
   deployMockPool,
+  deployMockWeightedPoolFactory,
   deployMockWETH,
   MockTokenAndOracle,
 } from './contractDeployers'
@@ -17,11 +18,12 @@ import { mockToken } from '../constants/mockTokenList'
 import { MockToken } from '../../typechain/MockToken'
 import { AssimilatorFactory } from '../../typechain/AssimilatorFactory'
 import { MockABDK } from '../../typechain/MockABDK'
+import { MockWeightedPoolFactory } from '../../typechain/MockWeightedPoolFactory'
 
 export interface TestEnv {
   WETH: MockWETH9
   vault: Vault
-  mockPool: MockPool
+  // mockPool: MockPool
   mockOracle: MockAggregator
   mockTokenArray: MockTokenAndOracle[]
   XSGD: MockToken
@@ -34,6 +36,7 @@ export interface TestEnv {
   fxPHPOracle: MockAggregator
   assimilatorFactory: AssimilatorFactory
   mockABDK: MockABDK
+  mockWeightedPoolFactory: MockWeightedPoolFactory
 }
 
 export const setupEnvironment = async (): Promise<TestEnv> => {
@@ -42,9 +45,10 @@ export const setupEnvironment = async (): Promise<TestEnv> => {
 
   const WETH: MockWETH9 = await deployMockWETH()
   const vault: Vault = await deployMockBalancerVault(await deployer.getAddress(), WETH.address)
-  const mockPool: MockPool = await deployMockPool(vault.address)
+  // const mockPool: MockPool = await deployMockPool(vault.address)
   const mockOracle: MockAggregator = await deployMockOracle(`${mockToken[0].mockOraclePrice}`)
   const mockABDK: MockABDK = await deployMockABDKLib()
+  const mockWeightedPoolFactory: MockWeightedPoolFactory = await deployMockWeightedPoolFactory(vault.address)
 
   mockTokenArray = await deployAllMockTokensAndOracles(await deployer.getAddress())
 
@@ -62,7 +66,7 @@ export const setupEnvironment = async (): Promise<TestEnv> => {
   return {
     WETH,
     vault,
-    mockPool,
+    // mockPool,
     mockOracle,
     mockTokenArray,
     XSGD,
@@ -75,5 +79,6 @@ export const setupEnvironment = async (): Promise<TestEnv> => {
     fxPHPOracle,
     assimilatorFactory,
     mockABDK,
+    mockWeightedPoolFactory,
   }
 }

@@ -3,7 +3,7 @@ import { ethers } from 'hardhat'
 import { Signer } from 'ethers'
 
 import { mockToken } from '../constants/mockTokenList'
-import { parseUnits } from 'ethers/lib/utils'
+import { parseEther, parseUnits } from 'ethers/lib/utils'
 import { approveMockToken } from '../common/helpers/mockTokenHelpers'
 import { INTIAL_MINT } from '../constants'
 import { setupEnvironment, TestEnv } from '../common/setupEnvironment'
@@ -19,10 +19,12 @@ import { setupEnvironment, TestEnv } from '../common/setupEnvironment'
 describe('Scaffold setup ', () => {
   let testEnv: TestEnv
   let admin: Signer
+  let adminAddress: string
 
   before('build test env', async () => {
     testEnv = await setupEnvironment()
     ;[admin] = await ethers.getSigners()
+    adminAddress = await admin.getAddress()
   })
 
   it('Vault and WETH Contracts are deployed', async () => {
@@ -30,11 +32,16 @@ describe('Scaffold setup ', () => {
     expect(testEnv.vault.address, 'Vault is not deployed').to.be.properAddress
   })
 
-  it('Mock Weighted Pool is deployed', async () => {
-    const poolId = await testEnv.mockPool.getPoolId()
-    expect(testEnv.mockPool.address).to.be.properAddress
-    expect(poolId).to.not.be.empty
-    expect(await testEnv.mockPool.getVault()).to.be.equals(testEnv.vault.address)
+  it('Create MockPool (XSGD/USDC) and register tokens', async () => {
+    await testEnv.mockWeightedPoolFactory.create(
+      'HALO FX',
+      'HFX',
+      [testEnv.USDC.address, testEnv.XSGD.address],
+      [parseEther('0.7'), parseEther('0.3')],
+      [adminAddress, adminAddress],
+      parseEther('0.1'),
+      adminAddress
+    )
   })
 
   it('Mock tokens and oracles test', async () => {
