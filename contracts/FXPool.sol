@@ -10,6 +10,7 @@ import './core/Storage.sol';
 import './core/ProportionalLiquidity.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import {ReentrancyGuard} from '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
+import 'hardhat/console.sol';
 
 contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, ReentrancyGuard {
     using ABDKMath64x64 for int128;
@@ -17,7 +18,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
     // The expiration time
     uint256 public immutable expiration;
-    // The number of seconds in our timescale
+    // The number of seconds in our timescalecons
     uint256 public immutable unitSeconds;
 
     // The Balancer pool data
@@ -29,10 +30,9 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     bool public paused;
     // A mapping of who can pause
     mapping(address => bool) public pausers;
-    // Stored records of governance tokens
-    // address public immutable governance;
     // The percent of each trade's implied yield to collect as LP fee
     uint256 public immutable percentFee;
+    int128 private constant ONE_WEI = 0x12;
 
     // EVENTS
     /// @notice This event allows the frontend to track the fees
@@ -42,8 +42,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     /// @param remainingBond the amount of bond asset fees have been charged but not collected
     /// @dev All values emitted by this event are 18 point fixed not token native decimals
     event FeeCollection(uint256 collectedBase, uint256 collectedBond, uint256 remainingBase, uint256 remainingBond);
-
-    int128 private constant ONE_WEI = 0x12;
 
     event ParametersSet(uint256 alpha, uint256 beta, uint256 delta, uint256 epsilon, uint256 lambda);
 
@@ -72,7 +70,9 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         address _pauser
     ) BalancerPoolToken(_name, _symbol) {
         // Sanity Check
-        require(_expiration - block.timestamp < _unitSeconds);
+
+        console.log(_unitSeconds);
+        require(_expiration - block.timestamp < _unitSeconds, 'FXPool/Expired');
 
         // Initialization on the vault
         bytes32 poolId = vault.registerPool(IVault.PoolSpecialization.TWO_TOKEN);

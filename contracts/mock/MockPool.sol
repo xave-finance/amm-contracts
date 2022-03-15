@@ -21,7 +21,6 @@ import '@balancer-labs/v2-solidity-utils/contracts/openzeppelin/IERC20.sol';
 import '../interfaces/IVault.sol';
 import './vault/interfaces/IGeneralPool.sol';
 import './vault/interfaces/IMinimalSwapInfoPool.sol';
-import 'hardhat/console.sol';
 
 contract MockPool is IGeneralPool, IMinimalSwapInfoPool {
     using FixedPoint for uint256;

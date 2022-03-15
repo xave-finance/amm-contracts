@@ -82,7 +82,7 @@ export const deployMockABDKLib = async (): Promise<MockABDK> => {
 
 export const deployFXPool = async (
   assets: string[],
-  assetWeights: string[],
+  //assetWeights: string[],
   expiration: string,
   unitSeconds: string,
   vaultAddress: string,
@@ -91,10 +91,20 @@ export const deployFXPool = async (
   symbol: string, // LP token symbol
   pauser: string // set to pool admin
 ): Promise<FXPool> => {
-  const FXPoolFactory = await ethers.getContractFactory('FXPool')
+  const ProportionalLiquidityFactory = await ethers.getContractFactory('ProportionalLiquidity')
+  const proportionalLiquidity = await ProportionalLiquidityFactory.deploy()
+
+  await proportionalLiquidity.deployed()
+
+  const FXPoolFactory = await ethers.getContractFactory('FXPool', {
+    libraries: {
+      ProportionalLiquidity: proportionalLiquidity.address,
+    },
+  })
+
   const fxPool = await FXPoolFactory.deploy(
     assets,
-    assetWeights,
+    //assetWeights,
     expiration,
     unitSeconds,
     vaultAddress,

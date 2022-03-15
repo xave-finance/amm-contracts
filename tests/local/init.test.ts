@@ -1,12 +1,12 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { Signer } from 'ethers'
-
 import { mockToken } from '../constants/mockTokenList'
 import { parseEther, parseUnits } from 'ethers/lib/utils'
 import { approveMockToken } from '../common/helpers/mockTokenHelpers'
 import { INTIAL_MINT } from '../constants'
 import { setupEnvironment, TestEnv } from '../common/setupEnvironment'
+import { sortAddresses } from '../common/helpers/utils'
 
 /**
  * Mocked Entities
@@ -36,7 +36,7 @@ describe('Scaffold setup ', () => {
     await testEnv.mockWeightedPoolFactory.create(
       'HALO FX',
       'HFX',
-      [testEnv.USDC.address, testEnv.XSGD.address],
+      sortAddresses([testEnv.USDC.address, testEnv.XSGD.address]),
       [parseEther('0.7'), parseEther('0.3')],
       [adminAddress, adminAddress],
       parseEther('0.1'),

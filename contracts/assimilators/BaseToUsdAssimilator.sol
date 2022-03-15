@@ -21,7 +21,6 @@ import '@openzeppelin/contracts/math/SafeMath.sol';
 import '../core/lib/ABDKMath64x64.sol';
 import '../core/interfaces/IAssimilator.sol';
 import '../core/interfaces/IOracle.sol';
-import 'hardhat/console.sol';
 
 contract BaseToUsdAssimilator is IAssimilator {
     using ABDKMath64x64 for int128;
@@ -199,11 +198,8 @@ contract BaseToUsdAssimilator is IAssimilator {
     // views the numeraire value of the current balance of the reserve, in this case baseToken
     function viewNumeraireBalance(address _addr) external view override returns (int128 balance_) {
         uint256 _rate = getRate();
-        console.log(_rate);
 
         uint256 _balance = baseToken.balanceOf(_addr);
-
-        console.log(_balance);
 
         if (_balance <= 0) return ABDKMath64x64.fromUInt(0);
 

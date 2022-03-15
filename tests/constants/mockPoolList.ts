@@ -1,6 +1,5 @@
 export interface FXPoolConstructorParams {
   assetWeights: string[]
-  expiration: string
   unitSeconds: string
   percentFee: string
   name: string // LP Token name
@@ -9,9 +8,17 @@ export interface FXPoolConstructorParams {
 
 export const XSGDUSDCFxPool: FXPoolConstructorParams = {
   assetWeights: ['0.5', '0.5'],
-  expiration: '1000', //UNIX
-  unitSeconds: '1000', //@todo unix, needed?
-  percentFee: '0.03',
+  unitSeconds: '1000',
+  percentFee: '1000', // test value
   name: 'HALO XSGDUSDC FXPool', // LP Token name
   symbol: 'HFX-XSGDUSDC', // LP token symbol
+}
+
+export const fxPHPUSDCFxPool: FXPoolConstructorParams = {
+  assetWeights: ['0.5', '0.5'],
+  // expiration: '1000', //UNIX
+  unitSeconds: '1000',
+  percentFee: '1000', //test Value
+  name: 'HALO fxPHPUSDC FXPool', // LP Token name
+  symbol: 'HFX-fxPHPUSDC', // LP token symbol
 }
