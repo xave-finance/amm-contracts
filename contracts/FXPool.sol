@@ -70,8 +70,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         address _pauser
     ) BalancerPoolToken(_name, _symbol) {
         // Sanity Check
-
-        console.log(_unitSeconds);
         require(_expiration - block.timestamp < _unitSeconds, 'FXPool/Expired');
 
         // Initialization on the vault
