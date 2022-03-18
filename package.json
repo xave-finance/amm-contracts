@@ -15,6 +15,7 @@
     "swap:single": "ts-node scripts/cli/singleSwapCLI.ts",
     "verify": "npx hardhat run scripts/verifyContract.ts --network kovan",
     "verify2": "npx hardhat run scripts/verifyTwo.ts --network kovan",
+    "reset": "rm -rf node_modules && yarn && yarn compile && yarn run test-local",
     "node": "npx hardhat node",
     "test": "npx hardhat test --logs",
     "test-local": "npx hardhat test tests/local/*.test.ts --logs",
