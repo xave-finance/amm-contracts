@@ -1,6 +1,5 @@
 import { Vault } from '../../typechain/Vault'
 import { MockWETH9 } from '../../typechain/MockWETH9'
-import { MockPool } from '../../typechain/MockPool'
 import { MockAggregator } from '../../typechain/MockAggregator'
 import { ethers } from 'hardhat'
 import {
