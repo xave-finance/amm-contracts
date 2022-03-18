@@ -15,6 +15,8 @@ Refer to our [env example](./.env.example) file in project root.
 
 ## Running Tests
 
+Note: use `nvm use` to use the same node version with `.nvmrc`
+
 - For running local test: `yarn test-local`
 - For running tests against a forked node: `yarn test-fork` \*\*
 
