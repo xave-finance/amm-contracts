@@ -5,7 +5,6 @@ import { mockToken } from '../constants/mockTokenList'
 import { deploy } from './contract'
 import { Vault } from '../../typechain/Vault'
 import { MockWETH9 } from '../../typechain/MockWETH9'
-import { MockPool } from '../../typechain/MockPool'
 import { MockToken } from '../../typechain/MockToken'
 import { MockAggregator } from '../../typechain/MockAggregator'
 import { AssimilatorFactory } from '../../typechain/AssimilatorFactory'
@@ -32,14 +31,6 @@ export const deployMockWETH = async (): Promise<MockWETH9> => {
   await WETH.deployed()
 
   return WETH as MockWETH9
-}
-
-export const deployMockPool = async (vaultAddress: string): Promise<MockPool> => {
-  const mockPoolFactory = await ethers.getContractFactory('MockPool')
-  const mockPool = await mockPoolFactory.deploy(vaultAddress) // weighted pool
-  await mockPool.deployed()
-
-  return mockPool as MockPool
 }
 
 export const deployMockMintableERC20 = async (name: string, symbol: string, decimals: number): Promise<MockToken> => {
