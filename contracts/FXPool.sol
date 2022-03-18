@@ -12,6 +12,8 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import {ReentrancyGuard} from '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
 import 'hardhat/console.sol';
 
+// @todo check implmentation with BasePool at https://github.com/balancer-labs/balancer-v2-monorepo/tree/master/pkg/pool-utils/contracts
+// check bptOut
 contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, ReentrancyGuard {
     using ABDKMath64x64 for int128;
     using ABDKMath64x64 for uint256;
@@ -70,6 +72,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         address _pauser
     ) BalancerPoolToken(_name, _symbol) {
         // Sanity Check
+        // not sure if this needed
         require(_expiration - block.timestamp < _unitSeconds, 'FXPool/Expired');
 
         // Initialization on the vault
@@ -270,7 +273,8 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
         require(_assimilator != address(0), 'Curve/assimilator-cannot-be-zeroth-address');
 
-        // IERC20(_numeraire).safeApprove(_derivativeApproveTo, uint256(-1));
+        // @todo double check implementation
+        //IERC20(_numeraire).safeApprove(_derivativeApproveTo, uint256(-1));
 
         Storage.Assimilator storage _numeraireAssim = curve.assimilators[_numeraire];
 
@@ -328,7 +332,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     /// @return amountsIn The actual amounts of token the vault should move to this pool
     /// @return dueProtocolFeeAmounts The amounts of each token to pay as protocol fees
 
-    // @todo deposit/onJoin
+    // @todo deposit/onJoin, check on how to return BPT tokens minted
     function onJoinPool(
         bytes32 poolId,
         address, // sender
@@ -353,6 +357,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     /// @return amountsOut The number of each token to send to the caller
     /// @return dueProtocolFeeAmounts The amounts of each token to pay as protocol fees
 
+    // @todo check on how to return BPT tokens minted
     function onExitPool(
         bytes32 poolId,
         address sender,
@@ -382,6 +387,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         pausers[who] = status;
     }
 
+    // @todo if vault has it already
     function emergencyWithdraw(uint256 _curvesToBurn, uint256 _deadline)
         external
         isEmergency
