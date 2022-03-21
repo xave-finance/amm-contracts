@@ -3,6 +3,7 @@ import { ethers } from 'hardhat'
 import { Signer } from 'ethers'
 import { setupEnvironment, TestEnv } from '../common/setupEnvironment'
 import { parseEther } from '@ethersproject/units'
+import { CONTRACT_REVERT } from '../constants'
 
 describe('FXPool', () => {
   let testEnv: TestEnv
@@ -44,13 +45,14 @@ describe('FXPool', () => {
 
   it('can pause pool', async () => {
     expect(await testEnv.fxPool.paused()).to.be.equals(false)
-    await testEnv.fxPool.pause(true)
+
+    await expect(testEnv.fxPool.setPause(true)).to.emit(testEnv.fxPool, 'Paused').withArgs(adminAddress)
+
     expect(await testEnv.fxPool.paused()).to.be.equals(true)
 
-    await expect(testEnv.fxPool.connect(notOwner).pause(false), 'Caller is not a pauser').to.be.revertedWith(
-      'Sender not Authorized'
-    )
-    await testEnv.fxPool.pause(false) // reset for now, test if pool functions can still be used when paused
+    await expect(testEnv.fxPool.connect(notOwner).setPause(false)).to.be.revertedWith(CONTRACT_REVERT.Ownable)
+
+    await expect(testEnv.fxPool.setPause(false)).to.emit(testEnv.fxPool, 'Unpaused').withArgs(adminAddress) // reset for now, test if pool functions can still be used when paused
   })
 
   it('can trigger emergency alarm', async () => {
@@ -62,7 +64,7 @@ describe('FXPool', () => {
     await expect(
       testEnv.fxPool.connect(notOwner).setEmergency(false),
       'Non owner can call the function'
-    ).to.be.revertedWith('Ownable: caller is not the owner')
+    ).to.be.revertedWith(CONTRACT_REVERT.Ownable)
 
     expect(await testEnv.fxPool.setEmergency(false))
       .to.emit(testEnv.fxPool, 'EmergencyAlarm')
@@ -79,6 +81,6 @@ describe('FXPool', () => {
     await expect(
       testEnv.fxPool.connect(notOwner).setCap(NEW_CAP_FAIL),
       'Non owner can call the function'
-    ).to.be.revertedWith('Ownable: caller is not the owner')
+    ).to.be.revertedWith(CONTRACT_REVERT.Ownable)
   })
 })

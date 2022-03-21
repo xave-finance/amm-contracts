@@ -8,13 +8,14 @@ import '@balancer-labs/v2-pool-utils/contracts/BalancerPoolToken.sol';
 
 import './core/Storage.sol';
 import './core/ProportionalLiquidity.sol';
-import '@openzeppelin/contracts/access/Ownable.sol';
+import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
+import {Pausable} from '@openzeppelin/contracts/utils/Pausable.sol';
 import {ReentrancyGuard} from '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
 import 'hardhat/console.sol';
 
 // @todo check implmentation with BasePool at https://github.com/balancer-labs/balancer-v2-monorepo/tree/master/pkg/pool-utils/contracts
 // check bptOut
-contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, ReentrancyGuard {
+contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, ReentrancyGuard, Pausable {
     using ABDKMath64x64 for int128;
     using ABDKMath64x64 for uint256;
 
@@ -28,10 +29,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     IVault private immutable _vault;
     bytes32 private immutable _poolId;
 
-    // A bool to indicate if the contract is paused, stored with 'fees bond'
-    bool public paused;
-    // A mapping of who can pause
-    mapping(address => bool) public pausers;
     // The percent of each trade's implied yield to collect as LP fee
     uint256 public immutable percentFee;
     int128 private constant ONE_WEI = 0x12;
@@ -82,10 +79,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         tokens[0] = IERC20(_assets[0]);
         tokens[1] = IERC20(_assets[1]);
 
-        // Set that the _pauser can pause
-
-        pausers[_pauser] = true; // set multiple pausers?
-
         // Pass in zero addresses for Asset Managers
         // Note - functions below assume this token order
         vault.registerTokens(poolId, tokens, new address[](2));
@@ -105,12 +98,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
     modifier deadline(uint256 _deadline) {
         require(block.timestamp < _deadline, 'FXPool/tx-deadline-passed');
-        _;
-    }
-
-    /// @notice checks for a pause on trading and depositing functionality
-    modifier notPaused() {
-        require(!paused, 'Paused');
         _;
     }
 
@@ -312,11 +299,12 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     /// @param currentBalanceTokenIn The input token balance
     /// @param currentBalanceTokenOut The output token balance
     /// @return the amount of the output or input token amount of for swap
+
     function onSwap(
         SwapRequest memory swapRequest,
         uint256 currentBalanceTokenIn,
         uint256 currentBalanceTokenOut
-    ) public override notPaused returns (uint256) {}
+    ) public override whenNotPaused returns (uint256) {}
 
     /// @dev Hook for joining the pool that must be called from the vault.
     ///      It mints a proportional number of tokens compared to current LP pool,
@@ -333,6 +321,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     /// @return dueProtocolFeeAmounts The amounts of each token to pay as protocol fees
 
     // @todo deposit/onJoin, check on how to return BPT tokens minted
+
     function onJoinPool(
         bytes32 poolId,
         address, // sender
@@ -341,7 +330,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256,
         uint256 protocolSwapFee,
         bytes calldata userData
-    ) external override notPaused returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts) {}
+    ) external override whenNotPaused returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts) {}
 
     /// @dev Hook for leaving the pool that must be called from the vault.
     ///      It burns a proportional number of tokens compared to current LP pool,
@@ -370,28 +359,24 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
     // ADMIN AND ACCESS CONTROL FUNCTIONS
 
-    /// @notice Allows an authorized address or the owner to pause this contract
-    /// @param pauseStatus true for paused, false for not paused
-    /// @dev the caller must be authorized
-    function pause(bool pauseStatus) external {
-        require(pausers[msg.sender], 'Sender not Authorized');
-        paused = pauseStatus;
-    }
-
     /// @notice Governance sets someone's pause status
-    /// @param who The address
     /// @param status true for able to pause false for not
-    function setPauser(address who, bool status) external onlyOwner {
-        // require(msg.sender == governance, 'Sender not Owner');
+    function setPause(bool status) external onlyOwner {
+        bool currentStatus = paused();
 
-        pausers[who] = status;
+        require(currentStatus != status, 'FXPool: Pause status is the same as parameter');
+
+        if (status == true) {
+            _pause();
+        } else {
+            _unpause();
+        }
     }
 
     function setCap(uint256 _cap) external onlyOwner {
         curve.cap = _cap;
     }
 
-    // @todo if vault has it already
     function emergencyWithdraw(uint256 _curvesToBurn, uint256 _deadline)
         external
         isEmergency
