@@ -49,11 +49,6 @@ contract Storage {
     // Curve parameters
     Curve public curve;
 
-    // @todo double check if need to remove since its in the BPT TOken
-    // string public name;
-    // string public symbol;
-    // uint8 public constant decimals = 18;
-
     address[] public derivatives;
     address[] public numeraires;
     address[] public reserves;
