@@ -387,6 +387,10 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         pausers[who] = status;
     }
 
+    function setCap(uint256 _cap) external onlyOwner {
+        curve.cap = _cap;
+    }
+
     // @todo if vault has it already
     function emergencyWithdraw(uint256 _curvesToBurn, uint256 _deadline)
         external
