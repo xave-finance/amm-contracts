@@ -79,8 +79,7 @@ export const deployFXPool = async (
   vaultAddress: string,
   percentFee: string,
   name: string, // LP Token name
-  symbol: string, // LP token symbol
-  pauser: string // set to pool admin
+  symbol: string // LP token symbol
 ): Promise<FXPool> => {
   const ProportionalLiquidityFactory = await ethers.getContractFactory('ProportionalLiquidity')
   const proportionalLiquidity = await ProportionalLiquidityFactory.deploy()
@@ -101,8 +100,7 @@ export const deployFXPool = async (
     vaultAddress,
     percentFee,
     name,
-    symbol,
-    pauser
+    symbol
   )
 
   await fxPool.deployed()

@@ -77,8 +77,7 @@ export const setupEnvironment = async (): Promise<TestEnv> => {
     vault.address,
     fxPHPUSDCFxPool.percentFee,
     fxPHPUSDCFxPool.name,
-    fxPHPUSDCFxPool.symbol,
-    deployer.address
+    fxPHPUSDCFxPool.symbol
   )
 
   return {
