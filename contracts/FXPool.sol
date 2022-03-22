@@ -65,8 +65,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         // uint256 _percentFeeGov,
         // address _governance,
         string memory _name,
-        string memory _symbol,
-        address _pauser
+        string memory _symbol
     ) BalancerPoolToken(_name, _symbol) {
         // Sanity Check
         // not sure if this needed
