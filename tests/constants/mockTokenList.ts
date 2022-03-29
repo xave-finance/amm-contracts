@@ -2,17 +2,24 @@ import { ethers } from 'hardhat'
 
 export interface mockTokenInfo {
   name: string
-  symbol: string
+  symbol: TokenSymbol
   decimal: number
   mockOraclePrice: string // in 8 decimals
   addressInMainnetFork: string
   minterInMainnetFork: string //impersonate
 }
 
+export enum TokenSymbol {
+  USDC = 'USDC',
+  XSGD = 'XSGD',
+  EURS = 'EURS',
+  fxPHP = 'fxPHP',
+}
+
 export const mockToken: mockTokenInfo[] = [
   {
     name: 'USDC',
-    symbol: 'USDC',
+    symbol: TokenSymbol.USDC,
     decimal: 6,
     mockOraclePrice: '100000000',
     addressInMainnetFork: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -20,7 +27,7 @@ export const mockToken: mockTokenInfo[] = [
   },
   {
     name: 'Xfers SGD',
-    symbol: 'XSGD',
+    symbol: TokenSymbol.XSGD,
     decimal: 6,
     mockOraclePrice: '74217020', // XSGD/USD
     addressInMainnetFork: '0x70e8de73ce538da2beed35d14187f6959a8eca96',
@@ -28,7 +35,7 @@ export const mockToken: mockTokenInfo[] = [
   },
   {
     name: 'STASIS EURS Token',
-    symbol: 'EURS',
+    symbol: TokenSymbol.EURS,
     decimal: 2,
     mockOraclePrice: '111145700',
     addressInMainnetFork: '0xdb25f211ab05b1c97d595516f45794528a807ad8',
@@ -36,7 +43,7 @@ export const mockToken: mockTokenInfo[] = [
   },
   {
     name: 'handlePHP',
-    symbol: 'fxPHP',
+    symbol: TokenSymbol.fxPHP,
     decimal: 18,
     mockOraclePrice: '1946900',
     addressInMainnetFork: '0x3d147cd9ac957b2a5f968de9d1c6b9d0872286a0',

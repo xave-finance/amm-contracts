@@ -32,3 +32,7 @@ export const ONE_TO_THE_EIGHT: BigNumber = BigNumber.from(`${ONE_TO_THE_EIGHT_NU
 export const ONE_TO_THE_SIX_NUM = 1000000
 export const ONE_TO_THE_SIX: BigNumber = BigNumber.from(`${ONE_TO_THE_SIX_NUM}`)
 export const ONE_ETHER: BigNumber = parseEther('1')
+
+export enum CONTRACT_REVERT {
+  Ownable = 'Ownable: caller is not the owner',
+}

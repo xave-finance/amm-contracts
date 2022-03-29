@@ -5,11 +5,12 @@ import { mockToken } from '../constants/mockTokenList'
 import { deploy } from './contract'
 import { Vault } from '../../typechain/Vault'
 import { MockWETH9 } from '../../typechain/MockWETH9'
-import { MockPool } from '../../typechain/MockPool'
 import { MockToken } from '../../typechain/MockToken'
 import { MockAggregator } from '../../typechain/MockAggregator'
 import { AssimilatorFactory } from '../../typechain/AssimilatorFactory'
 import { MockABDK } from '../../typechain/MockABDK'
+import { FXPool } from '../../typechain/FXPool'
+import { MockWeightedPoolFactory } from '../../typechain/MockWeightedPoolFactory'
 
 export const deployMockBalancerVault = async (adminAddress: string, WETHAddress: string): Promise<Vault> => {
   const vault = await deploy('Vault', {
@@ -30,14 +31,6 @@ export const deployMockWETH = async (): Promise<MockWETH9> => {
   await WETH.deployed()
 
   return WETH as MockWETH9
-}
-
-export const deployMockPool = async (vaultAddress: string): Promise<MockPool> => {
-  const mockPoolFactory = await ethers.getContractFactory('MockPool')
-  const mockPool = await mockPoolFactory.deploy(vaultAddress, 0) // weighted pool
-  await mockPool.deployed()
-
-  return mockPool as MockPool
 }
 
 export const deployMockMintableERC20 = async (name: string, symbol: string, decimals: number): Promise<MockToken> => {
@@ -76,6 +69,52 @@ export const deployMockABDKLib = async (): Promise<MockABDK> => {
   await mockABDKLib.deployed()
 
   return mockABDKLib as MockABDK
+}
+
+export const deployFXPool = async (
+  assets: string[],
+  //assetWeights: string[],
+  expiration: string,
+  unitSeconds: string,
+  vaultAddress: string,
+  percentFee: string,
+  name: string, // LP Token name
+  symbol: string // LP token symbol
+): Promise<FXPool> => {
+  const ProportionalLiquidityFactory = await ethers.getContractFactory('ProportionalLiquidity')
+  const proportionalLiquidity = await ProportionalLiquidityFactory.deploy()
+
+  await proportionalLiquidity.deployed()
+
+  const FXPoolFactory = await ethers.getContractFactory('FXPool', {
+    libraries: {
+      ProportionalLiquidity: proportionalLiquidity.address,
+    },
+  })
+
+  const fxPool = await FXPoolFactory.deploy(
+    assets,
+    //assetWeights,
+    expiration,
+    unitSeconds,
+    vaultAddress,
+    percentFee,
+    name,
+    symbol
+  )
+
+  await fxPool.deployed()
+
+  return fxPool as FXPool
+}
+
+export const deployMockWeightedPoolFactory = async (vaultAddress: string): Promise<MockWeightedPoolFactory> => {
+  const MockWeightedPoolFactoryFactory = await ethers.getContractFactory('MockWeightedPoolFactory')
+  const mockWeightedPoolFactory = await MockWeightedPoolFactoryFactory.deploy(vaultAddress)
+
+  await mockWeightedPoolFactory.deployed()
+
+  return mockWeightedPoolFactory as MockWeightedPoolFactory
 }
 
 export interface MockTokenAndOracle {
