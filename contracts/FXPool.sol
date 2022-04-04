@@ -482,9 +482,11 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256 usdcPosition
     ) internal view returns (uint256) {
         // just hacking this until we implement the invariant :)
-        int128 numeraireAmount = Assimilators.viewNumeraireAmount(curve.assets[baseTokenPosition].addr, tokenAmount);
 
-        return Assimilators.viewRawAmount(curve.assets[usdcPosition].addr, numeraireAmount);
+        int128 numeraireAmount = Assimilators.viewNumeraireAmount(curve.assets[usdcPosition].addr, tokenAmount);
+        console.log('INVARIANT');
+        console.log(Assimilators.viewRawAmount(curve.assets[baseTokenPosition].addr, numeraireAmount));
+        return Assimilators.viewRawAmount(curve.assets[baseTokenPosition].addr, numeraireAmount);
     }
 
     function _convertToNumeraire(uint256 tokenAmount, uint256 tokenPosition) internal view returns (uint256) {

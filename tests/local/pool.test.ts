@@ -150,27 +150,28 @@ describe('FXPool', () => {
         poolId: poolId as BytesLike,
         assetInIndex: BigNumber.from(0), // in USDC
         assetOutIndex: BigNumber.from(1), // out fxPHP
-        amount: parseUnits('3000', 6),
+        amount: parseUnits('30', 6),
         userData: '0x' as BytesLike,
       },
     ]
-    const swapAssets: string[] = sortAddresses([testEnv.fxPHP.address, testEnv.USDC.address])
-    const limits = [parseUnits('999999999'), parseUnits('999999999', 6)]
+    const swapAssets: string[] = sortAddresses([
+      ethers.utils.getAddress(testEnv.fxPHP.address),
+      ethers.utils.getAddress(testEnv.USDC.address),
+    ])
+    const limits = [parseUnits('999999999', 6), parseUnits('999999999')]
     const deadline = ethers.constants.MaxUint256
 
     const funds = {
-      sender: adminAddress,
-      recipient: adminAddress,
+      sender: ethers.utils.getAddress(adminAddress),
+      recipient: ethers.utils.getAddress(adminAddress),
       fromInternalBalance: false,
       toInternalBalance: false,
     }
 
-    //  const deltas = await testEnv.vault.callStatic.queryBatchSwap(0, swaps, swapAssets, funds)
-    //  console.log(deltas)
+    const deltas = await testEnv.vault.callStatic.queryBatchSwap(0, swaps, swapAssets, funds)
+    console.log(deltas)
 
-    const batchSwapTxn = await testEnv.vault.callStatic.batchSwap(0, swaps, swapAssets, funds, limits, deadline)
-
-    console.log(batchSwapTxn)
+    await testEnv.vault.batchSwap(0, swaps, swapAssets, funds, limits, deadline)
 
     console.log('After USDC: ', await testEnv.USDC.balanceOf(adminAddress))
     console.log('After fxPHP: ', await testEnv.fxPHP.balanceOf(adminAddress))
