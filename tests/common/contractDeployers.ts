@@ -11,6 +11,7 @@ import { AssimilatorFactory } from '../../typechain/AssimilatorFactory'
 import { MockABDK } from '../../typechain/MockABDK'
 import { FXPool } from '../../typechain/FXPool'
 import { MockWeightedPoolFactory } from '../../typechain/MockWeightedPoolFactory'
+import { BigNumberish } from 'ethers'
 
 export const deployMockBalancerVault = async (adminAddress: string, WETHAddress: string): Promise<Vault> => {
   const vault = await deploy('Vault', {
@@ -71,13 +72,21 @@ export const deployMockABDKLib = async (): Promise<MockABDK> => {
   return mockABDKLib as MockABDK
 }
 
+// @todo re arrange the weights?
+export interface FXPoolCurveParams {
+  baseCurrency: string
+  quoteCurrency: string
+  baseWeight: BigNumberish
+  quoteWeight: BigNumberish
+  baseAssimilator: string
+  quoteAssimilator: string
+}
 export const deployFXPool = async (
   assets: string[],
-  //assetWeights: string[],
   expiration: string,
-  unitSeconds: string,
+  unitSeconds: BigNumberish,
   vaultAddress: string,
-  percentFee: string,
+  percentFee: BigNumberish,
   name: string, // LP Token name
   symbol: string // LP token symbol
 ): Promise<FXPool> => {
@@ -94,7 +103,12 @@ export const deployFXPool = async (
 
   const fxPool = await FXPoolFactory.deploy(
     assets,
-    //assetWeights,
+    //curveParams.baseCurrency,
+    //curveParams.quoteCurrency,
+    //curveParams.baseWeight,
+    //curveParams.quoteWeight,
+    //curveParams.baseAssimilator,
+    //curveParams.quoteAssimilator,
     expiration,
     unitSeconds,
     vaultAddress,

@@ -21,12 +21,16 @@ import '../core/lib/ABDKMath64x64.sol';
 import '../core/interfaces/IAssimilator.sol';
 import '../core/interfaces/IOracle.sol';
 
+import '../interfaces/IVaultPoolBalances.sol';
+
 contract UsdcToUsdAssimilator is IAssimilator {
     using ABDKMath64x64 for int128;
     using ABDKMath64x64 for uint256;
 
     IOracle public immutable oracle;
     IERC20 public immutable usdc;
+    bytes32 poolId = 0x9440df93fa518b0f6be335624f08fee36ae5aba5000200000000000000000000;
+    address vault = 0x50D75C1BC6a1cE35002C9f92D0AF4B3684aa6B74;
 
     constructor(IOracle _oracle, IERC20 _usdc) {
         oracle = _oracle;
@@ -34,6 +38,14 @@ contract UsdcToUsdAssimilator is IAssimilator {
     }
 
     uint256 private constant DECIMALS = 1e6;
+
+    function setPoolId(bytes32 _poolId) public {
+        poolId = _poolId;
+    }
+
+    function setVault(address _vault) public {
+        vault = _vault;
+    }
 
     // solhint-disable-next-line
     function getRate() public view override returns (uint256) {
@@ -152,8 +164,9 @@ contract UsdcToUsdAssimilator is IAssimilator {
 
     function viewNumeraireBalance(address _addr) public view override returns (int128 balance_) {
         uint256 _rate = getRate();
-
-        uint256 _balance = usdc.balanceOf(_addr);
+        (, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
+        // uint256 _balance = usdc.balanceOf(_addr);
+        uint256 _balance = balances[0];
 
         if (_balance <= 0) return ABDKMath64x64.fromUInt(0);
 

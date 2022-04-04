@@ -17,10 +17,12 @@ pragma solidity ^0.7.3;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
-
 import '../core/lib/ABDKMath64x64.sol';
 import '../core/interfaces/IAssimilator.sol';
 import '../core/interfaces/IOracle.sol';
+
+import '../interfaces/IVaultPoolBalances.sol';
+import 'hardhat/console.sol';
 
 contract BaseToUsdAssimilator is IAssimilator {
     using ABDKMath64x64 for int128;
@@ -32,6 +34,8 @@ contract BaseToUsdAssimilator is IAssimilator {
     IOracle public immutable oracle;
     IERC20 public immutable baseToken;
     uint256 public immutable baseDecimals;
+    bytes32 poolId = 0x9440df93fa518b0f6be335624f08fee36ae5aba5000200000000000000000000;
+    address vault = 0x50D75C1BC6a1cE35002C9f92D0AF4B3684aa6B74;
 
     constructor(
         uint256 _baseDecimals,
@@ -43,6 +47,14 @@ contract BaseToUsdAssimilator is IAssimilator {
         baseToken = _baseToken;
         usdc = _quoteToken;
         oracle = _oracle;
+    }
+
+    function setPoolId(bytes32 _poolId) public {
+        poolId = _poolId;
+    }
+
+    function setVault(address _vault) public {
+        vault = _vault;
     }
 
     function getRate() public view override returns (uint256) {
@@ -192,14 +204,25 @@ contract BaseToUsdAssimilator is IAssimilator {
     function viewNumeraireAmount(uint256 _amount) external view override returns (int128 amount_) {
         uint256 _rate = getRate();
 
+        // console.log(address(this));
+        // console.log('_rate: ', _rate);
+        // console.log('_amount: ', _amount);
+        // console.log('baseDecimals: ', baseDecimals);
+
         amount_ = ((_amount * _rate) / 1e8).divu(baseDecimals);
+        // console.log('amount_:');
+        // console.logInt(amount_);
     }
 
     // views the numeraire value of the current balance of the reserve, in this case baseToken
     function viewNumeraireBalance(address _addr) external view override returns (int128 balance_) {
+        (, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
+
         uint256 _rate = getRate();
 
-        uint256 _balance = baseToken.balanceOf(_addr);
+        //uint256 _balance = baseToken.balanceOf(_addr);
+        // @TODO: Check selector depending on its position alphabetically on the curve storage
+        uint256 _balance = balances[1];
 
         if (_balance <= 0) return ABDKMath64x64.fromUInt(0);
 

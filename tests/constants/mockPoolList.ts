@@ -1,7 +1,10 @@
+import { BigNumberish } from 'ethers'
+import { parseUnits } from 'ethers/lib/utils'
+
 export interface FXPoolConstructorParams {
-  assetWeights: string[]
-  unitSeconds: string
-  percentFee: string
+  assetWeights: BigNumberish[]
+  unitSeconds: BigNumberish
+  percentFee: BigNumberish
   name: string // LP Token name
   symbol: string // LP token symbol
 }
@@ -15,10 +18,10 @@ export const XSGDUSDCFxPool: FXPoolConstructorParams = {
 }
 
 export const fxPHPUSDCFxPool: FXPoolConstructorParams = {
-  assetWeights: ['0.5', '0.5'],
+  assetWeights: [parseUnits('0.5'), parseUnits('0.5')],
   // expiration: '1000', //UNIX
-  unitSeconds: '1000',
-  percentFee: '1000', //test Value
+  unitSeconds: parseUnits('100'),
+  percentFee: parseUnits('1'), //test Value
   name: 'HALO fxPHPUSDC FXPool', // LP Token name
   symbol: 'HFX-fxPHPUSDC', // LP token symbol
 }

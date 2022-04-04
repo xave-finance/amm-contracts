@@ -55,9 +55,18 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
     event EmergencyAlarm(bool isEmergency);
 
+    modifier isEmergency() {
+        require(emergency, 'FXPool/emergency-only-allowing-emergency-proportional-withdraw');
+        _;
+    }
+
+    modifier deadline(uint256 _deadline) {
+        require(block.timestamp < _deadline, 'FXPool/tx-deadline-passed');
+        _;
+    }
+
     constructor(
-        address[] memory _assets,
-        // uint256[] memory _assetWeights,
+        address[] memory _assetsToRegister,
         uint256 _expiration,
         uint256 _unitSeconds,
         IVault vault,
@@ -70,16 +79,15 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         // Sanity Check
         // not sure if this needed
         require(_expiration - block.timestamp < _unitSeconds, 'FXPool/Expired');
-
         // Initialization on the vault
         bytes32 poolId = vault.registerPool(IVault.PoolSpecialization.TWO_TOKEN);
 
-        IERC20[] memory tokens = new IERC20[](2);
-        tokens[0] = IERC20(_assets[0]);
-        tokens[1] = IERC20(_assets[1]);
-
         // Pass in zero addresses for Asset Managers
         // Note - functions below assume this token order
+        IERC20[] memory tokens = new IERC20[](2);
+        tokens[0] = IERC20(_assetsToRegister[0]);
+        tokens[1] = IERC20(_assetsToRegister[1]);
+
         vault.registerTokens(poolId, tokens, new address[](2));
 
         // Set immutable state variables
@@ -90,14 +98,29 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         unitSeconds = _unitSeconds;
     }
 
-    modifier isEmergency() {
-        require(emergency, 'FXPool/emergency-only-allowing-emergency-proportional-withdraw');
-        _;
-    }
+    function initialize(address[] memory _assets, uint256[] memory _assetWeights) external onlyOwner {
+        require(_assetWeights.length == 2, 'Curve/assetWeights-must-be-length-two');
+        require(_assets.length % 5 == 0, 'Curve/assets-must-be-divisible-by-five');
 
-    modifier deadline(uint256 _deadline) {
-        require(block.timestamp < _deadline, 'FXPool/tx-deadline-passed');
-        _;
+        for (uint256 i = 0; i < _assetWeights.length; i++) {
+            uint256 ix = i * 5;
+
+            numeraires.push(_assets[ix]);
+            derivatives.push(_assets[ix]);
+
+            reserves.push(_assets[2 + ix]);
+            if (_assets[ix] != _assets[2 + ix]) derivatives.push(_assets[2 + ix]);
+
+            includeAsset(
+                //   curve,
+                _assets[ix], // numeraire
+                _assets[1 + ix], // numeraire assimilator
+                _assets[2 + ix], // reserve
+                _assets[3 + ix], // reserve assimilator
+                // _assets[4 + ix], // reserve approve to
+                _assetWeights[i]
+            );
+        }
     }
 
     /// @dev Returns the vault for this pool
@@ -108,6 +131,23 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
     function getPoolId() external view override returns (bytes32) {
         return _poolId;
+    }
+
+    function getFee() private view returns (int128 fee_) {
+        int128 _gLiq;
+
+        // Always pairs
+        int128[] memory _bals = new int128[](2);
+
+        for (uint256 i = 0; i < _bals.length; i++) {
+            int128 _bal = Assimilators.viewNumeraireBalance(curve.assets[i].addr);
+
+            _bals[i] = _bal;
+
+            _gLiq += _bal;
+        }
+
+        fee_ = CurveMath.calculateFee(_gLiq, _bals, curve.beta, curve.delta, curve.weights);
     }
 
     function setParams(
@@ -144,55 +184,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         require(_omega >= _psi, 'Curve/parameters-increase-fee');
 
         emit ParametersSet(_alpha, _beta, curve.delta.mulu(1e18), _epsilon, _lambda);
-    }
-
-    function getFee() private view returns (int128 fee_) {
-        int128 _gLiq;
-
-        // Always pairs
-        int128[] memory _bals = new int128[](2);
-
-        for (uint256 i = 0; i < _bals.length; i++) {
-            int128 _bal = Assimilators.viewNumeraireBalance(curve.assets[i].addr);
-
-            _bals[i] = _bal;
-
-            _gLiq += _bal;
-        }
-
-        fee_ = CurveMath.calculateFee(_gLiq, _bals, curve.beta, curve.delta, curve.weights);
-    }
-
-    function initialize(
-        // Storage.Curve storage curve,
-        //  address[] storage numeraires, in storage contract
-        //  address[] storage reserves, in storage contract
-        // address[] storage derivatives, in storage contract
-        address[] calldata _assets,
-        uint256[] calldata _assetWeights
-    ) external onlyOwner {
-        require(_assetWeights.length == 2, 'Curve/assetWeights-must-be-length-two');
-        require(_assets.length % 5 == 0, 'Curve/assets-must-be-divisible-by-five');
-
-        for (uint256 i = 0; i < _assetWeights.length; i++) {
-            uint256 ix = i * 5;
-
-            numeraires.push(_assets[ix]);
-            derivatives.push(_assets[ix]);
-
-            reserves.push(_assets[2 + ix]);
-            if (_assets[ix] != _assets[2 + ix]) derivatives.push(_assets[2 + ix]);
-
-            includeAsset(
-                //   curve,
-                _assets[ix], // numeraire
-                _assets[1 + ix], // numeraire assimilator
-                _assets[2 + ix], // reserve
-                _assets[3 + ix], // reserve assimilator
-                // _assets[4 + ix], // reserve approve to
-                _assetWeights[i]
-            );
-        }
     }
 
     function includeAsset(
@@ -261,7 +252,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
         // @todo double check implementation
         //IERC20(_numeraire).safeApprove(_derivativeApproveTo, uint256(-1));
-
         Storage.Assimilator storage _numeraireAssim = curve.assimilators[_numeraire];
 
         curve.assimilators[_derivative] = Storage.Assimilator(_assimilator, _numeraireAssim.ix);
@@ -329,7 +319,85 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256,
         uint256 protocolSwapFee,
         bytes calldata userData
-    ) external override whenNotPaused returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts) {}
+    ) external override whenNotPaused returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts) {
+        // userData
+        uint256[] memory tokensIn = abi.decode(userData, (uint256[]));
+        // @todo convertToNumeraire
+
+        // convert tokensIn[0] to numeraire, usdc
+        // convert tokensIn[1] to numeraire,
+        console.log(curve.assets[1].addr);
+        console.log(_convertToNumeraire(tokensIn[0], 1));
+        console.log(curve.assets[0].addr);
+        console.log(_convertToNumeraire(tokensIn[1], 0));
+
+        uint256 totalDepositNumeraire = _convertToNumeraire(tokensIn[0], 1) + _convertToNumeraire(tokensIn[1], 0);
+
+        // verify input amount is actual amount
+        (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.viewProportionalDeposit(
+            curve,
+            totalDepositNumeraire * 1e18
+        );
+        // console.log('convertedNumeraire PHP: ', _convertToNumeraire(tokensIn[1], 0));
+        // console.log('convertedNumeraire USDC: ', _convertToNumeraire(tokensIn[0], 1));
+        console.log('totalNumeraire: ', totalDepositNumeraire);
+
+        console.log('LP tokens: ', lpTokens);
+        console.log('TokensIn input 1: ', tokensIn[0]);
+        console.log('TokensIn input  2: ', tokensIn[1]);
+        console.log('Amount to deposit 1: ', amountToDeposit[0]);
+        console.log('Amount to deposit 2: ', amountToDeposit[1]);
+
+        // @todo check how to deal with arrangements of address and amounts
+        // @todo within the threshold
+        require(_withinThreshold(amountToDeposit[0], tokensIn[1]), 'FXPool: Deposit amount is invalid');
+        require(_withinThreshold(amountToDeposit[1], tokensIn[0]), 'FXPool: Deposit amount is invalid');
+
+        // token a to numeraire, token b to numeraire , add, pass to viewProportional deposit
+
+        amountsIn = tokensIn;
+
+        BalancerPoolToken._mintPoolTokens(recipient, lpTokens);
+        // @todo mintLPFee() ?
+
+        // @todo check reentrancy attack, call from BalancerToken.supply or change the library?
+        curve.totalSupply = curve.totalSupply += lpTokens;
+
+        // @todo check fee calculation
+        {
+            dueProtocolFeeAmounts = new uint256[](2);
+            dueProtocolFeeAmounts[0] = 0;
+            dueProtocolFeeAmounts[1] = 0;
+        }
+
+        // @todo emit tokensIn numeraireTokensIn0 numeraireTokensin1 totalNumeraire
+    }
+
+    // Curve math
+    // @todo add curve modifiers
+    function viewDeposit(uint256 _deposit) external view returns (uint256, uint256[] memory) {
+        // curvesToMint_, depositsToMake_
+        return ProportionalLiquidity.viewProportionalDeposit(curve, _deposit);
+    }
+
+    function viewWithdraw(uint256 _curvesToBurn) external view returns (uint256[] memory) {
+        return ProportionalLiquidity.viewProportionalWithdraw(curve, _curvesToBurn);
+    }
+
+    function _withinThreshold(uint256 a, uint256 b) internal pure returns (bool) {
+        if (a == b) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function _convertToNumeraire(uint256 tokenAmount, uint256 tokenPosition) internal view returns (uint256) {
+        int128 numeraireAmount = Assimilators.viewNumeraireAmount(curve.assets[tokenPosition].addr, tokenAmount);
+        // console.log('Token position ', tokenPosition);
+        // console.log(ABDKMath64x64.toUInt(numeraireAmount));
+        return ABDKMath64x64.toUInt(numeraireAmount);
+    }
 
     /// @dev Hook for leaving the pool that must be called from the vault.
     ///      It burns a proportional number of tokens compared to current LP pool,
@@ -354,7 +422,28 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256,
         uint256 protocolSwapFee,
         bytes calldata userData
-    ) external override returns (uint256[] memory amountsOut, uint256[] memory dueProtocolFeeAmounts) {}
+    ) external override returns (uint256[] memory amountsOut, uint256[] memory dueProtocolFeeAmounts) {
+        uint256 tokensToBurn = abi.decode(userData, (uint256));
+
+        uint256[] memory amountToWithdraw = ProportionalLiquidity.viewProportionalWithdraw(curve, tokensToBurn);
+        console.log('Withdraw 1: ', amountToWithdraw[0]);
+        console.log('Withdraw 2: ', amountToWithdraw[1]);
+
+        {
+            amountsOut = new uint256[](2);
+            amountsOut[0] = amountToWithdraw[1];
+            amountsOut[1] = amountToWithdraw[0];
+        }
+
+        BalancerPoolToken._burnPoolTokens(sender, tokensToBurn);
+
+        // @todo check fee calculation
+        {
+            dueProtocolFeeAmounts = new uint256[](2);
+            dueProtocolFeeAmounts[0] = 0;
+            dueProtocolFeeAmounts[1] = 0;
+        }
+    }
 
     // ADMIN AND ACCESS CONTROL FUNCTIONS
 
@@ -393,7 +482,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     }
 
     /// @dev Mints the maximum possible LP given a set of max inputs
-    function _mintLP() internal returns (uint256[] memory amountsIn) {
+    function _mintLP(uint256 _tokensToMint) internal {
         // @todo add mint function from curve
     }
 
