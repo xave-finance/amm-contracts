@@ -27,7 +27,7 @@ export const getTokenOracleAddress = (network: string, baseToken: string) => {
 
 export const getAssimilatorFactoryAddress = (network: string) => {
   // @todo: store & get address from `@halodao/halodao-contract-addresses`
-  return '0x92a79F98e37c5bb68eBEFC04730FED8AD0AF2d82'
+  return '0x14590aA441C2e72383e66695dFA67cA93c39C289'
 }
 
 export const getVaultAddress = (network: string) => {

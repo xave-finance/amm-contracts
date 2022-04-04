@@ -332,7 +332,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         // userData
         uint256[] memory tokensIn = abi.decode(userData, (uint256[]));
 
-        uint256 totalDepositNumeraire = _convertToNumeraire(tokensIn[0], 1) + _convertToNumeraire(tokensIn[1], 0);
+        uint256 totalDepositNumeraire = _convertToNumeraire(tokensIn[0], 0) + _convertToNumeraire(tokensIn[1], 1);
 
         // verify input amount is actual amount
         (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.viewProportionalDeposit(
@@ -342,8 +342,8 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
         // @todo check how to deal with arrangements of address and amounts
         // @todo within the threshold
-        require(_withinThreshold(amountToDeposit[0], tokensIn[1]), 'FXPool: Deposit amount is invalid');
-        require(_withinThreshold(amountToDeposit[1], tokensIn[0]), 'FXPool: Deposit amount is invalid');
+        require(_withinThreshold(amountToDeposit[0], tokensIn[0]), 'FXPool: Deposit amount is invalid');
+        require(_withinThreshold(amountToDeposit[1], tokensIn[1]), 'FXPool: Deposit amount is invalid');
 
         // token a to numeraire, token b to numeraire , add, pass to viewProportional deposit
 
@@ -397,8 +397,8 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
         {
             amountsOut = new uint256[](2);
-            amountsOut[0] = amountToWithdraw[1];
-            amountsOut[1] = amountToWithdraw[0];
+            amountsOut[0] = amountToWithdraw[0];
+            amountsOut[1] = amountToWithdraw[1];
         }
 
         BalancerPoolToken._burnPoolTokens(sender, tokensToBurn);
@@ -493,5 +493,11 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         int128 numeraireAmount = Assimilators.viewNumeraireAmount(curve.assets[tokenPosition].addr, tokenAmount);
 
         return ABDKMath64x64.toUInt(numeraireAmount);
+    }
+
+    /// @notice view the assimilator address for a derivative
+    /// @return assimilator_ the assimilator address
+    function assimilator(address _derivative) public view returns (address assimilator_) {
+        assimilator_ = curve.assimilators[_derivative].addr;
     }
 }

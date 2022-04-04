@@ -6,6 +6,8 @@ import {
 } from '../utils/addresses'
 import { AssimilatorFactory } from '../../typechain/AssimilatorFactory'
 import { FXPool } from '../../typechain/FXPool'
+import { BaseToUsdAssimilator } from '../../typechain/BaseToUsdAssimilator'
+import { UsdcToUsdAssimilator } from '../../typechain/UsdcToUsdAssimilator'
 import { fxPHPUSDCFxPool } from '../../tests/constants/mockPoolList'
 
 declare const ethers: any
@@ -166,14 +168,14 @@ export default async (taskArgs: any) => {
   console.log(`> Balancer vault pool id: ${poolId}`)
 
   const BaseToUsdAssimilator = await ethers.getContractFactory('BaseToUsdAssimilator')
-  const baseAssimilator = BaseToUsdAssimilator.attach(baseAssimilatorAddress)
+  const baseAssimilator: BaseToUsdAssimilator = BaseToUsdAssimilator.attach(baseAssimilatorAddress)
   console.log(`setting vault to ${vaultAddress}...`)
   await baseAssimilator.setVault(vaultAddress)
   console.log('finished setting vault!')
   await baseAssimilator.setPoolId(poolId)
 
   const UsdcToUsdAssimilator = await ethers.getContractFactory('UsdcToUsdAssimilator')
-  const quoteAssimilator = UsdcToUsdAssimilator.attach(quoteAssimilatorAddress)
+  const quoteAssimilator: UsdcToUsdAssimilator = UsdcToUsdAssimilator.attach(quoteAssimilatorAddress)
   await quoteAssimilator.setVault(vaultAddress)
   await quoteAssimilator.setPoolId(poolId)
   console.log(`> Assimilators updated!`)
