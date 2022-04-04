@@ -293,7 +293,16 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         SwapRequest memory swapRequest,
         uint256 currentBalanceTokenIn,
         uint256 currentBalanceTokenOut
-    ) public override whenNotPaused returns (uint256) {}
+    ) public override whenNotPaused returns (uint256) {
+        // just hacking this until we implement the invariant :)
+
+        console.log('TOKEN IN');
+        console.log(currentBalanceTokenIn);
+        console.log('TOKEN OUT');
+        console.log(currentBalanceTokenOut);
+
+        return _calculateInvariant(currentBalanceTokenIn, 0, 1);
+    }
 
     /// @dev Hook for joining the pool that must be called from the vault.
     ///      It mints a proportional number of tokens compared to current LP pool,
@@ -322,14 +331,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     ) external override whenNotPaused returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts) {
         // userData
         uint256[] memory tokensIn = abi.decode(userData, (uint256[]));
-        // @todo convertToNumeraire
-
-        // convert tokensIn[0] to numeraire, usdc
-        // convert tokensIn[1] to numeraire,
-        console.log(curve.assets[1].addr);
-        console.log(_convertToNumeraire(tokensIn[0], 1));
-        console.log(curve.assets[0].addr);
-        console.log(_convertToNumeraire(tokensIn[1], 0));
 
         uint256 totalDepositNumeraire = _convertToNumeraire(tokensIn[0], 1) + _convertToNumeraire(tokensIn[1], 0);
 
@@ -338,15 +339,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             curve,
             totalDepositNumeraire * 1e18
         );
-        // console.log('convertedNumeraire PHP: ', _convertToNumeraire(tokensIn[1], 0));
-        // console.log('convertedNumeraire USDC: ', _convertToNumeraire(tokensIn[0], 1));
-        console.log('totalNumeraire: ', totalDepositNumeraire);
-
-        console.log('LP tokens: ', lpTokens);
-        console.log('TokensIn input 1: ', tokensIn[0]);
-        console.log('TokensIn input  2: ', tokensIn[1]);
-        console.log('Amount to deposit 1: ', amountToDeposit[0]);
-        console.log('Amount to deposit 2: ', amountToDeposit[1]);
 
         // @todo check how to deal with arrangements of address and amounts
         // @todo within the threshold
@@ -371,32 +363,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         }
 
         // @todo emit tokensIn numeraireTokensIn0 numeraireTokensin1 totalNumeraire
-    }
-
-    // Curve math
-    // @todo add curve modifiers
-    function viewDeposit(uint256 _deposit) external view returns (uint256, uint256[] memory) {
-        // curvesToMint_, depositsToMake_
-        return ProportionalLiquidity.viewProportionalDeposit(curve, _deposit);
-    }
-
-    function viewWithdraw(uint256 _curvesToBurn) external view returns (uint256[] memory) {
-        return ProportionalLiquidity.viewProportionalWithdraw(curve, _curvesToBurn);
-    }
-
-    function _withinThreshold(uint256 a, uint256 b) internal pure returns (bool) {
-        if (a == b) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    function _convertToNumeraire(uint256 tokenAmount, uint256 tokenPosition) internal view returns (uint256) {
-        int128 numeraireAmount = Assimilators.viewNumeraireAmount(curve.assets[tokenPosition].addr, tokenAmount);
-        // console.log('Token position ', tokenPosition);
-        // console.log(ABDKMath64x64.toUInt(numeraireAmount));
-        return ABDKMath64x64.toUInt(numeraireAmount);
     }
 
     /// @dev Hook for leaving the pool that must be called from the vault.
@@ -481,6 +447,25 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         emergency = _emergency;
     }
 
+    // Curve math
+    // @todo add curve modifiers
+    function viewDeposit(uint256 _deposit) external view returns (uint256, uint256[] memory) {
+        // curvesToMint_, depositsToMake_
+        return ProportionalLiquidity.viewProportionalDeposit(curve, _deposit);
+    }
+
+    function viewWithdraw(uint256 _curvesToBurn) external view returns (uint256[] memory) {
+        return ProportionalLiquidity.viewProportionalWithdraw(curve, _curvesToBurn);
+    }
+
+    function _withinThreshold(uint256 a, uint256 b) internal pure returns (bool) {
+        if (a == b) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     /// @dev Mints the maximum possible LP given a set of max inputs
     function _mintLP(uint256 _tokensToMint) internal {
         // @todo add mint function from curve
@@ -489,5 +474,22 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     /// @dev Burns a number of LP tokens and returns the amount of the pool which they own.
     function _burnLP() internal returns (uint256[] memory amountsReleased) {
         // @todo add burn function from curve
+    }
+
+    function _calculateInvariant(
+        uint256 tokenAmount,
+        uint256 baseTokenPosition,
+        uint256 usdcPosition
+    ) internal view returns (uint256) {
+        // just hacking this until we implement the invariant :)
+        int128 numeraireAmount = Assimilators.viewNumeraireAmount(curve.assets[baseTokenPosition].addr, tokenAmount);
+
+        return Assimilators.viewRawAmount(curve.assets[usdcPosition].addr, numeraireAmount);
+    }
+
+    function _convertToNumeraire(uint256 tokenAmount, uint256 tokenPosition) internal view returns (uint256) {
+        int128 numeraireAmount = Assimilators.viewNumeraireAmount(curve.assets[tokenPosition].addr, tokenAmount);
+
+        return ABDKMath64x64.toUInt(numeraireAmount);
     }
 }

@@ -195,7 +195,11 @@ contract UsdcToUsdAssimilator is IAssimilator {
 
         amount_ = ((_amount * _rate) / 1e8).divu(DECIMALS);
 
-        uint256 _balance = usdc.balanceOf(_addr);
+        // uint256 _balance = usdc.balanceOf(_addr);
+
+        (, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
+        // uint256 _balance = usdc.balanceOf(_addr);
+        uint256 _balance = balances[0];
 
         balance_ = ((_balance * _rate) / 1e8).divu(DECIMALS);
     }
