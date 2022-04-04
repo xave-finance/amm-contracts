@@ -9,7 +9,7 @@ import 'hardhat-gas-reporter'
 import 'hardhat-tracer'
 //import '@tenderly/hardhat-tenderly'
 
-import initializePoolTasks from './scripts//pool-actions/'
+import initializePoolTasks from './scripts/pool-actions/'
 import initializeSwapTasks from './scripts/swaps/'
 import initializeRelayerTasks from './scripts/relayers/'
 
@@ -20,7 +20,7 @@ const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY || ''
 const TENDERLY_USERNAME = process.env.TENDERLY_USERNAME || ''
 const TENDERLY_PROJECT = process.env.TENDERLY_PROJECT || ''
 
-//initializePoolTasks()
+initializePoolTasks()
 //initializeSwapTasks()
 //initializeRelayerTasks()
 
