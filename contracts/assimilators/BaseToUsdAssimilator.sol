@@ -34,8 +34,8 @@ contract BaseToUsdAssimilator is IAssimilator {
     IOracle public immutable oracle;
     IERC20 public immutable baseToken;
     uint256 public immutable baseDecimals;
-    bytes32 poolId = 0x9440df93fa518b0f6be335624f08fee36ae5aba5000200000000000000000000;
-    address vault = 0x50D75C1BC6a1cE35002C9f92D0AF4B3684aa6B74;
+    bytes32 public poolId = 0x9440df93fa518b0f6be335624f08fee36ae5aba5000200000000000000000000;
+    address public vault = 0x50D75C1BC6a1cE35002C9f92D0AF4B3684aa6B74;
 
     constructor(
         uint256 _baseDecimals,
