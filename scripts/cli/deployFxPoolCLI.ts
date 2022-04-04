@@ -20,10 +20,16 @@ inquirer
       message: 'Specify base token',
       choices: baseTokens,
     },
+    {
+      type: 'confirm',
+      name: 'fresh',
+      message: 'Deploy a new AssimilatorFactory?',
+    },
   ])
   .then((answers: any) => {
-    const network = answers.network
-    const baseToken = answers.baseToken
+    const { network, baseToken, fresh } = answers
 
-    return runNpmCommand(`npx hardhat deploy-fx-pool --to ${network} --basetoken ${baseToken} --network ${network}`)
+    return runNpmCommand(
+      `npx hardhat deploy-fx-pool --to ${network} --basetoken ${baseToken} --fresh ${fresh} --network ${network}`
+    )
   })

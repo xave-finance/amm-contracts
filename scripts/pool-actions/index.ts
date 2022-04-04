@@ -23,6 +23,7 @@ export default () => {
   task('deploy-fx-pool', 'Deploy an FX-accurate pool')
     .addParam('to', 'Network to deploy Pool')
     .addParam('basetoken', 'Base token for the pool')
+    .addOptionalParam('fresh', 'Deploy a new AssimilatorFactory?')
     .setAction(DeployFxPool)
 
   task('add-liquidity', 'Add liquidity to custom balancer pool')
