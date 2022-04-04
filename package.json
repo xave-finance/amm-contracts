@@ -20,7 +20,7 @@
     "node": "npx hardhat node",
     "test": "npx hardhat test --logs",
     "test-local": "npx hardhat test tests/local/*.test.ts --logs",
-    "test-debug": "hardhat test tests/local/pool.test.ts ",
+    "test-debug": "hardhat test tests/local/pool.test.ts --logs ",
     "typecheck": "yarn compile && tsc --noEmit",
     "recompile": "rm -rf artifacts && rm -rf cache && npx hardhat compile",
     "load-balancer-contracts": "sh scripts/shell/load-balancer-contracts.sh"

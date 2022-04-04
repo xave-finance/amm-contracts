@@ -216,10 +216,9 @@ contract BaseToUsdAssimilator is IAssimilator {
 
     // views the numeraire value of the current balance of the reserve, in this case baseToken
     function viewNumeraireBalance(address _addr) external view override returns (int128 balance_) {
-        (, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
-
         uint256 _rate = getRate();
 
+        (, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
         //uint256 _balance = baseToken.balanceOf(_addr);
         // @TODO: Check selector depending on its position alphabetically on the curve storage
         uint256 _balance = balances[1];
@@ -240,7 +239,11 @@ contract BaseToUsdAssimilator is IAssimilator {
 
         amount_ = ((_amount * _rate) / 1e8).divu(baseDecimals);
 
-        uint256 _balance = baseToken.balanceOf(_addr);
+        //  uint256 _balance = baseToken.balanceOf(_addr);
+        (, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
+
+        // @TODO: Check selector depending on its position alphabetically on the curve storage
+        uint256 _balance = balances[1];
 
         balance_ = ((_balance * _rate) / 1e8).divu(baseDecimals);
     }

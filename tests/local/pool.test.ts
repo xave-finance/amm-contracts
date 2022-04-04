@@ -1,21 +1,19 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
-import { Signer } from 'ethers'
+import { BigNumber, BytesLike, Signer } from 'ethers'
 import { setupEnvironment, TestEnv } from '../common/setupEnvironment'
-import { formatUnits, parseEther, parseUnits } from '@ethersproject/units'
+import { parseEther, parseUnits } from '@ethersproject/units'
 import { CONTRACT_REVERT } from '../constants'
-import { getFutureTime, sortAddresses } from '../common/helpers/utils'
-import { deployFXPool, FXPoolCurveParams } from '../common/contractDeployers'
-import { FXPool } from '../../typechain/FXPool'
+import { sortAddresses } from '../common/helpers/utils'
 import { mockToken } from '../constants/mockTokenList'
-import { fxPHPUSDCFxPool } from '../constants/mockPoolList'
-import { getAssimilatorContract, getUSDCAssimilatorContract } from '../common/contractGetters'
+import { getAssimilatorContract } from '../common/contractGetters'
 
 describe('FXPool', () => {
   let testEnv: TestEnv
   let admin: Signer
   let notOwner: Signer
   let adminAddress: string
+  let poolId: string
 
   let fxPHPAssimilatorAddress: string
   let usdcAssimilatorAddress: string
@@ -42,20 +40,11 @@ describe('FXPool', () => {
       testEnv.fxPHPOracle.address
     )
 
+    poolId = await testEnv.fxPool.getPoolId()
+
     // 2 - getAssimilators
     fxPHPAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.fxPHP.address)
     usdcAssimilatorAddress = await testEnv.assimilatorFactory.usdcAssimilator()
-
-    // 3 - deploy fxpool, replace with factory when ready
-    await deployFXPool(
-      sortAddresses([testEnv.fxPHP.address, testEnv.USDC.address]),
-      `${await getFutureTime()}`,
-      fxPHPUSDCFxPool.unitSeconds,
-      testEnv.vault.address,
-      fxPHPUSDCFxPool.percentFee,
-      fxPHPUSDCFxPool.name,
-      fxPHPUSDCFxPool.symbol
-    )
   })
 
   it('FXPool is registered on the vault', async () => {
@@ -102,24 +91,15 @@ describe('FXPool', () => {
     await testEnv.fxPHP.approve(testEnv.vault.address, ethers.constants.MaxUint256)
     await testEnv.USDC.approve(testEnv.vault.address, ethers.constants.MaxUint256)
 
-    // console.log('PHP Balance: ', await testEnv.fxPHP.balanceOf(adminAddress))
-    // console.log('USD Balance: ', await testEnv.USDC.balanceOf(adminAddress))
-
-    const viewDeposit = await testEnv.fxPool.viewDeposit(parseEther('100'))
+    const viewDeposit = await testEnv.fxPool.viewDeposit(parseEther('10000'))
     console.log(parseEther('100'))
 
-    console.log(`PHP ${testEnv.fxPHP.address}: ${viewDeposit[1][0]} `)
+    console.log(`PHP ${testEnv.fxPHP.address}: ${viewDeposit[1][0]}`)
     console.log(`USDC ${testEnv.USDC.address}:  ${viewDeposit[1][1]}`)
 
-    // console.log('FXPHP assim: ', fxPHPAssimilatorAddress)
-
     const phpAssimilator = await getAssimilatorContract(fxPHPAssimilatorAddress)
-    console.log(`PHP AssimL ${fxPHPAssimilatorAddress}, USDC ASsim: ${usdcAssimilatorAddress}`)
+    // console.log(`PHP AssimL ${fxPHPAssimilatorAddress}, USDC ASsim: ${usdcAssimilatorAddress}`)
 
-    // console.log('View numeraire amount: ', formatUnits(await phpAssimilator.viewRawAmount(viewDeposit[1][0])))
-    console.log('Rate: ', await phpAssimilator.getRate())
-    console.log('BaseDecimals: ', await phpAssimilator.baseDecimals())
-    const poolId = await testEnv.fxPool.getPoolId()
     const liquidityToAdd = [viewDeposit[1][1], viewDeposit[1][0]]
     const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]'], [liquidityToAdd])
     const joinPoolRequest = {
@@ -152,15 +132,52 @@ describe('FXPool', () => {
     }
 
     await testEnv.vault.exitPool(poolId, adminAddress, adminAddress, exitPoolRequest)
-    console.log('vault: ', testEnv.vault.address)
-    console.log('pool id: ', poolId)
+
     //console.log('Vault Balances: ', await testEnv.vault.getPoolTokens(poolId))
     console.log('After')
     console.log('LP Token balance: ', await testEnv.fxPool.balanceOf(adminAddress))
     console.log('FX PHP Pool amount: ', await testEnv.fxPHP.balanceOf(testEnv.vault.address))
     console.log('FX USDC Pool amount: ', await testEnv.USDC.balanceOf(testEnv.vault.address))
   })
-  it('Swaps tokan a and token b  calling the vault and triggering onSwap hook', async () => {})
+  it('Swaps tokan a and token b  calling the vault and triggering onSwap hook', async () => {
+    /// VAULT INDEX: index 0: USDC, index 1: fxPHP
+    console.log('Before USDC: ', await testEnv.USDC.balanceOf(adminAddress))
+    console.log('Before fxPHP: ', await testEnv.fxPHP.balanceOf(adminAddress))
+    console.log('FX PHP Pool amount: ', await testEnv.fxPHP.balanceOf(testEnv.vault.address))
+    console.log('FX USDC Pool amount: ', await testEnv.USDC.balanceOf(testEnv.vault.address))
+    const swaps = [
+      {
+        poolId: poolId as BytesLike,
+        assetInIndex: BigNumber.from(0), // in USDC
+        assetOutIndex: BigNumber.from(1), // out fxPHP
+        amount: parseUnits('30', 6),
+        userData: '0x' as BytesLike,
+      },
+    ]
+    const swapAssets: string[] = sortAddresses([
+      ethers.utils.getAddress(testEnv.fxPHP.address),
+      ethers.utils.getAddress(testEnv.USDC.address),
+    ])
+    const limits = [parseUnits('999999999', 6), parseUnits('999999999')]
+    const deadline = ethers.constants.MaxUint256
+
+    const funds = {
+      sender: ethers.utils.getAddress(adminAddress),
+      recipient: ethers.utils.getAddress(adminAddress),
+      fromInternalBalance: false,
+      toInternalBalance: false,
+    }
+
+    const deltas = await testEnv.vault.callStatic.queryBatchSwap(0, swaps, swapAssets, funds)
+    console.log(deltas)
+
+    await testEnv.vault.batchSwap(0, swaps, swapAssets, funds, limits, deadline)
+
+    console.log('After USDC: ', await testEnv.USDC.balanceOf(adminAddress))
+    console.log('After fxPHP: ', await testEnv.fxPHP.balanceOf(adminAddress))
+    console.log('FX PHP Pool amount: ', await testEnv.fxPHP.balanceOf(testEnv.vault.address))
+    console.log('FX USDC Pool amount: ', await testEnv.USDC.balanceOf(testEnv.vault.address))
+  })
   it('Previews swap caclculation from the onSwap hook', async () => {})
   it('Previews swap caclculation when providing single sided liquiditu from the onJoin and onExit hook', async () => {})
 
