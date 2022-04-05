@@ -140,7 +140,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         int128[] memory _bals = new int128[](2);
 
         for (uint256 i = 0; i < _bals.length; i++) {
-            int128 _bal = Assimilators.viewNumeraireBalance(curve.assets[i].addr);
+            int128 _bal = Assimilators.viewNumeraireBalance(curve.assets[i].addr, address(_vault), _poolId);
 
             _bals[i] = _bal;
 
@@ -296,10 +296,10 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     ) public override whenNotPaused returns (uint256) {
         // just hacking this until we implement the invariant :)
 
-        console.log('TOKEN IN');
-        console.log(currentBalanceTokenIn);
-        console.log('TOKEN OUT');
-        console.log(currentBalanceTokenOut);
+        // console.log('TOKEN IN');
+        // console.log(currentBalanceTokenIn);
+        // console.log('TOKEN OUT');
+        // console.log(currentBalanceTokenOut);
 
         return _calculateInvariant(currentBalanceTokenIn, 0, 1);
     }
@@ -391,9 +391,14 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     ) external override returns (uint256[] memory amountsOut, uint256[] memory dueProtocolFeeAmounts) {
         uint256 tokensToBurn = abi.decode(userData, (uint256));
 
-        uint256[] memory amountToWithdraw = ProportionalLiquidity.viewProportionalWithdraw(curve, tokensToBurn);
-        console.log('Withdraw 1: ', amountToWithdraw[0]);
-        console.log('Withdraw 2: ', amountToWithdraw[1]);
+        uint256[] memory amountToWithdraw = ProportionalLiquidity.viewProportionalWithdraw(
+            curve,
+            tokensToBurn,
+            address(_vault),
+            _poolId
+        );
+        // console.log('Withdraw 1: ', amountToWithdraw[0]);
+        // console.log('Withdraw 2: ', amountToWithdraw[1]);
 
         {
             amountsOut = new uint256[](2);
@@ -431,6 +436,9 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         curve.cap = _cap;
     }
 
+    /*
+
+    @todo implement or vault?
     function emergencyWithdraw(uint256 _curvesToBurn, uint256 _deadline)
         external
         isEmergency
@@ -438,8 +446,11 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         nonReentrant
         returns (uint256[] memory withdrawals_)
     {
-        return ProportionalLiquidity.emergencyProportionalWithdraw(curve, _curvesToBurn);
+        //return ProportionalLiquidity.emergencyProportionalWithdraw(curve, _curvesToBurn);
+
+        return;
     }
+    */
 
     function setEmergency(bool _emergency) external onlyOwner {
         emit EmergencyAlarm(_emergency);
@@ -455,7 +466,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     }
 
     function viewWithdraw(uint256 _curvesToBurn) external view returns (uint256[] memory) {
-        return ProportionalLiquidity.viewProportionalWithdraw(curve, _curvesToBurn);
+        return ProportionalLiquidity.viewProportionalWithdraw(curve, _curvesToBurn, address(_vault), _poolId);
     }
 
     function _withinThreshold(uint256 a, uint256 b) internal pure returns (bool) {
@@ -482,10 +493,8 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256 usdcPosition
     ) internal view returns (uint256) {
         // just hacking this until we implement the invariant :)
-
         int128 numeraireAmount = Assimilators.viewNumeraireAmount(curve.assets[usdcPosition].addr, tokenAmount);
-        console.log('INVARIANT');
-        console.log(Assimilators.viewRawAmount(curve.assets[baseTokenPosition].addr, numeraireAmount));
+
         return Assimilators.viewRawAmount(curve.assets[baseTokenPosition].addr, numeraireAmount);
     }
 

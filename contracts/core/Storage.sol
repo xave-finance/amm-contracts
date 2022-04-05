@@ -37,7 +37,7 @@ contract Storage {
         mapping(address => IOracle) oracles;
         // ERC20 Interface
         uint256 totalSupply;
-        mapping(address => uint256) balances;
+        //   mapping(address => uint256) balances;
         mapping(address => mapping(address => uint256)) allowances;
     }
 

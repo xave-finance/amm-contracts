@@ -29,8 +29,6 @@ contract UsdcToUsdAssimilator is IAssimilator {
 
     IOracle public immutable oracle;
     IERC20 public immutable usdc;
-    bytes32 public poolId = 0x9440df93fa518b0f6be335624f08fee36ae5aba5000200000000000000000000;
-    address public vault = 0x50D75C1BC6a1cE35002C9f92D0AF4B3684aa6B74;
 
     constructor(IOracle _oracle, IERC20 _usdc) {
         oracle = _oracle;
@@ -38,14 +36,6 @@ contract UsdcToUsdAssimilator is IAssimilator {
     }
 
     uint256 private constant DECIMALS = 1e6;
-
-    function setPoolId(bytes32 _poolId) public {
-        poolId = _poolId;
-    }
-
-    function setVault(address _vault) public {
-        vault = _vault;
-    }
 
     // solhint-disable-next-line
     function getRate() public view override returns (uint256) {
@@ -162,7 +152,11 @@ contract UsdcToUsdAssimilator is IAssimilator {
         amount_ = ((_amount * _rate) / 1e8).divu(DECIMALS);
     }
 
-    function viewNumeraireBalance(address _addr) public view override returns (int128 balance_) {
+    function viewNumeraireBalance(
+        address _addr,
+        address vault,
+        bytes32 poolId
+    ) public view override returns (int128 balance_) {
         uint256 _rate = getRate();
         (, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
         // uint256 _balance = usdc.balanceOf(_addr);
@@ -185,12 +179,12 @@ contract UsdcToUsdAssimilator is IAssimilator {
         return _balance.divu(DECIMALS);
     }
 
-    function viewNumeraireAmountAndBalance(address _addr, uint256 _amount)
-        external
-        view
-        override
-        returns (int128 amount_, int128 balance_)
-    {
+    function viewNumeraireAmountAndBalance(
+        address _addr,
+        uint256 _amount,
+        address vault,
+        bytes32 poolId
+    ) external view override returns (int128 amount_, int128 balance_) {
         uint256 _rate = getRate();
 
         amount_ = ((_amount * _rate) / 1e8).divu(DECIMALS);

@@ -22,6 +22,7 @@ library ProportionalLiquidity {
     int128 public constant ONE = 0x10000000000000000;
     int128 public constant ONE_WEI = 0x12;
 
+    /*
     function proportionalDeposit(Storage.Curve storage curve, uint256 _deposit)
         external
         returns (uint256 curves_, uint256[] memory)
@@ -73,11 +74,13 @@ library ProportionalLiquidity {
 
         requireLiquidityInvariant(curve, _totalShells, _newShells, _oGLiqProp, _oBalsProp);
 
-        mint(curve, msg.sender, curves_ = _newShells.mulu(1e18));
+        //   mint(curve, msg.sender, curves_ = _newShells.mulu(1e18));
 
         return (curves_, deposits_);
     }
 
+
+*/
     function viewProportionalDeposit(Storage.Curve storage curve, uint256 _deposit)
         external
         view
@@ -90,6 +93,10 @@ library ProportionalLiquidity {
         (int128 _oGLiq, int128[] memory _oBals) = getGrossLiquidityAndBalancesForDeposit(curve);
 
         uint256[] memory deposits_ = new uint256[](_length);
+        console.log('1');
+        console.log(curve.assets[0].addr);
+        console.log('2');
+        console.log(curve.assets[1].addr);
 
         // No liquidity
         if (_oGLiq == 0) {
@@ -132,6 +139,9 @@ library ProportionalLiquidity {
         return (curves_, deposits_);
     }
 
+    /*
+
+    // @todo implement in FXPool or use vault?
     function emergencyProportionalWithdraw(Storage.Curve storage curve, uint256 _withdrawal)
         external
         returns (uint256[] memory)
@@ -155,11 +165,14 @@ library ProportionalLiquidity {
             );
         }
 
-        burn(curve, msg.sender, _withdrawal);
+        //  burn(curve, msg.sender, _withdrawal);
 
         return withdrawals_;
     }
 
+    */
+
+    /*
     function proportionalWithdraw(Storage.Curve storage curve, uint256 _withdrawal)
         external
         returns (uint256[] memory)
@@ -185,21 +198,23 @@ library ProportionalLiquidity {
 
         requireLiquidityInvariant(curve, _totalShells, __withdrawal.neg(), _oGLiq, _oBals);
 
-        burn(curve, msg.sender, _withdrawal);
+        //   burn(curve, msg.sender, _withdrawal);
 
         return withdrawals_;
     }
 
-    function viewProportionalWithdraw(Storage.Curve storage curve, uint256 _withdrawal)
-        external
-        view
-        returns (uint256[] memory)
-    {
+*/
+    function viewProportionalWithdraw(
+        Storage.Curve storage curve,
+        uint256 _withdrawal,
+        address vault,
+        bytes32 poolId
+    ) external view returns (uint256[] memory) {
         console.log('Total supply ', curve.totalSupply);
         uint256 _length = curve.assets.length;
         console.log('curve assets length: ', _length);
 
-        (, int128[] memory _oBals) = getGrossLiquidityAndBalances(curve);
+        (, int128[] memory _oBals) = getGrossLiquidityAndBalances(curve, vault, poolId);
 
         uint256[] memory withdrawals_ = new uint256[](_length);
 
@@ -233,17 +248,17 @@ library ProportionalLiquidity {
         return (grossLiquidity_, balances_);
     }
 
-    function getGrossLiquidityAndBalances(Storage.Curve storage curve)
-        internal
-        view
-        returns (int128 grossLiquidity_, int128[] memory)
-    {
+    function getGrossLiquidityAndBalances(
+        Storage.Curve storage curve,
+        address vault,
+        bytes32 poolId
+    ) internal view returns (int128 grossLiquidity_, int128[] memory) {
         uint256 _length = curve.assets.length;
 
         int128[] memory balances_ = new int128[](_length);
 
         for (uint256 i = 0; i < _length; i++) {
-            int128 _bal = Assimilators.viewNumeraireBalance(curve.assets[i].addr);
+            int128 _bal = Assimilators.viewNumeraireBalance(curve.assets[i].addr, vault, poolId);
             balances_[i] = _bal;
             grossLiquidity_ += _bal;
         }
@@ -251,6 +266,8 @@ library ProportionalLiquidity {
         return (grossLiquidity_, balances_);
     }
 
+    /*
+    @todo check implementation
     function requireLiquidityInvariant(
         Storage.Curve storage curve,
         int128 _curves,
@@ -271,6 +288,8 @@ library ProportionalLiquidity {
         CurveMath.enforceLiquidityInvariant(_curves, _newShells, _oGLiq, _nGLiq, _omega, _psi);
     }
 
+    */
+    /*
     function burn(
         Storage.Curve storage curve,
         address account,
@@ -302,4 +321,6 @@ library ProportionalLiquidity {
     function burnSub(uint256 x, uint256 y) private pure returns (uint256 z) {
         require((z = x - y) <= x, 'Curve/burn-underflow');
     }
+
+    */
 }
