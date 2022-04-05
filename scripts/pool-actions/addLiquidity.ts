@@ -24,7 +24,7 @@ export default async (taskArgs: any) => {
   const fromInternalBalance = taskArgs.frominternalbalance === 'true'
 
   //const poolId = await POOLS_FILE.get(`${pool}.${network}.poolId`)
-  const poolId = '0xd2bf123f2f4ffcffc33f28315998c73faa977f460002000000000000000007b5'
+  const poolId = '0x2f0d54fc87f28bd4eb1ff0d1a926400126b9bb1a0002000000000000000007bb'
   // const poolAddress = await POOLS_FILE.get(`${pool}.${network}.address`)
 
   const ERC20 = await ethers.getContractFactory('MockToken')
@@ -54,14 +54,15 @@ export default async (taskArgs: any) => {
   // console.log('ethers.utils.parseUnits(`${baseAmount}`, baseTokenDecimals):', ethers.utils.parseUnits(`${baseAmount}`, baseTokenDecimals).toNumber())
   // console.log('ethers.utils.parseUnits(`${quoteAmount}`, quoteTokenDecimals):', ethers.utils.parseUnits(`${quoteAmount}`, quoteTokenDecimals).toNumber())
 
-  const liquidityToAdd = [ethers.utils.parseEther(`${baseAmount}`), ethers.utils.parseEther(`${quoteAmount}`)]
+  // const liquidityToAdd = [ethers.utils.parseEther(`${baseAmount}`), ethers.utils.parseEther(`${quoteAmount}`)]
   // const liquidityToAdd = [ethers.utils.parseUnits(`${baseAmount}`, baseTokenDecimals), ethers.utils.parseUnits(`${quoteAmount}`, quoteTokenDecimals)]
-  // const liquidityToAdd = [
-  //   ethers.utils.parseUnits(`${quoteAmount}`, quoteTokenDecimals),
-  //   ethers.utils.parseUnits(`${baseAmount}`, baseTokenDecimals),
-  // ]
+  const liquidityToAdd = [
+    ethers.utils.parseUnits(`${baseAmount}`, baseTokenDecimals),
+    ethers.utils.parseUnits(`${quoteAmount}`, quoteTokenDecimals),
+  ]
   const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]'], [liquidityToAdd])
-  console.log('sortAddresses([baseToken, quoteToken]):', sortAddresses([baseToken, quoteToken]))
+  console.log('liquidityToAdd:', liquidityToAdd.toString())
+  console.log('sorted addresses:', sortAddresses([baseToken, quoteToken]))
   const joinPoolRequest = {
     assets: sortAddresses([baseToken, quoteToken]),
     // assets: [quoteToken, baseToken],

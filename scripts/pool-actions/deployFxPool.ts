@@ -86,7 +86,7 @@ export default async (taskArgs: any) => {
   /**
    * Step# - deploy baseToken assimilator
    **/
-  console.log(`> Deploying base assimilator...`)
+  console.log(`> Deploying ${baseToken} assimilator...`)
   console.table({
     base: baseTokenAddress,
     baseDecimals: baseTokenDecimals,
@@ -98,7 +98,7 @@ export default async (taskArgs: any) => {
     baseTokenOracleAddress
   )
   const baseAssimilatorAddress = await assimilatorFactory.getAssimilator(baseTokenAddress)
-  console.log(`> Base assimilator deployed at: ${baseAssimilatorAddress}`)
+  console.log(`> ${baseToken} assimilator deployed at: ${baseAssimilatorAddress}`)
 
   /**
    * Step# - deploy pool
