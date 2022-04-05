@@ -29,6 +29,8 @@ library Swaps {
 
     int128 public constant ONE = 0x10000000000000000;
 
+    /*
+
     function getOriginAndTarget(
         Storage.Curve storage curve,
         address _o,
@@ -363,4 +365,5 @@ library Swaps {
 
         return (amt_, oGLiq_, nGLiq_, nBals_, oBals_);
     }
+    */
 }

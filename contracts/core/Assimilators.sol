@@ -62,16 +62,21 @@ library Assimilators {
         amt_ = IAssimilator(_assim).viewNumeraireAmount(_amt);
     }
 
-    function viewNumeraireAmountAndBalance(address _assim, uint256 _amt)
-        internal
-        view
-        returns (int128 amt_, int128 bal_)
-    {
-        (amt_, bal_) = IAssimilator(_assim).viewNumeraireAmountAndBalance(address(this), _amt);
+    function viewNumeraireAmountAndBalance(
+        address _assim,
+        uint256 _amt,
+        address vault,
+        bytes32 poolId
+    ) internal view returns (int128 amt_, int128 bal_) {
+        (amt_, bal_) = IAssimilator(_assim).viewNumeraireAmountAndBalance(address(this), _amt, vault, poolId);
     }
 
-    function viewNumeraireBalance(address _assim) internal view returns (int128 bal_) {
-        bal_ = IAssimilator(_assim).viewNumeraireBalance(address(this));
+    function viewNumeraireBalance(
+        address _assim,
+        address vault,
+        bytes32 poolId
+    ) internal view returns (int128 bal_) {
+        bal_ = IAssimilator(_assim).viewNumeraireBalance(address(this), vault, poolId);
     }
 
     function viewNumeraireBalanceLPRatio(

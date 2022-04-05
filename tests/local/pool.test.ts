@@ -45,6 +45,8 @@ describe('FXPool', () => {
     // 2 - getAssimilators
     fxPHPAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.fxPHP.address)
     usdcAssimilatorAddress = await testEnv.assimilatorFactory.usdcAssimilator()
+
+    console.log(`fxphp: ${fxPHPAssimilatorAddress}, usdc: ${usdcAssimilatorAddress}`)
   })
 
   it('FXPool is registered on the vault', async () => {
@@ -64,19 +66,20 @@ describe('FXPool', () => {
     // const assimilators = curveDetails.assimilators // no curve initialization yet so will comment this for now
   })
   it('Initializes the FXPool and set curve parameters', async () => {
+    // when initializing, do it alphabetically
     await expect(
       testEnv.fxPool.initialize(
         [
-          testEnv.fxPHP.address,
-          fxPHPAssimilatorAddress,
-          testEnv.fxPHP.address,
-          fxPHPAssimilatorAddress,
-          testEnv.fxPHP.address,
           testEnv.USDC.address,
           usdcAssimilatorAddress,
           testEnv.USDC.address,
           usdcAssimilatorAddress,
           testEnv.USDC.address,
+          testEnv.fxPHP.address,
+          fxPHPAssimilatorAddress,
+          testEnv.fxPHP.address,
+          fxPHPAssimilatorAddress,
+          testEnv.fxPHP.address,
         ],
         [baseWeight, quoteWeight]
       )
@@ -85,6 +88,7 @@ describe('FXPool', () => {
       .to.emit(testEnv.fxPool, 'AssimilatorIncluded')
 
     await expect(testEnv.fxPool.setParams(ALPHA, BETA, MAX, EPSILON, LAMBDA)).to.emit(testEnv.fxPool, 'ParametersSet')
+
     //  .withArgs(ALPHA, BETA, MAX, EPSILON, LAMBDA) - check delta calculation
   })
   it('Adds liquidity inside the FXPool calling the vault and triggering onJoin hook', async () => {
@@ -92,7 +96,6 @@ describe('FXPool', () => {
     await testEnv.USDC.approve(testEnv.vault.address, ethers.constants.MaxUint256)
 
     const viewDeposit = await testEnv.fxPool.viewDeposit(parseEther('10000'))
-    console.log(parseEther('100'))
 
     console.log(`PHP ${testEnv.fxPHP.address}: ${viewDeposit[1][0]}`)
     console.log(`USDC ${testEnv.USDC.address}:  ${viewDeposit[1][1]}`)
@@ -117,10 +120,10 @@ describe('FXPool', () => {
   })
   it('Removes liquidity inside the FXPool calling the vault and triggering onExit hook', async () => {
     const poolId = await testEnv.fxPool.getPoolId()
-    console.log('Before')
-    console.log('LP Token balance: ', await testEnv.fxPool.balanceOf(adminAddress))
-    console.log('FX PHP Pool amount: ', await testEnv.fxPHP.balanceOf(testEnv.vault.address))
-    console.log('FX USDC Pool amount: ', await testEnv.USDC.balanceOf(testEnv.vault.address))
+    //console.log('Before')
+    //console.log('LP Token balance: ', await testEnv.fxPool.balanceOf(adminAddress))
+    //console.log('FX PHP Pool amount: ', await testEnv.fxPHP.balanceOf(testEnv.vault.address))
+    //console.log('FX USDC Pool amount: ', await testEnv.USDC.balanceOf(testEnv.vault.address))
 
     console.log(await testEnv.fxPool.viewWithdraw(parseEther('30')))
     const payload = ethers.utils.defaultAbiCoder.encode(['uint256'], [parseUnits('30')])
@@ -134,12 +137,12 @@ describe('FXPool', () => {
     await testEnv.vault.exitPool(poolId, adminAddress, adminAddress, exitPoolRequest)
 
     //console.log('Vault Balances: ', await testEnv.vault.getPoolTokens(poolId))
-    console.log('After')
-    console.log('LP Token balance: ', await testEnv.fxPool.balanceOf(adminAddress))
-    console.log('FX PHP Pool amount: ', await testEnv.fxPHP.balanceOf(testEnv.vault.address))
-    console.log('FX USDC Pool amount: ', await testEnv.USDC.balanceOf(testEnv.vault.address))
+    //console.log('After')
+    //console.log('LP Token balance: ', await testEnv.fxPool.balanceOf(adminAddress))
+    //console.log('FX PHP Pool amount: ', await testEnv.fxPHP.balanceOf(testEnv.vault.address))
+    //console.log('FX USDC Pool amount: ', await testEnv.USDC.balanceOf(testEnv.vault.address))
   })
-  it('Swaps tokan a and token b  calling the vault and triggering onSwap hook', async () => {
+  it.skip('Swaps tokan a and token b  calling the vault and triggering onSwap hook', async () => {
     /// VAULT INDEX: index 0: USDC, index 1: fxPHP
     console.log('Before USDC: ', await testEnv.USDC.balanceOf(adminAddress))
     console.log('Before fxPHP: ', await testEnv.fxPHP.balanceOf(adminAddress))
@@ -206,7 +209,7 @@ describe('FXPool', () => {
 
     expect(await testEnv.fxPool.setEmergency(false))
       .to.emit(testEnv.fxPool, 'EmergencyAlarm')
-      .withArgs(false) // reset for now, test emergency withdraw
+      .withArgs(false) // res et for now, test emergency withdraw
   })
   it('can set cap when owner', async () => {
     const curveDetails = await testEnv.fxPool.curve()
