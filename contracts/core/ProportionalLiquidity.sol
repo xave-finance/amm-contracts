@@ -10,7 +10,8 @@ import './lib/UnsafeMath64x64.sol';
 import './lib/ABDKMath64x64.sol';
 
 import './CurveMath.sol';
-import 'hardhat/console.sol';
+
+//import 'hardhat/console.sol';
 
 library ProportionalLiquidity {
     using ABDKMath64x64 for uint256;
@@ -93,10 +94,6 @@ library ProportionalLiquidity {
         (int128 _oGLiq, int128[] memory _oBals) = getGrossLiquidityAndBalancesForDeposit(curve);
 
         uint256[] memory deposits_ = new uint256[](_length);
-        console.log('1');
-        console.log(curve.assets[0].addr);
-        console.log('2');
-        console.log(curve.assets[1].addr);
 
         // No liquidity
         if (_oGLiq == 0) {
@@ -210,9 +207,7 @@ library ProportionalLiquidity {
         address vault,
         bytes32 poolId
     ) external view returns (uint256[] memory) {
-        console.log('Total supply ', curve.totalSupply);
         uint256 _length = curve.assets.length;
-        console.log('curve assets length: ', _length);
 
         (, int128[] memory _oBals) = getGrossLiquidityAndBalances(curve, vault, poolId);
 

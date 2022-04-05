@@ -26,7 +26,8 @@ import '../../interfaces/IAsset.sol';
 import '../../interfaces/IVault.sol';
 
 import './AssetHelpers.sol';
-import 'hardhat/console.sol';
+
+//import 'hardhat/console.sol';
 
 abstract contract AssetTransfersHandler is AssetHelpers {
     using SafeERC20 for IERC20;
@@ -94,7 +95,6 @@ abstract contract AssetTransfersHandler is AssetHelpers {
         bool toInternalBalance
     ) internal {
         if (amount == 0) {
-            console.log('amount is zero');
             return;
         }
 
@@ -112,13 +112,9 @@ abstract contract AssetTransfersHandler is AssetHelpers {
         } else {
             IERC20 token = _asIERC20(asset);
 
-            console.log('token address is: ');
-            console.log(address(token));
             if (toInternalBalance) {
-                console.log('internal balance!');
                 _increaseInternalBalance(recipient, token, amount);
             } else {
-                console.log(amount);
                 token.safeTransfer(recipient, amount);
             }
         }

@@ -22,7 +22,6 @@ import '../core/interfaces/IAssimilator.sol';
 import '../core/interfaces/IOracle.sol';
 
 import '../interfaces/IVaultPoolBalances.sol';
-import 'hardhat/console.sol';
 
 contract BaseToUsdAssimilator is IAssimilator {
     using ABDKMath64x64 for int128;

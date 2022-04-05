@@ -11,6 +11,7 @@ import './core/ProportionalLiquidity.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {Pausable} from '@openzeppelin/contracts/utils/Pausable.sol';
 import {ReentrancyGuard} from '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
+
 import 'hardhat/console.sol';
 
 // @todo check implmentation with BasePool at https://github.com/balancer-labs/balancer-v2-monorepo/tree/master/pkg/pool-utils/contracts
@@ -288,7 +289,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     /// @param currentBalanceTokenIn The input token balance
     /// @param currentBalanceTokenOut The output token balance
     /// @return the amount of the output or input token amount of for swap
-
     function onSwap(
         SwapRequest memory swapRequest,
         uint256 currentBalanceTokenIn,
@@ -317,44 +317,44 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     ///                 address low to high
     /// @return amountsIn The actual amounts of token the vault should move to this pool
     /// @return dueProtocolFeeAmounts The amounts of each token to pay as protocol fees
-
-    // @todo deposit/onJoin, check on how to return BPT tokens minted
-
     function onJoinPool(
         bytes32 poolId,
         address, // sender
         address recipient,
-        uint256[] memory currentBalances,
+        uint256[] memory currentBalances, // @todo for vault transfers
         uint256,
         uint256 protocolSwapFee,
         bytes calldata userData
     ) external override whenNotPaused returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts) {
         // userData
-        uint256[] memory tokensIn = abi.decode(userData, (uint256[]));
+        (uint256[] memory tokensIn, address[] memory assetAddresses) = abi.decode(userData, (uint256[], address[]));
 
-        uint256 totalDepositNumeraire = _convertToNumeraire(tokensIn[0], 1) + _convertToNumeraire(tokensIn[1], 0);
+        uint256 totalDepositNumeraire = _convertToNumeraire(tokensIn[0], _getAssetIndex(assetAddresses[0])) +
+            _convertToNumeraire(tokensIn[1], _getAssetIndex(assetAddresses[1]));
 
-        // verify input amount is actual amount
+        // to verify input amount is actual amount
         (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.viewProportionalDeposit(
             curve,
             totalDepositNumeraire * 1e18
         );
 
-        // @todo check how to deal with arrangements of address and amounts
         // @todo within the threshold
-        require(_withinThreshold(amountToDeposit[0], tokensIn[1]), 'FXPool: Deposit amount is invalid');
-        require(_withinThreshold(amountToDeposit[1], tokensIn[0]), 'FXPool: Deposit amount is invalid');
+        require(
+            _withinThreshold(amountToDeposit[_getAssetIndex(assetAddresses[0])], tokensIn[0]),
+            'FXPool: tokensIn[0] and amountsTodeposit[0] is not equal'
+        );
+        require(
+            _withinThreshold(amountToDeposit[_getAssetIndex(assetAddresses[1])], tokensIn[1]),
+            'FXPool: tokensIn[1] and amountsTodeposit[1] is not equal'
+        );
 
         // token a to numeraire, token b to numeraire , add, pass to viewProportional deposit
-
         amountsIn = tokensIn;
-
-        BalancerPoolToken._mintPoolTokens(recipient, lpTokens);
-        // @todo mintLPFee() ?
-
         // @todo check reentrancy attack, call from BalancerToken.supply or change the library?
         curve.totalSupply = curve.totalSupply += lpTokens;
 
+        BalancerPoolToken._mintPoolTokens(recipient, lpTokens);
+        // @todo mintLPFee() ?
         // @todo check fee calculation
         {
             dueProtocolFeeAmounts = new uint256[](2);
@@ -378,18 +378,16 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     ///                 withdraw
     /// @return amountsOut The number of each token to send to the caller
     /// @return dueProtocolFeeAmounts The amounts of each token to pay as protocol fees
-
-    // @todo check on how to return BPT tokens minted
     function onExitPool(
         bytes32 poolId,
         address sender,
         address,
-        uint256[] memory currentBalances,
+        uint256[] memory currentBalances, // @todo for vault transfers
         uint256,
         uint256 protocolSwapFee,
         bytes calldata userData
     ) external override returns (uint256[] memory amountsOut, uint256[] memory dueProtocolFeeAmounts) {
-        uint256 tokensToBurn = abi.decode(userData, (uint256));
+        (uint256 tokensToBurn, address[] memory assetAddresses) = abi.decode(userData, (uint256, address[]));
 
         uint256[] memory amountToWithdraw = ProportionalLiquidity.viewProportionalWithdraw(
             curve,
@@ -402,10 +400,11 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
         {
             amountsOut = new uint256[](2);
-            amountsOut[0] = amountToWithdraw[1];
-            amountsOut[1] = amountToWithdraw[0];
+            amountsOut[0] = amountToWithdraw[_getAssetIndex(assetAddresses[0])];
+            amountsOut[1] = amountToWithdraw[_getAssetIndex(assetAddresses[1])];
         }
-
+        // @todo check reentrancy attack, call from BalancerToken.supply or change the library?
+        curve.totalSupply = curve.totalSupply -= tokensToBurn;
         BalancerPoolToken._burnPoolTokens(sender, tokensToBurn);
 
         // @todo check fee calculation
@@ -502,5 +501,18 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         int128 numeraireAmount = Assimilators.viewNumeraireAmount(curve.assets[tokenPosition].addr, tokenAmount);
 
         return ABDKMath64x64.toUInt(numeraireAmount);
+    }
+
+    function _getAssetIndex(address _assetAddress) internal view returns (uint256) {
+        require(
+            _assetAddress == derivatives[0] || _assetAddress == derivatives[1],
+            'FXPool: Address is not a derivative'
+        );
+
+        if (_assetAddress == derivatives[0]) {
+            return 0;
+        } else {
+            return 1;
+        }
     }
 }
