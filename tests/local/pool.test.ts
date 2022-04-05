@@ -17,6 +17,7 @@ describe('FXPool', () => {
 
   let fxPHPAssimilatorAddress: string
   let usdcAssimilatorAddress: string
+  let sortedAddresses: string[]
 
   const NEW_CAP = parseEther('100000000')
   const NEW_CAP_FAIL = parseEther('1000')
@@ -39,14 +40,18 @@ describe('FXPool', () => {
       parseUnits('1', `${mockToken[3].decimal}`),
       testEnv.fxPHPOracle.address
     )
-
+    // 2 - get Pool Id
     poolId = await testEnv.fxPool.getPoolId()
 
-    // 2 - getAssimilators
+    // 3 - getAssimilators
     fxPHPAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.fxPHP.address)
     usdcAssimilatorAddress = await testEnv.assimilatorFactory.usdcAssimilator()
 
-    console.log(`fxphp: ${fxPHPAssimilatorAddress}, usdc: ${usdcAssimilatorAddress}`)
+    // 4 - sortedAddress references
+    sortedAddresses = sortAddresses([
+      ethers.utils.getAddress(testEnv.fxPHP.address),
+      ethers.utils.getAddress(testEnv.USDC.address),
+    ])
   })
 
   it('FXPool is registered on the vault', async () => {
@@ -63,23 +68,21 @@ describe('FXPool', () => {
     const curveDetails = await testEnv.fxPool.curve()
     expect(curveDetails.cap).to.be.equals(0)
     expect(curveDetails.totalSupply).to.be.equals(0)
-    // const assimilators = curveDetails.assimilators // no curve initialization yet so will comment this for now
   })
   it('Initializes the FXPool and set curve parameters', async () => {
-    // when initializing, do it alphabetically
     await expect(
       testEnv.fxPool.initialize(
         [
-          testEnv.USDC.address,
-          usdcAssimilatorAddress,
-          testEnv.USDC.address,
-          usdcAssimilatorAddress,
-          testEnv.USDC.address,
           testEnv.fxPHP.address,
           fxPHPAssimilatorAddress,
           testEnv.fxPHP.address,
           fxPHPAssimilatorAddress,
           testEnv.fxPHP.address,
+          testEnv.USDC.address,
+          usdcAssimilatorAddress,
+          testEnv.USDC.address,
+          usdcAssimilatorAddress,
+          testEnv.USDC.address,
         ],
         [baseWeight, quoteWeight]
       )
@@ -88,59 +91,71 @@ describe('FXPool', () => {
       .to.emit(testEnv.fxPool, 'AssimilatorIncluded')
 
     await expect(testEnv.fxPool.setParams(ALPHA, BETA, MAX, EPSILON, LAMBDA)).to.emit(testEnv.fxPool, 'ParametersSet')
-
     //  .withArgs(ALPHA, BETA, MAX, EPSILON, LAMBDA) - check delta calculation
   })
   it('Adds liquidity inside the FXPool calling the vault and triggering onJoin hook', async () => {
     await testEnv.fxPHP.approve(testEnv.vault.address, ethers.constants.MaxUint256)
     await testEnv.USDC.approve(testEnv.vault.address, ethers.constants.MaxUint256)
 
-    const viewDeposit = await testEnv.fxPool.viewDeposit(parseEther('10000'))
+    const numeraireAmount = parseEther('10000')
+    const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+    const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
-    console.log(`PHP ${testEnv.fxPHP.address}: ${viewDeposit[1][0]}`)
-    console.log(`USDC ${testEnv.USDC.address}:  ${viewDeposit[1][1]}`)
+    const viewDeposit = await testEnv.fxPool.viewDeposit(numeraireAmount)
 
-    const phpAssimilator = await getAssimilatorContract(fxPHPAssimilatorAddress)
-    // console.log(`PHP AssimL ${fxPHPAssimilatorAddress}, USDC ASsim: ${usdcAssimilatorAddress}`)
-
-    const liquidityToAdd = [viewDeposit[1][1], viewDeposit[1][0]]
-    const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]'], [liquidityToAdd])
+    const liquidityToAdd = [viewDeposit[1][1], viewDeposit[1][0]] // @todo how to make dynamic?
+    const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [liquidityToAdd, sortedAddresses])
     const joinPoolRequest = {
-      assets: [testEnv.USDC.address, testEnv.fxPHP.address],
+      assets: sortedAddresses,
       maxAmountsIn: [ethers.utils.parseUnits('10000000'), ethers.utils.parseUnits('10000000')],
       userData: payload,
       fromInternalBalance: false,
     }
-    await testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)
-    // console.log(await testEnv.fxPool.balanceOf(adminAddress))
-    // console.log(formatUnits(await testEnv.fxPool.balanceOf(adminAddress)))
+    await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.not.be.reverted
 
-    // console.log('FX PHP Pool amount: ', await testEnv.fxPHP.balanceOf(testEnv.vault.address))
-    // console.log('FX USDC Pool amount: ', await testEnv.USDC.balanceOf(testEnv.vault.address))
+    const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+    const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const afterVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+    expect(afterLpBalance, 'Current LP Balance not expected').to.be.equals(beforeLpBalance.add(viewDeposit[0]))
+    expect(afterVaultfxPhpBalance, 'Current fxPHP Balance not expected').to.be.equals(
+      beforeVaultfxPhpBalance.add(viewDeposit[1][0])
+    )
+    expect(afterVaultUsdcBalance, 'Current USDC Balance not expected').to.be.equals(
+      beforeVaultUsdcBalance.add(viewDeposit[1][1])
+    )
   })
   it('Removes liquidity inside the FXPool calling the vault and triggering onExit hook', async () => {
     const poolId = await testEnv.fxPool.getPoolId()
-    //console.log('Before')
-    //console.log('LP Token balance: ', await testEnv.fxPool.balanceOf(adminAddress))
-    //console.log('FX PHP Pool amount: ', await testEnv.fxPHP.balanceOf(testEnv.vault.address))
-    //console.log('FX USDC Pool amount: ', await testEnv.USDC.balanceOf(testEnv.vault.address))
+    const tokensToBurn = parseEther('30')
+    const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+    const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
-    console.log(await testEnv.fxPool.viewWithdraw(parseEther('30')))
-    const payload = ethers.utils.defaultAbiCoder.encode(['uint256'], [parseUnits('30')])
+    const withdrawTokensOut = await testEnv.fxPool.viewWithdraw(tokensToBurn)
+
+    const payload = ethers.utils.defaultAbiCoder.encode(['uint256', 'address[]'], [parseUnits('30'), sortedAddresses])
     const exitPoolRequest = {
-      assets: sortAddresses([testEnv.fxPHP.address, testEnv.USDC.address]),
+      assets: sortedAddresses,
       minAmountsOut: [0, 0], // check token out
       userData: payload,
       toInternalBalance: false,
     }
 
-    await testEnv.vault.exitPool(poolId, adminAddress, adminAddress, exitPoolRequest)
+    await expect(testEnv.vault.exitPool(poolId, adminAddress, adminAddress, exitPoolRequest)).to.not.be.reverted
 
-    //console.log('Vault Balances: ', await testEnv.vault.getPoolTokens(poolId))
-    //console.log('After')
-    //console.log('LP Token balance: ', await testEnv.fxPool.balanceOf(adminAddress))
-    //console.log('FX PHP Pool amount: ', await testEnv.fxPHP.balanceOf(testEnv.vault.address))
-    //console.log('FX USDC Pool amount: ', await testEnv.USDC.balanceOf(testEnv.vault.address))
+    const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+    const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const afterVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+    expect(afterLpBalance, 'Current LP Balance not expected').to.be.equals(beforeLpBalance.sub(tokensToBurn))
+    expect(afterVaultfxPhpBalance, 'Current fxPHP Balance not expected').to.be.equals(
+      beforeVaultfxPhpBalance.sub(withdrawTokensOut[0])
+    )
+    expect(afterVaultUsdcBalance, 'Current USDC Balance not expected').to.be.equals(
+      beforeVaultUsdcBalance.sub(withdrawTokensOut[1])
+    )
   })
   it.skip('Swaps tokan a and token b  calling the vault and triggering onSwap hook', async () => {
     /// VAULT INDEX: index 0: USDC, index 1: fxPHP
@@ -157,10 +172,7 @@ describe('FXPool', () => {
         userData: '0x' as BytesLike,
       },
     ]
-    const swapAssets: string[] = sortAddresses([
-      ethers.utils.getAddress(testEnv.fxPHP.address),
-      ethers.utils.getAddress(testEnv.USDC.address),
-    ])
+    const swapAssets: string[] = sortedAddresses
     const limits = [parseUnits('999999999', 6), parseUnits('999999999')]
     const deadline = ethers.constants.MaxUint256
 
@@ -171,11 +183,7 @@ describe('FXPool', () => {
       toInternalBalance: false,
     }
 
-    const deltas = await testEnv.vault.callStatic.queryBatchSwap(0, swaps, swapAssets, funds)
-    console.log(deltas)
-
     await testEnv.vault.batchSwap(0, swaps, swapAssets, funds, limits, deadline)
-
     console.log('After USDC: ', await testEnv.USDC.balanceOf(adminAddress))
     console.log('After fxPHP: ', await testEnv.fxPHP.balanceOf(adminAddress))
     console.log('FX PHP Pool amount: ', await testEnv.fxPHP.balanceOf(testEnv.vault.address))
@@ -209,7 +217,7 @@ describe('FXPool', () => {
 
     expect(await testEnv.fxPool.setEmergency(false))
       .to.emit(testEnv.fxPool, 'EmergencyAlarm')
-      .withArgs(false) // res et for now, test emergency withdraw
+      .withArgs(false) // reset for now, test emergency withdraw
   })
   it('can set cap when owner', async () => {
     const curveDetails = await testEnv.fxPool.curve()

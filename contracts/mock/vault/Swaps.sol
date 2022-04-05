@@ -30,7 +30,8 @@ import './interfaces/IPoolSwapStructs.sol';
 import './interfaces/IGeneralPool.sol';
 import './interfaces/IMinimalSwapInfoPool.sol';
 import './balances/BalanceAllocation.sol';
-import 'hardhat/console.sol';
+
+//import 'hardhat/console.sol';
 
 /**
  * Implements the Vault's high-level swap functionality.
