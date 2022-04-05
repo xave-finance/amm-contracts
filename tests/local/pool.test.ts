@@ -112,7 +112,7 @@ describe('FXPool', () => {
       userData: payload,
       fromInternalBalance: false,
     }
-    await testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)
+    await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.not.be.reverted
 
     const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
     const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
