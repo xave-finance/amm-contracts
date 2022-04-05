@@ -3,11 +3,15 @@ const childProcess = require('child_process')
 
 const runNpmCommand = (command: string) => childProcess.execSync(command, { stdio: [0, 1, 2] })
 
-import editJson from 'edit-json-file'
-const TOKENS_FILE = editJson(`${__dirname}/../constants/TOKENS.json`)
+const pools = {
+  fxPHP: {
+    poolId: '0x2f0d54fc87f28bd4eb1ff0d1a926400126b9bb1a0002000000000000000007bb',
+    baseToken: '0x07bAB1e2D6DCb965d250F376B811ab8c2373AAE0',
+    quoteToken: '0x7e6F38922B59545bB5A6dc3A71039b85dFB1B7cE',
+  },
+}
 
-const POOLS_FILE = editJson(`${__dirname}/../constants/POOLS.json`)
-const listOfPools = POOLS_FILE.get('POOLS_LIST')
+const listOfPools = Object.keys(pools).map((key) => `${key}:USDC`)
 
 inquirer
   .prompt([
@@ -17,12 +21,12 @@ inquirer
       message: 'Which network to test',
       choices: ['kovan', 'matic'],
     },
-    // {
-    //   type: 'list',
-    //   name: 'pool',
-    //   message: 'Specify Pool',
-    //   choices: listOfPools,
-    // },
+    {
+      type: 'list',
+      name: 'pool',
+      message: 'Specify Pool',
+      choices: listOfPools,
+    },
     {
       type: 'input',
       name: 'baseAmount',
@@ -41,23 +45,20 @@ inquirer
   ])
   .then(async (answers: any) => {
     const network = answers.network
-    const pool = answers.pool
-
+    const pool = answers.pool as string
     const baseAmount = answers.baseAmount
     const quoteAmount = answers.quoteAmount
     const frominternalbalance = answers.fromInternalBalance
 
-    // const baseToken = `${pool.split('-')[0]}`
-    // const quoteToken = `${pool.split('-')[1]}`
+    const key = pool.split(':')[0]
+    const poolId = pools[key as keyof typeof pools].poolId
 
-    // const baseTokenAddress = await TOKENS_FILE.get(`${baseToken}.${network}`)
-    // const quoteTokenAddress = await TOKENS_FILE.get(`${quoteToken}.${network}`)
     const baseTokenAddress = '0x07bAB1e2D6DCb965d250F376B811ab8c2373AAE0'
     const quoteTokenAddress = '0x7e6F38922B59545bB5A6dc3A71039b85dFB1B7cE'
 
-    console.log(`npx hardhat add-liquidity --to ${network} --pool ${pool} --basetoken ${baseTokenAddress} --quotetoken ${quoteTokenAddress}\
+    console.log(`npx hardhat add-liquidity --to ${network} --poolid ${poolId} --basetoken ${baseTokenAddress} --quotetoken ${quoteTokenAddress}\
   --baseamount ${baseAmount} --quoteamount ${quoteAmount} --frominternalbalance ${frominternalbalance} --network ${network}`)
 
-    runNpmCommand(`npx hardhat add-liquidity --to ${network} --pool ${pool} --basetoken ${baseTokenAddress} --quotetoken ${quoteTokenAddress}\
+    runNpmCommand(`npx hardhat add-liquidity --to ${network} --poolid ${poolId} --basetoken ${baseTokenAddress} --quotetoken ${quoteTokenAddress}\
   --baseamount ${baseAmount} --quoteamount ${quoteAmount} --frominternalbalance ${frominternalbalance} --network ${network}`)
   })

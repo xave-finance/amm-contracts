@@ -160,23 +160,6 @@ export default async (taskArgs: any) => {
   )
   console.log(`> FxPool initialized!`)
 
-  /**
-   * Step# - update vault & poolId on assimilators
-   */
-  console.log(`> Updating assimilators...`)
   const poolId = await fxPool.getPoolId()
   console.log(`> Balancer vault pool id: ${poolId}`)
-
-  const BaseToUsdAssimilator = await ethers.getContractFactory('BaseToUsdAssimilator')
-  const baseAssimilator: BaseToUsdAssimilator = BaseToUsdAssimilator.attach(baseAssimilatorAddress)
-  console.log(`setting vault to ${vaultAddress}...`)
-  await baseAssimilator.setVault(vaultAddress)
-  console.log('finished setting vault!')
-  await baseAssimilator.setPoolId(poolId)
-
-  const UsdcToUsdAssimilator = await ethers.getContractFactory('UsdcToUsdAssimilator')
-  const quoteAssimilator: UsdcToUsdAssimilator = UsdcToUsdAssimilator.attach(quoteAssimilatorAddress)
-  await quoteAssimilator.setVault(vaultAddress)
-  await quoteAssimilator.setPoolId(poolId)
-  console.log(`> Assimilators updated!`)
 }
