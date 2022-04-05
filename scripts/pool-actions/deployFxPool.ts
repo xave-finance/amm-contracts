@@ -6,8 +6,6 @@ import {
 } from '../utils/addresses'
 import { AssimilatorFactory } from '../../typechain/AssimilatorFactory'
 import { FXPool } from '../../typechain/FXPool'
-import { BaseToUsdAssimilator } from '../../typechain/BaseToUsdAssimilator'
-import { UsdcToUsdAssimilator } from '../../typechain/UsdcToUsdAssimilator'
 import { fxPHPUSDCFxPool } from '../../tests/constants/mockPoolList'
 
 declare const ethers: any
@@ -113,11 +111,11 @@ export default async (taskArgs: any) => {
     },
   })
 
-  const assets = [baseTokenAddress, quoteTokenAddress].sort()
+  const sortedAssets = [baseTokenAddress, quoteTokenAddress].sort()
   const deadline = new Date().getTime() + 60 * 5 * 1000 // 5 minutes from now
   console.log(`> Deploying FxPool...`)
   console.table({
-    assets: assets.join(', '),
+    assets: sortedAssets.join(', '),
     expiration: deadline,
     unitSeconds: fxPHPUSDCFxPool.unitSeconds,
     vault: vaultAddress,
@@ -126,7 +124,7 @@ export default async (taskArgs: any) => {
     symbol: fxPHPUSDCFxPool.symbol,
   })
   const fxPool: FXPool = await FXPoolFactory.deploy(
-    assets,
+    sortedAssets,
     deadline,
     ethers.utils.parseUnits('100'),
     vaultAddress,
@@ -143,21 +141,24 @@ export default async (taskArgs: any) => {
   console.log(`> Initializing FxPool...`)
   const baseWeight = ethers.utils.parseUnits('0.5')
   const quoteWeight = ethers.utils.parseUnits('0.5')
-  fxPool.initialize(
-    [
-      baseTokenAddress,
-      baseAssimilatorAddress,
-      baseTokenAddress,
-      baseAssimilatorAddress,
-      baseTokenAddress,
-      quoteTokenAddress,
-      quoteAssimilatorAddress,
-      quoteTokenAddress,
-      quoteAssimilatorAddress,
-      quoteTokenAddress,
-    ],
-    [baseWeight, quoteWeight]
-  )
+  const assetsWeights = [baseWeight, quoteWeight]
+  const assets = [
+    baseTokenAddress,
+    baseAssimilatorAddress,
+    baseTokenAddress,
+    baseAssimilatorAddress,
+    baseTokenAddress,
+    quoteTokenAddress,
+    quoteAssimilatorAddress,
+    quoteTokenAddress,
+    quoteAssimilatorAddress,
+    quoteTokenAddress,
+  ]
+  console.table({
+    assets: assets.toString(),
+    assetsWeights: assetsWeights.toString(),
+  })
+  const tx = await fxPool.initialize(assets, assetsWeights)
   console.log(`> FxPool initialized!`)
 
   const poolId = await fxPool.getPoolId()

@@ -64,6 +64,9 @@ export const setupEnvironment = async (): Promise<TestEnv> => {
   const EURSOracle = mockTokenArray[2].oracleInstance
   const fxPHPOracle = mockTokenArray[3].oracleInstance
 
+  console.log('USDC address:', USDC.address)
+  console.log('fxPHP address:', fxPHP.address)
+
   const assimilatorFactory = await deployAssimilatorFactory(USDCOracle.address, USDC.address)
   const fxPool = await deployFXPool(
     sortAddresses([fxPHP.address, USDC.address]),

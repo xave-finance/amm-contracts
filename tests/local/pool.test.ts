@@ -104,8 +104,15 @@ describe('FXPool', () => {
 
     const viewDeposit = await testEnv.fxPool.viewDeposit(numeraireAmount)
 
-    const liquidityToAdd = [viewDeposit[1][1], viewDeposit[1][0]] // @todo how to make dynamic?
+    let liquidityToAdd: BigNumber[]
+    if (sortedAddresses[0] === ethers.utils.getAddress(testEnv.fxPHP.address)) {
+      liquidityToAdd = [viewDeposit[1][0], viewDeposit[1][1]]
+    } else {
+      liquidityToAdd = [viewDeposit[1][1], viewDeposit[1][0]]
+    }
+
     const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [liquidityToAdd, sortedAddresses])
+
     const joinPoolRequest = {
       assets: sortedAddresses,
       maxAmountsIn: [ethers.utils.parseUnits('10000000'), ethers.utils.parseUnits('10000000')],

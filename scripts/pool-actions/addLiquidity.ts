@@ -40,7 +40,7 @@ export default async (taskArgs: any) => {
   }
   console.log('liquidityToAdd:', liquidityToAdd.toString())
 
-  const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]'], [liquidityToAdd])
+  const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [liquidityToAdd, sortedAddresses])
 
   const joinPoolRequest = {
     assets: sortedAddresses,
