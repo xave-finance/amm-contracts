@@ -11,6 +11,12 @@ import { fxPHPUSDCFxPool } from '../../tests/constants/mockPoolList'
 declare const ethers: any
 
 export default async (taskArgs: any) => {
+  const ALPHA = ethers.utils.parseUnits('0.8')
+  const BETA = ethers.utils.parseUnits('0.5')
+  const MAX = ethers.utils.parseUnits('0.15')
+  const EPSILON = ethers.utils.parseUnits('0.0004')
+  const LAMBDA = ethers.utils.parseUnits('0.3')
+
   const network = taskArgs.to
   const baseToken = taskArgs.basetoken
   const freshDeploy = taskArgs.fresh ? taskArgs.fresh === 'true' : false
@@ -136,6 +142,9 @@ export default async (taskArgs: any) => {
   await fxPool.deployed()
   console.log(`> FxPool successfully deployed at: ${fxPool.address}`)
 
+  const poolId = await fxPool.getPoolId()
+  console.log(`> Balancer vault pool id: ${poolId}`)
+
   /**
    * Step# - initialize pool
    */
@@ -159,9 +168,13 @@ export default async (taskArgs: any) => {
     assets: assets.toString(),
     assetsWeights: assetsWeights.toString(),
   })
-  const tx = await fxPool.initialize(assets, assetsWeights)
+  await fxPool.initialize(assets, assetsWeights)
   console.log(`> FxPool initialized!`)
 
-  const poolId = await fxPool.getPoolId()
-  console.log(`> Balancer vault pool id: ${poolId}`)
+  /**
+   * Step# - set pool/curve params
+   **/
+  console.log(`> Setting FxPool params...`)
+  await fxPool.setParams(ALPHA, BETA, MAX, EPSILON, LAMBDA)
+  console.log(`> FxPool params set!`)
 }
