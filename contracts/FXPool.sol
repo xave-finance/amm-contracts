@@ -335,21 +335,28 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         // to verify input amount is actual amount
         (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.viewProportionalDeposit(
             curve,
-            totalDepositNumeraire * 1e18
+            totalDepositNumeraire * 1e18,
+            address(_vault),
+            _poolId
         );
 
         // @todo within the threshold
-        require(
-            _withinThreshold(amountToDeposit[_getAssetIndex(assetAddresses[0])], tokensIn[0]),
-            'FXPool: tokensIn[0] and amountsTodeposit[0] is not equal'
-        );
-        require(
-            _withinThreshold(amountToDeposit[_getAssetIndex(assetAddresses[1])], tokensIn[1]),
-            'FXPool: tokensIn[1] and amountsTodeposit[1] is not equal'
-        );
+        // require(
+        //     _withinThreshold(amountToDeposit[_getAssetIndex(assetAddresses[0])], tokensIn[0]),
+        //     'FXPool: tokensIn[0] and amountsTodeposit[0] is not equal'
+        // );
+        // require(
+        //     _withinThreshold(amountToDeposit[_getAssetIndex(assetAddresses[1])], tokensIn[1]),
+        //     'FXPool: tokensIn[1] and amountsTodeposit[1] is not equal'
+        // );
 
         // token a to numeraire, token b to numeraire , add, pass to viewProportional deposit
-        amountsIn = tokensIn;
+        // amountsIn = tokensIn;
+        {
+            amountsIn = new uint256[](2);
+            amountsIn[0] = amountToDeposit[_getAssetIndex(assetAddresses[0])];
+            amountsIn[1] = amountToDeposit[_getAssetIndex(assetAddresses[1])];
+        }
         // @todo check reentrancy attack, call from BalancerToken.supply or change the library?
         curve.totalSupply = curve.totalSupply += lpTokens;
 
@@ -461,7 +468,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     // @todo add curve modifiers
     function viewDeposit(uint256 _deposit) external view returns (uint256, uint256[] memory) {
         // curvesToMint_, depositsToMake_
-        return ProportionalLiquidity.viewProportionalDeposit(curve, _deposit);
+        return ProportionalLiquidity.viewProportionalDeposit(curve, _deposit, address(_vault), _poolId);
     }
 
     function viewWithdraw(uint256 _curvesToBurn) external view returns (uint256[] memory) {
