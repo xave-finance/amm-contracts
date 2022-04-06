@@ -171,22 +171,31 @@ contract BaseToUsdAssimilator is IAssimilator {
         uint256 _baseWeight,
         uint256 _quoteWeight,
         address _addr,
-        int128 _amount
+        int128 _amount,
+        address vault,
+        bytes32 poolId
     ) external view override returns (uint256 amount_) {
-        uint256 _baseTokenBal = baseToken.balanceOf(_addr);
-
-        if (_baseTokenBal <= 0) return 0;
-
-        // base decimals
-        _baseTokenBal = _baseTokenBal.mul(1e18).div(_baseWeight);
-
         // 1e6
-        uint256 _usdcBal = usdc.balanceOf(_addr).mul(1e18).div(_quoteWeight);
+        (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
 
-        // Rate is in 1e6
-        uint256 _rate = _usdcBal.mul(baseDecimals).div(_baseTokenBal);
+        if (address(tokens[0]) == address(usdc)) {
+            uint256 _baseTokenBal = balances[1];
+            if (_baseTokenBal <= 0) return 0;
 
-        amount_ = (_amount.mulu(baseDecimals) * 1e6) / _rate;
+            // base decimals
+            _baseTokenBal = _baseTokenBal.mul(1e18).div(_baseWeight);
+            uint256 _usdcBal = balances[0].mul(1e18).div(_quoteWeight);
+            uint256 _rate = _usdcBal.mul(baseDecimals).div(_baseTokenBal);
+
+            amount_ = (_amount.mulu(baseDecimals) * 1e6) / _rate;
+        } else {
+            uint256 _baseTokenBal = balances[0];
+            if (_baseTokenBal <= 0) return 0;
+            uint256 _usdcBal = balances[1].mul(1e18).div(_quoteWeight);
+            uint256 _rate = _usdcBal.mul(baseDecimals).div(_baseTokenBal);
+
+            amount_ = (_amount.mulu(baseDecimals) * 1e6) / _rate;
+        }
     }
 
     // takes a raw amount and returns the numeraire amount
@@ -247,8 +256,30 @@ contract BaseToUsdAssimilator is IAssimilator {
     function viewNumeraireBalanceLPRatio(
         uint256 _baseWeight,
         uint256 _quoteWeight,
-        address _addr
+        address _addr,
+        address vault,
+        bytes32 poolId
     ) external view override returns (int128 balance_) {
+        (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
+
+        if (address(tokens[0]) == address(usdc)) {
+            uint256 _baseTokenBal = balances[1];
+            if (_baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
+
+            uint256 _usdcBal = balances[0].mul(1e18).div(_quoteWeight);
+            uint256 _rate = _usdcBal.mul(1e18).div(_baseTokenBal.mul(1e18).div(_baseWeight));
+
+            balance_ = ((_baseTokenBal * _rate) / 1e6).divu(1e18);
+        } else {
+            uint256 _baseTokenBal = balances[0];
+            if (_baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
+
+            uint256 _usdcBal = balances[1].mul(1e18).div(_quoteWeight);
+            uint256 _rate = _usdcBal.mul(1e18).div(_baseTokenBal.mul(1e18).div(_baseWeight));
+
+            balance_ = ((_baseTokenBal * _rate) / 1e6).divu(1e18);
+        }
+        /*
         uint256 _baseTokenBal = baseToken.balanceOf(_addr);
 
         if (_baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
@@ -259,5 +290,6 @@ contract BaseToUsdAssimilator is IAssimilator {
         uint256 _rate = _usdcBal.mul(1e18).div(_baseTokenBal.mul(1e18).div(_baseWeight));
 
         balance_ = ((_baseTokenBal * _rate) / 1e6).divu(1e18);
+        */
     }
 }

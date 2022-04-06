@@ -11,7 +11,7 @@ import './lib/ABDKMath64x64.sol';
 
 import './CurveMath.sol';
 
-//import 'hardhat/console.sol';
+import 'hardhat/console.sol';
 
 library ProportionalLiquidity {
     using ABDKMath64x64 for uint256;
@@ -82,22 +82,23 @@ library ProportionalLiquidity {
 
 
 */
-    function viewProportionalDeposit(Storage.Curve storage curve, uint256 _deposit)
-        external
-        view
-        returns (uint256 curves_, uint256[] memory)
-    {
+    function viewProportionalDeposit(
+        Storage.Curve storage curve,
+        uint256 _deposit,
+        address vault,
+        bytes32 poolId
+    ) external view returns (uint256 curves_, uint256[] memory) {
         int128 __deposit = _deposit.divu(1e18);
 
-        uint256 _length = curve.assets.length;
+        // uint256 _length =
 
-        (int128 _oGLiq, int128[] memory _oBals) = getGrossLiquidityAndBalancesForDeposit(curve);
+        (int128 _oGLiq, int128[] memory _oBals) = getGrossLiquidityAndBalancesForDeposit(curve, vault, poolId);
 
-        uint256[] memory deposits_ = new uint256[](_length);
+        uint256[] memory deposits_ = new uint256[](curve.assets.length);
 
         // No liquidity
         if (_oGLiq == 0) {
-            for (uint256 i = 0; i < _length; i++) {
+            for (uint256 i = 0; i < curve.assets.length; i++) {
                 deposits_[i] = Assimilators.viewRawAmount(
                     curve.assets[i].addr,
                     __deposit.mul(curve.weights[i]).add(ONE_WEI)
@@ -106,25 +107,33 @@ library ProportionalLiquidity {
         } else {
             // We already have an existing pool ratio
             // this must be respected
-            int128 _multiplier = __deposit.div(_oGLiq);
+            //  int128 _multiplier = __deposit.div(_oGLiq);
 
             uint256 _baseWeight = curve.weights[0].mulu(1e18);
             uint256 _quoteWeight = curve.weights[1].mulu(1e18);
 
             // Deposits into the pool is determined by existing LP ratio
-            for (uint256 i = 0; i < _length; i++) {
+            for (uint256 i = 0; i < curve.assets.length; i++) {
                 deposits_[i] = Assimilators.viewRawAmountLPRatio(
                     curve.assets[i].addr,
                     _baseWeight,
                     _quoteWeight,
-                    _oBals[i].mul(_multiplier).add(ONE_WEI)
+                    _oBals[i].mul(__deposit.div(_oGLiq)).add(ONE_WEI),
+                    vault,
+                    poolId
                 );
             }
         }
-
+        console.log('TOTALSUPPLY: ', curve.totalSupply);
         int128 _totalShells = curve.totalSupply.divu(1e18);
 
         int128 _newShells = __deposit;
+        console.log('NEW SHELLS');
+        console.logInt(_newShells);
+        console.log('TOTAL SHELLS');
+        console.logInt(_totalShells);
+        console.log('oGLiq');
+        console.logInt(_oGLiq);
 
         if (_totalShells > 0) {
             _newShells = __deposit.div(_oGLiq);
@@ -222,11 +231,11 @@ library ProportionalLiquidity {
         return withdrawals_;
     }
 
-    function getGrossLiquidityAndBalancesForDeposit(Storage.Curve storage curve)
-        internal
-        view
-        returns (int128 grossLiquidity_, int128[] memory)
-    {
+    function getGrossLiquidityAndBalancesForDeposit(
+        Storage.Curve storage curve,
+        address vault,
+        bytes32 poolId
+    ) internal view returns (int128 grossLiquidity_, int128[] memory) {
         uint256 _length = curve.assets.length;
 
         int128[] memory balances_ = new int128[](_length);
@@ -234,7 +243,13 @@ library ProportionalLiquidity {
         uint256 _quoteWeight = curve.weights[1].mulu(1e18);
 
         for (uint256 i = 0; i < _length; i++) {
-            int128 _bal = Assimilators.viewNumeraireBalanceLPRatio(_baseWeight, _quoteWeight, curve.assets[i].addr);
+            int128 _bal = Assimilators.viewNumeraireBalanceLPRatio(
+                _baseWeight,
+                _quoteWeight,
+                curve.assets[i].addr,
+                vault,
+                poolId
+            );
 
             balances_[i] = _bal;
             grossLiquidity_ += _bal;

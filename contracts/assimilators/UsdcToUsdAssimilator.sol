@@ -141,7 +141,9 @@ contract UsdcToUsdAssimilator is IAssimilator {
         uint256,
         uint256,
         address,
-        int128 _amount
+        int128 _amount,
+        address,
+        bytes32
     ) external pure override returns (uint256 amount_) {
         amount_ = _amount.mulu(DECIMALS);
     }
@@ -172,7 +174,9 @@ contract UsdcToUsdAssimilator is IAssimilator {
     function viewNumeraireBalanceLPRatio(
         uint256,
         uint256,
-        address _addr
+        address _addr,
+        address,
+        bytes32
     ) external view override returns (int128 balance_) {
         uint256 _balance = usdc.balanceOf(_addr);
 

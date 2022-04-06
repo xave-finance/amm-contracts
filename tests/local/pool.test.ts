@@ -125,6 +125,7 @@ describe('FXPool', () => {
     expect(afterVaultUsdcBalance, 'Current USDC Balance not expected').to.be.equals(
       beforeVaultUsdcBalance.add(viewDeposit[1][1])
     )
+    console.log(await testEnv.fxPool.viewDeposit(parseEther('23')))
   })
   it('Removes liquidity inside the FXPool calling the vault and triggering onExit hook', async () => {
     const poolId = await testEnv.fxPool.getPoolId()
@@ -156,6 +157,78 @@ describe('FXPool', () => {
     expect(afterVaultUsdcBalance, 'Current USDC Balance not expected').to.be.equals(
       beforeVaultUsdcBalance.sub(withdrawTokensOut[1])
     )
+  })
+
+  it('Adds liquidity inside the FXPool calling the vault and triggering onJoin hook - 2', async () => {
+    const numeraireAmount = parseEther('32')
+    const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+    const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+    const viewDeposit = await testEnv.fxPool.viewDeposit(numeraireAmount)
+
+    const liquidityToAdd = [viewDeposit[1][1], viewDeposit[1][0]] // @todo how to make dynamic?
+    const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [liquidityToAdd, sortedAddresses])
+    const joinPoolRequest = {
+      assets: sortedAddresses,
+      maxAmountsIn: [ethers.utils.parseUnits('10000000'), ethers.utils.parseUnits('10000000')],
+      userData: payload,
+      fromInternalBalance: false,
+    }
+    await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.not.be.reverted
+
+    const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+    const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const afterVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+    console.log(
+      `before:${beforeLpBalance}, after: ${afterLpBalance}, diff: ${afterLpBalance.sub(beforeLpBalance)}, deposit: ${
+        viewDeposit[0]
+      } `
+    )
+
+    // expect(afterLpBalance, 'Current LP Balance not expected').to.be.equals(beforeLpBalance.add(viewDeposit[0]))
+    expect(afterVaultfxPhpBalance, 'Current fxPHP Balance not expected').to.be.equals(
+      beforeVaultfxPhpBalance.add(viewDeposit[1][0])
+    )
+    expect(afterVaultUsdcBalance, 'Current USDC Balance not expected').to.be.equals(
+      beforeVaultUsdcBalance.add(viewDeposit[1][1])
+    )
+  })
+
+  it('Removes liquidity inside the FXPool calling the vault and triggering onExit hook -2', async () => {
+    const poolId = await testEnv.fxPool.getPoolId()
+    const tokensToBurn = parseEther('30')
+    const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+    const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+    const withdrawTokensOut = await testEnv.fxPool.viewWithdraw(tokensToBurn)
+
+    const payload = ethers.utils.defaultAbiCoder.encode(['uint256', 'address[]'], [parseUnits('30'), sortedAddresses])
+    const exitPoolRequest = {
+      assets: sortedAddresses,
+      minAmountsOut: [0, 0], // check token out
+      userData: payload,
+      toInternalBalance: false,
+    }
+
+    await expect(testEnv.vault.exitPool(poolId, adminAddress, adminAddress, exitPoolRequest)).to.not.be.reverted
+
+    const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+    const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const afterVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+    console.log(
+      `afterlpbalance: ${afterLpBalance}, aftervaultbalance: ${afterVaultfxPhpBalance}, afterVaultUsdcBalance: ${afterVaultUsdcBalance}`
+    )
+    // expect(afterLpBalance, 'Current LP Balance not expected').to.be.equals(beforeLpBalance.sub(tokensToBurn))
+    // expect(afterVaultfxPhpBalance, 'Current fxPHP Balance not expected').to.be.equals(
+    //   beforeVaultfxPhpBalance.sub(withdrawTokensOut[0])
+    // )
+    // expect(afterVaultUsdcBalance, 'Current USDC Balance not expected').to.be.equals(
+    //   beforeVaultUsdcBalance.sub(withdrawTokensOut[1])
+    // )
   })
   it.skip('Swaps tokan a and token b  calling the vault and triggering onSwap hook', async () => {
     /// VAULT INDEX: index 0: USDC, index 1: fxPHP
