@@ -3,15 +3,7 @@ const childProcess = require('child_process')
 
 const runNpmCommand = (command: string) => childProcess.execSync(command, { stdio: [0, 1, 2] })
 
-const pools = {
-  fxPHP: {
-    poolId: '0x5288e69afdd329d677202fe855275a8c7a89f7630002000000000000000007c8',
-    baseToken: '0x07bAB1e2D6DCb965d250F376B811ab8c2373AAE0',
-    quoteToken: '0x7e6F38922B59545bB5A6dc3A71039b85dFB1B7cE',
-  },
-}
-
-const listOfPools = Object.keys(pools).map((key) => `${key}:USDC`)
+import { pools, listOfPools } from '../constants/deployedAddresses'
 
 inquirer
   .prompt([
@@ -51,14 +43,32 @@ inquirer
     const frominternalbalance = answers.fromInternalBalance
 
     const key = pool.split(':')[0]
-    const poolId = pools[key as keyof typeof pools].poolId
+    const selectedPool = pools[key as keyof typeof pools]
+    const poolId = selectedPool.poolId
+    const baseTokenAddress = selectedPool.baseToken
+    const quoteTokenAddress = selectedPool.quoteToken
 
-    const baseTokenAddress = '0x07bAB1e2D6DCb965d250F376B811ab8c2373AAE0'
-    const quoteTokenAddress = '0x7e6F38922B59545bB5A6dc3A71039b85dFB1B7cE'
+    console.log(
+      `npx hardhat add-liquidity ` +
+        `--to ${network} ` +
+        `--poolid ${poolId} ` +
+        `--basetoken ${baseTokenAddress} ` +
+        `--quotetoken ${quoteTokenAddress} ` +
+        `--baseamount ${baseAmount} ` +
+        `--quoteamount ${quoteAmount} ` +
+        `--frominternalbalance ${frominternalbalance} ` +
+        `--network ${network}`
+    )
 
-    console.log(`npx hardhat add-liquidity --to ${network} --poolid ${poolId} --basetoken ${baseTokenAddress} --quotetoken ${quoteTokenAddress}\
-  --baseamount ${baseAmount} --quoteamount ${quoteAmount} --frominternalbalance ${frominternalbalance} --network ${network}`)
-
-    runNpmCommand(`npx hardhat add-liquidity --to ${network} --poolid ${poolId} --basetoken ${baseTokenAddress} --quotetoken ${quoteTokenAddress}\
-  --baseamount ${baseAmount} --quoteamount ${quoteAmount} --frominternalbalance ${frominternalbalance} --network ${network}`)
+    runNpmCommand(
+      `npx hardhat add-liquidity ` +
+        `--to ${network} ` +
+        `--poolid ${poolId} ` +
+        `--basetoken ${baseTokenAddress} ` +
+        `--quotetoken ${quoteTokenAddress} ` +
+        `--baseamount ${baseAmount} ` +
+        `--quoteamount ${quoteAmount} ` +
+        `--frominternalbalance ${frominternalbalance} ` +
+        `--network ${network}`
+    )
   })

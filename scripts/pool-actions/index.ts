@@ -6,7 +6,6 @@ import RemoveLiquidity from './removeLiquidity'
 declare const task: any
 
 export default () => {
-  // @todo: temporarily commenting `deploy-pool` as it is causing a compile error
   // task('deploy-pool', 'Deploy custom pool')
   //   .addParam('to', 'Network to deploy Pool')
   //   .addParam('strategy', 'Strategy of deployment')
@@ -38,11 +37,11 @@ export default () => {
 
   task('remove-liquidity', 'Remove liquidity from custom balancer pool')
     .addParam('to', 'Network to deploy Pool')
-    .addParam('pool', 'Pool to add liquidity')
+    .addParam('pooladdress', 'Pool to remove liquidity from (address)')
+    .addParam('poolid', 'Pool to remove liquidity from (vault pool id)')
     .addParam('basetoken', 'Base Token of Pool')
     .addParam('quotetoken', 'Quote token of Pool')
-    .addParam('baseamount', 'Amount to add on base token side')
-    .addParam('quoteamount', 'Amount to add on quote token side')
+    .addParam('lptamount', 'Amount of LPT to withdraw')
     .addParam('tointernalbalance', 'Remove liquidity send to vault internal balance')
     .setAction(RemoveLiquidity)
 }

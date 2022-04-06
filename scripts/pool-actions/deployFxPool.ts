@@ -104,6 +104,7 @@ export default async (taskArgs: any) => {
   const ProportionalLiquidityFactory = await ethers.getContractFactory('ProportionalLiquidity')
   const proportionalLiquidity = await ProportionalLiquidityFactory.deploy()
   await proportionalLiquidity.deployed()
+  console.log('> ProportionalLiquidity deployed at:', proportionalLiquidity.address)
 
   const FXPoolFactory = await ethers.getContractFactory('FXPool', {
     libraries: {
