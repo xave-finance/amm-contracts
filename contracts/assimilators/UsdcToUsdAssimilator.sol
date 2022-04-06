@@ -175,12 +175,17 @@ contract UsdcToUsdAssimilator is IAssimilator {
         uint256,
         uint256,
         address _addr,
-        address,
-        bytes32
+        address vault,
+        bytes32 poolId
     ) external view override returns (int128 balance_) {
-        uint256 _balance = usdc.balanceOf(_addr);
+        (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
+        //  uint256 _balance = usdc.balanceOf(_addr);
 
-        return _balance.divu(DECIMALS);
+        if (address(tokens[0]) == address(usdc)) {
+            return balances[0].divu(DECIMALS);
+        } else {
+            return balances[1].divu(DECIMALS);
+        }
     }
 
     function viewNumeraireAmountAndBalance(

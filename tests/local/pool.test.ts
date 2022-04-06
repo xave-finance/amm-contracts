@@ -166,6 +166,7 @@ describe('FXPool', () => {
     const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
     const viewDeposit = await testEnv.fxPool.viewDeposit(numeraireAmount)
+    console.log('view deposit 2: ', viewDeposit)
 
     const liquidityToAdd = [viewDeposit[1][1], viewDeposit[1][0]] // @todo how to make dynamic?
     const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [liquidityToAdd, sortedAddresses])
