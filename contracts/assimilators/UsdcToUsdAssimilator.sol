@@ -171,20 +171,17 @@ contract UsdcToUsdAssimilator is IAssimilator {
         uint256 _rate = getRate();
 
         (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
-        // uint256 _balance = usdc.balanceOf(_addr);
-        // uint256 _balance = balances[0];
-        // needs token check
 
-        uint256 _balance = 0;
+        uint256 quoteBalance = 0;
         if (address(tokens[0]) == address(usdc)) {
-            _balance = balances[0];
+            quoteBalance = balances[0];
         } else {
-            _balance = balances[1];
+            quoteBalance = balances[1];
         }
 
-        if (_balance <= 0) return ABDKMath64x64.fromUInt(0);
+        if (quoteBalance <= 0) return ABDKMath64x64.fromUInt(0);
 
-        balance_ = ((_balance * _rate) / 1e8).divu(DECIMALS);
+        balance_ = ((quoteBalance * _rate) / 1e8).divu(DECIMALS);
     }
 
     // views the numeraire value of the current balance of the reserve wrt to USD
