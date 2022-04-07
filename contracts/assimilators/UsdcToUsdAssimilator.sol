@@ -194,8 +194,6 @@ contract UsdcToUsdAssimilator is IAssimilator {
         bytes32 poolId
     ) external view override returns (int128 balance_) {
         (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
-        //  uint256 _balance = usdc.balanceOf(_addr);
-        // needs token check
 
         if (address(tokens[0]) == address(usdc)) {
             return balances[0].divu(DECIMALS);
