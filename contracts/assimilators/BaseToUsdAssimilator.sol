@@ -202,6 +202,8 @@ contract BaseToUsdAssimilator is IAssimilator {
 
             amount_ = (_amount.mulu(baseDecimals) * 1e6) / _rate;
         }
+
+        console.log('amount_ %s', amount_);
     }
 
     // takes a raw amount and returns the numeraire amount
