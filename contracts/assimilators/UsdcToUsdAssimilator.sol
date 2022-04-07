@@ -44,10 +44,12 @@ contract UsdcToUsdAssimilator is IAssimilator {
 
     function intakeRawAndGetBalance(uint256 _amount) external override returns (int128 amount_, int128 balance_) {
         bool _success = usdc.transferFrom(msg.sender, address(this), _amount);
+        // needs transfer from vault
 
         require(_success, 'Curve/USDC-transfer-from-failed');
 
         uint256 _balance = usdc.balanceOf(address(this));
+        // needs vault balance check
 
         uint256 _rate = getRate();
 
@@ -58,6 +60,7 @@ contract UsdcToUsdAssimilator is IAssimilator {
 
     function intakeRaw(uint256 _amount) external override returns (int128 amount_) {
         bool _success = usdc.transferFrom(msg.sender, address(this), _amount);
+        // needs transfer from vault
 
         require(_success, 'Curve/USDC-transfer-from-failed');
 
@@ -72,6 +75,7 @@ contract UsdcToUsdAssimilator is IAssimilator {
         amount_ = (_amount.mulu(DECIMALS) * 1e8) / _rate;
 
         bool _success = usdc.transferFrom(msg.sender, address(this), amount_);
+        // needs transfer from vault
 
         require(_success, 'Curve/USDC-transfer-from-failed');
     }
@@ -85,6 +89,7 @@ contract UsdcToUsdAssimilator is IAssimilator {
         amount_ = _amount.mulu(DECIMALS);
 
         bool _success = usdc.transferFrom(msg.sender, address(this), amount_);
+        // transfer from vault
 
         require(_success, 'Curve/USDC-transfer-from-failed');
     }
@@ -99,10 +104,12 @@ contract UsdcToUsdAssimilator is IAssimilator {
         uint256 _usdcAmount = ((_amount * _rate) / 1e8);
 
         bool _success = usdc.transfer(_dst, _usdcAmount);
+        // needs token check + transfer from vault
 
         require(_success, 'Curve/USDC-transfer-failed');
 
         uint256 _balance = usdc.balanceOf(address(this));
+        // needs token check + transfer from vault
 
         amount_ = _usdcAmount.divu(DECIMALS);
 
@@ -160,9 +167,18 @@ contract UsdcToUsdAssimilator is IAssimilator {
         bytes32 poolId
     ) public view override returns (int128 balance_) {
         uint256 _rate = getRate();
-        (, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
+
+        (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
         // uint256 _balance = usdc.balanceOf(_addr);
-        uint256 _balance = balances[0];
+        // uint256 _balance = balances[0];
+        // needs token check
+
+        uint256 _balance = 0;
+        if (address(tokens[0]) == address(usdc)) {
+            _balance = balances[0];
+        } else {
+            _balance = balances[1];
+        }
 
         if (_balance <= 0) return ABDKMath64x64.fromUInt(0);
 
@@ -180,6 +196,7 @@ contract UsdcToUsdAssimilator is IAssimilator {
     ) external view override returns (int128 balance_) {
         (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
         //  uint256 _balance = usdc.balanceOf(_addr);
+        // needs token check
 
         if (address(tokens[0]) == address(usdc)) {
             return balances[0].divu(DECIMALS);
@@ -199,10 +216,15 @@ contract UsdcToUsdAssimilator is IAssimilator {
         amount_ = ((_amount * _rate) / 1e8).divu(DECIMALS);
 
         // uint256 _balance = usdc.balanceOf(_addr);
+        // needs token check
+        (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
 
-        (, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
-        // uint256 _balance = usdc.balanceOf(_addr);
-        uint256 _balance = balances[0];
+        uint256 _balance = 0;
+        if (address(tokens[0]) == address(usdc)) {
+            _balance = balances[0];
+        } else {
+            _balance = balances[1];
+        }
 
         balance_ = ((_balance * _rate) / 1e8).divu(DECIMALS);
     }

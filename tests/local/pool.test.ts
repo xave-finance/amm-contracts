@@ -97,19 +97,35 @@ describe('FXPool', () => {
     await testEnv.fxPHP.approve(testEnv.vault.address, ethers.constants.MaxUint256)
     await testEnv.USDC.approve(testEnv.vault.address, ethers.constants.MaxUint256)
 
+    // add 10,000 USD or ~250k PHP and ~5k USDC to the pool
     const numeraireAmount = parseEther('10000')
+    console.log('numeraireAmount: ', numeraireAmount)
     const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
     const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
+    // call the vault to add liquidity
     const viewDeposit = await testEnv.fxPool.viewDeposit(numeraireAmount)
+    console.log('viewDeposit result: ', viewDeposit)
+    console.log('viewDeposit: ', viewDeposit)
+
+    console.log('sortedAddresses: ', sortedAddresses)
+    let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
+    let fxPHPIsSortedIndex0 = sortedAddresses[0] === fxPHPAddress
+    console.log('fxPHPIsSortedIndex0 ', fxPHPIsSortedIndex0)
+    let fxPHPIsSortedIndex1 = sortedAddresses[1] === fxPHPAddress
 
     let liquidityToAdd: BigNumber[]
-    if (sortedAddresses[0] === ethers.utils.getAddress(testEnv.fxPHP.address)) {
+    if (sortedAddresses[0] === fxPHPAddress) {
+      console.log('sortedAddresses[0] ', fxPHPAddress, ' is fxPHP')
       liquidityToAdd = [viewDeposit[1][0], viewDeposit[1][1]]
-    } else {
+    } else if (sortedAddresses[1] === fxPHPAddress) {
+      console.log('sortedAddresses[1] ', fxPHPAddress, ' is fxPHP')
       liquidityToAdd = [viewDeposit[1][1], viewDeposit[1][0]]
+    } else {
+      throw console.error('sortedAddresses[0] or sortedAddresses[1] is not expected')
     }
+    console.log('liquidityToAdd result: ', liquidityToAdd)
 
     const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [liquidityToAdd, sortedAddresses])
 
@@ -119,6 +135,7 @@ describe('FXPool', () => {
       userData: payload,
       fromInternalBalance: false,
     }
+    console.log('about to call joinPool')
     await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.not.be.reverted
 
     const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
