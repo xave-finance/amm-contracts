@@ -193,38 +193,11 @@ contract BaseToUsdAssimilator is IAssimilator {
 
             _baseTokenBal = balances[1];
             _usdcBal = balances[0];
-
-            // if (_baseTokenBal <= 0) return 0;
-            // console.log('_baseTokenBal is %s. _usdcBal is %s', _baseTokenBal, _usdcBal);
-
-            // // base decimals
-            // _baseTokenBal = _baseTokenBal.mul(1e18).div(_baseWeight);
-            // console.log('_baseTokenBal divided by _baseWeight: %s', _baseTokenBal);
-
-            // _usdcBal = _usdcBal.mul(1e18).div(_quoteWeight);
-            // console.log('_usdcBal divided by _quoteWeight: %s', _usdcBal);
-
-            // uint256 _rate = _usdcBal.mul(baseDecimals).div(_baseTokenBal);
-            // console.log('_rate: %s', _rate);
-
-            // amount_ = (_amount.mulu(baseDecimals) * 1e6) / _rate;
         } else if (address(tokens[1]) == address(usdc)) {
             console.log('tokens[1] is usdc %s', address(tokens[1]));
 
             _baseTokenBal = balances[0];
             _usdcBal = balances[1];
-
-            // if (_baseTokenBal <= 0) return 0;
-            // console.log('_baseTokenBal is %s. _usdcBal is %s', _baseTokenBal, _usdcBal);
-
-            // // base decimals
-            // _baseTokenBal = _baseTokenBal.mul(1e18).div(_baseWeight);
-            // console.log('_baseTokenBal divided by _baseWeight: %s', _baseTokenBal);
-
-            // _usdcBal = _usdcBal.mul(1e18).div(_quoteWeight);
-            // uint256 _rate = _usdcBal.mul(baseDecimals).div(_baseTokenBal);
-
-            // amount_ = (_amount.mulu(baseDecimals) * 1e6) / _rate;
         } else {
             revert('viewRawAmountLPRatio: usdc is not present in token array returned by Vault.getPoolTokens method');
         }
@@ -247,15 +220,7 @@ contract BaseToUsdAssimilator is IAssimilator {
     // takes a raw amount and returns the numeraire amount
     function viewNumeraireAmount(uint256 _amount) external view override returns (int128 amount_) {
         uint256 _rate = getRate();
-
-        // console.log(address(this));
-        // console.log('_rate: ', _rate);
-        // console.log('_amount: ', _amount);
-        // console.log('baseDecimals: ', baseDecimals);
-
         amount_ = ((_amount * _rate) / 1e8).divu(baseDecimals);
-        // console.log('amount_:');
-        // console.logInt(amount_);
     }
 
     // views the numeraire value of the current balance of the reserve, in this case baseToken
@@ -272,7 +237,6 @@ contract BaseToUsdAssimilator is IAssimilator {
             address(tokens[0]),
             address(tokens[1])
         );
-        //uint256 _balance = baseToken.balanceOf(_addr);
 
         if (address(tokens[0]) == address(usdc)) {
             console.log('viewNumeraireBalance: token[0] address is usdc');
@@ -293,15 +257,10 @@ contract BaseToUsdAssimilator is IAssimilator {
         } else {
             revert('usdc is not present in token array returned by Vault.getPoolTokens method');
         }
-        // @TODO: Check selector depending on its position alphabetically on the curve storage
-        // uint256 _balance = balances[1];
-
-        // if (_balance <= 0) return ABDKMath64x64.fromUInt(0);
-
-        // balance_ = ((_balance * _rate) / 1e8).divu(baseDecimals);
     }
 
     // views the numeraire value of the current balance of the reserve, in this case baseToken
+    // called for swaps
     function viewNumeraireAmountAndBalance(
         address _addr,
         uint256 _amount,
@@ -318,6 +277,7 @@ contract BaseToUsdAssimilator is IAssimilator {
         if (address(tokens[0]) == address(usdc)) {
             console.log('viewNumeraireBalance: token[0] address is usdc');
 
+            // needs token check
             uint256 _baseTokenBal = balances[1];
             // if (_baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
             console.log('_baseTokenBal %s', _baseTokenBal);
