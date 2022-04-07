@@ -203,7 +203,6 @@ contract UsdcToUsdAssimilator is IAssimilator {
     }
 
     function viewNumeraireAmountAndBalance(
-        address _addr,
         uint256 _amount,
         address vault,
         bytes32 poolId
@@ -212,17 +211,15 @@ contract UsdcToUsdAssimilator is IAssimilator {
 
         amount_ = ((_amount * _rate) / 1e8).divu(DECIMALS);
 
-        // uint256 _balance = usdc.balanceOf(_addr);
-        // needs token check
         (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
 
-        uint256 _balance = 0;
+        uint256 quoteBal = 0;
         if (address(tokens[0]) == address(usdc)) {
-            _balance = balances[0];
-        } else {
-            _balance = balances[1];
+            quoteBal = balances[0];
+        } else if (address(tokens[1]) == address(usdc)) {
+            quoteBal = balances[1];
         }
 
-        balance_ = ((_balance * _rate) / 1e8).divu(DECIMALS);
+        balance_ = ((quoteBal * _rate) / 1e8).divu(DECIMALS);
     }
 }

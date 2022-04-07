@@ -77,7 +77,7 @@ library Assimilators {
         address vault,
         bytes32 poolId
     ) internal view returns (int128 amt_, int128 bal_) {
-        (amt_, bal_) = IAssimilator(_assim).viewNumeraireAmountAndBalance(address(this), _amt, vault, poolId);
+        (amt_, bal_) = IAssimilator(_assim).viewNumeraireAmountAndBalance(_amt, vault, poolId);
     }
 
     function viewNumeraireBalance(

@@ -266,7 +266,6 @@ contract BaseToUsdAssimilator is IAssimilator {
     // views the numeraire value of the current balance of the reserve, in this case baseToken
     // called for swaps
     function viewNumeraireAmountAndBalance(
-        address _addr,
         uint256 _amount,
         address vault,
         bytes32 poolId
