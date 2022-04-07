@@ -169,20 +169,6 @@ contract UsdcToUsdAssimilator is IAssimilator {
         uint256[] memory balances,
         address quoteTokenAddressToCompare
     ) internal pure returns (uint256 quoteTokenBal) {
-        // if (address(tokens[0]) == quoteTokenAddress) {
-        //     // console.log('tokens[0] is usdc %s', address(tokens[0]));
-
-        //     baseTokenBal = balances[1];
-        //     quoteTokenBal = balances[0];
-        // } else if (address(tokens[1]) == quoteTokenAddress) {
-        //     // console.log('tokens[1] is usdc %s', address(tokens[1]));
-
-        //     baseTokenBal = balances[0];
-        //     quoteTokenBal = balances[1];
-        // } else {
-        //     revert('_sortBalancesLikeVault: usdc is not present in token array returned by Vault.getPoolTokens method');
-        // }
-
         if (baseTokenAddress == quoteTokenAddressToCompare) {
             quoteTokenBal = balances[0];
         } else if (quoteTokenAddress == quoteTokenAddressToCompare) {
@@ -204,13 +190,6 @@ contract UsdcToUsdAssimilator is IAssimilator {
         (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
 
         uint256 quoteBalance = _sortBalancesLikeVault(address(tokens[0]), address(tokens[1]), balances, address(usdc));
-        // if (address(tokens[0]) == address(usdc)) {
-        //     quoteBalance = balances[0];
-        // } else if (address(tokens[1]) == address(usdc)) {
-        //     quoteBalance = balances[1];
-        // } else {
-        //     revert('_sortBalancesLikeVault: usdc is not present in token array returned by Vault.getPoolTokens method');
-        // }
 
         if (quoteBalance <= 0) return ABDKMath64x64.fromUInt(0);
 
@@ -247,13 +226,6 @@ contract UsdcToUsdAssimilator is IAssimilator {
         (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
 
         uint256 quoteBalance = _sortBalancesLikeVault(address(tokens[0]), address(tokens[1]), balances, address(usdc));
-
-        // uint256 quoteBal = 0;
-        // if (address(tokens[0]) == address(usdc)) {
-        //     quoteBal = balances[0];
-        // } else if (address(tokens[1]) == address(usdc)) {
-        //     quoteBal = balances[1];
-        // }
 
         balance_ = ((quoteBalance * _rate) / 1e8).divu(DECIMALS);
     }
