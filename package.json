@@ -16,14 +16,15 @@
     "swap:single": "ts-node scripts/cli/singleSwapCLI.ts",
     "verify": "npx hardhat run scripts/verifyContract.ts --network kovan",
     "verify2": "npx hardhat run scripts/verifyTwo.ts --network kovan",
-    "reset": "rm -rf node_modules && yarn && yarn compile && yarn run test-local",
+    "reset": "rm -rf node_modules && yarn && yarn compile-fix && yarn run test-local",
     "node": "npx hardhat node",
     "test": "npx hardhat test --logs",
     "test-local": "npx hardhat test tests/local/*.test.ts --logs",
     "test-debug": "hardhat test tests/local/pool.test.ts",
     "typecheck": "yarn compile && tsc --noEmit",
     "recompile": "rm -rf artifacts && rm -rf cache && npx hardhat compile",
-    "load-balancer-contracts": "sh scripts/shell/load-balancer-contracts.sh"
+    "load-balancer-contracts": "sh scripts/shell/load-balancer-contracts.sh",
+    "compile-fix": "TS_NODE_TRANSPILE_ONLY=1 npx hardhat compile"
   },
   "devDependencies": {
     "@balancer-labs/v2-deployments": "^1.1.1",
