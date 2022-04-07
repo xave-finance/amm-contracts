@@ -334,7 +334,7 @@ contract BaseToUsdAssimilator is IAssimilator {
             console.log('_rate %s', _rate);
 
             balance_ = ((_baseTokenBal * _rate) / 1e6).divu(1e18);
-            console.log('balance_ %s', balance_);
+            // console.log('balance_ %s', balance_);
         } else {
             console.log(
                 'viewNumeraireBalanceLPRatio: token[1] address %s is usdc address %s',
@@ -351,7 +351,7 @@ contract BaseToUsdAssimilator is IAssimilator {
             console.log('_rate %s', _rate);
 
             balance_ = ((_baseTokenBal * _rate) / 1e6).divu(1e18);
-            console.log('balance_ %s', balance_);
+            // console.log('balance_ %s', balance_);
         } //else revert();
         /*
         uint256 _baseTokenBal = baseToken.balanceOf(_addr);
