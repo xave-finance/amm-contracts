@@ -170,16 +170,17 @@ contract BaseToUsdAssimilator is IAssimilator {
     }
 
     function _sortBalancesLikeVault(
-        IERC20[] memory tokens,
+        address baseTokenAddress,
+        address quoteTokenAddress,
         uint256[] memory balances,
-        address quoteTokenAddress
+        address quoteTokenAddressToCompare
     ) internal pure returns (uint256 baseTokenBal, uint256 quoteTokenBal) {
-        if (address(tokens[0]) == quoteTokenAddress) {
+        if (baseTokenAddress == quoteTokenAddressToCompare) {
             // console.log('tokens[0] is usdc %s', address(tokens[0]));
 
             baseTokenBal = balances[1];
             quoteTokenBal = balances[0];
-        } else if (address(tokens[1]) == quoteTokenAddress) {
+        } else if (quoteTokenAddress == quoteTokenAddressToCompare) {
             // console.log('tokens[1] is usdc %s', address(tokens[1]));
 
             baseTokenBal = balances[0];
@@ -204,7 +205,12 @@ contract BaseToUsdAssimilator is IAssimilator {
         // console.log('_baseWeight %s', _baseWeight);
         // console.log('_quoteWeight %s', _quoteWeight);
 
-        (uint256 baseTokenBal, uint256 usdcBal) = _sortBalancesLikeVault(tokens, balances, address(usdc));
+        (uint256 baseTokenBal, uint256 usdcBal) = _sortBalancesLikeVault(
+            address(tokens[0]),
+            address(tokens[1]),
+            balances,
+            address(usdc)
+        );
 
         if (baseTokenBal <= 0) return 0;
 
@@ -238,7 +244,12 @@ contract BaseToUsdAssimilator is IAssimilator {
         //     address(tokens[1])
         // );
 
-        (uint256 baseTokenBal, ) = _sortBalancesLikeVault(tokens, balances, address(usdc));
+        (uint256 baseTokenBal, ) = _sortBalancesLikeVault(
+            address(tokens[0]),
+            address(tokens[1]),
+            balances,
+            address(usdc)
+        );
 
         if (baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
 
@@ -260,7 +271,12 @@ contract BaseToUsdAssimilator is IAssimilator {
 
         (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
 
-        (uint256 baseTokenBal, ) = _sortBalancesLikeVault(tokens, balances, address(usdc));
+        (uint256 baseTokenBal, ) = _sortBalancesLikeVault(
+            address(tokens[0]),
+            address(tokens[1]),
+            balances,
+            address(usdc)
+        );
 
         balance_ = ((baseTokenBal * _rate) / 1e8).divu(baseDecimals);
     }
@@ -282,7 +298,12 @@ contract BaseToUsdAssimilator is IAssimilator {
         //     address(tokens[1])
         // );
 
-        (uint256 baseTokenBal, uint256 usdcBal) = _sortBalancesLikeVault(tokens, balances, address(usdc));
+        (uint256 baseTokenBal, uint256 usdcBal) = _sortBalancesLikeVault(
+            address(tokens[0]),
+            address(tokens[1]),
+            balances,
+            address(usdc)
+        );
 
         if (baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
 
