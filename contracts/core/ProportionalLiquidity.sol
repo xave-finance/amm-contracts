@@ -124,16 +124,10 @@ library ProportionalLiquidity {
                 );
             }
         }
-        console.log('TOTALSUPPLY: ', curve.totalSupply);
+
         int128 _totalShells = curve.totalSupply.divu(1e18);
 
         int128 _newShells = __deposit;
-        console.log('NEW SHELLS');
-        console.logInt(_newShells);
-        console.log('TOTAL SHELLS');
-        console.logInt(_totalShells);
-        console.log('oGLiq');
-        console.logInt(_oGLiq);
 
         if (_totalShells > 0) {
             _newShells = __deposit.div(_oGLiq);
