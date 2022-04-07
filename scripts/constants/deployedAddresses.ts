@@ -15,4 +15,4 @@ export const pools = {
 
 export const listOfPools = Object.keys(pools).map((key) => `${key}:USDC`)
 
-export const proportionalLiquidity = '0xABCBE0Ec8796D19BCb4609DA4ac819D409E39545'
+export const proportionalLiquidity = '0x972127aFf8e6464e50eFc0a2aD344063355AE424'
