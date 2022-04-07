@@ -169,12 +169,25 @@ contract BaseToUsdAssimilator is IAssimilator {
         amount_ = (_amount.mulu(baseDecimals) * 1e8) / _rate;
     }
 
-    // function assignBalances(IERC20[] memory tokens, address quoteToken)
-    //     internal
-    //     view
-    //     override
-    //     returns (uint256 baseTokenBal, uint256 quoteTokenBal)
-    // {}
+    function _sortBalancesLikeVault(
+        IERC20[] memory tokens,
+        uint256[] memory balances,
+        address quoteTokenAddress
+    ) internal view returns (uint256 baseTokenBal, uint256 quoteTokenBal) {
+        if (address(tokens[0]) == quoteTokenAddress) {
+            console.log('tokens[0] is usdc %s', address(tokens[0]));
+
+            baseTokenBal = balances[1];
+            quoteTokenBal = balances[0];
+        } else if (address(tokens[1]) == quoteTokenAddress) {
+            console.log('tokens[1] is usdc %s', address(tokens[1]));
+
+            baseTokenBal = balances[0];
+            quoteTokenBal = balances[1];
+        } else {
+            revert('assignBalances: usdc is not present in token array returned by Vault.getPoolTokens method');
+        }
+    }
 
     function viewRawAmountLPRatio(
         uint256 _baseWeight,
@@ -192,32 +205,33 @@ contract BaseToUsdAssimilator is IAssimilator {
         console.log('_baseWeight %s', _baseWeight);
         console.log('_quoteWeight %s', _quoteWeight);
 
-        uint256 _baseTokenBal = 0;
-        uint256 _usdcBal = 0;
+        (uint256 baseTokenBal, uint256 usdcBal) = _sortBalancesLikeVault(tokens, balances, address(usdc));
+        // uint256 _baseTokenBal = 0;
+        // uint256 _usdcBal = 0;
 
-        if (address(tokens[0]) == address(usdc)) {
-            console.log('tokens[0] is usdc %s', address(tokens[0]));
+        // if (address(tokens[0]) == address(usdc)) {
+        //     console.log('tokens[0] is usdc %s', address(tokens[0]));
 
-            _baseTokenBal = balances[1];
-            _usdcBal = balances[0];
-        } else if (address(tokens[1]) == address(usdc)) {
-            console.log('tokens[1] is usdc %s', address(tokens[1]));
+        //     _baseTokenBal = balances[1];
+        //     _usdcBal = balances[0];
+        // } else if (address(tokens[1]) == address(usdc)) {
+        //     console.log('tokens[1] is usdc %s', address(tokens[1]));
 
-            _baseTokenBal = balances[0];
-            _usdcBal = balances[1];
-        } else {
-            revert('viewRawAmountLPRatio: usdc is not present in token array returned by Vault.getPoolTokens method');
-        }
+        //     _baseTokenBal = balances[0];
+        //     _usdcBal = balances[1];
+        // } else {
+        //     revert('viewRawAmountLPRatio: usdc is not present in token array returned by Vault.getPoolTokens method');
+        // }
 
-        if (_baseTokenBal <= 0) return 0;
-        console.log('_baseTokenBal is %s. _usdcBal is %s', _baseTokenBal, _usdcBal);
+        if (baseTokenBal <= 0) return 0;
+        console.log('_baseTokenBal is %s. _usdcBal is %s', baseTokenBal, usdcBal);
 
         // base decimals
-        _baseTokenBal = _baseTokenBal.mul(1e18).div(_baseWeight);
-        console.log('_baseTokenBal divided by _baseWeight: %s', _baseTokenBal);
+        baseTokenBal = baseTokenBal.mul(1e18).div(_baseWeight);
+        console.log('baseTokenBal divided by _baseWeight: %s', baseTokenBal);
 
-        _usdcBal = _usdcBal.mul(1e18).div(_quoteWeight);
-        uint256 _rate = _usdcBal.mul(baseDecimals).div(_baseTokenBal);
+        usdcBal = usdcBal.mul(1e18).div(_quoteWeight);
+        uint256 _rate = usdcBal.mul(baseDecimals).div(baseTokenBal);
 
         amount_ = (_amount.mulu(baseDecimals) * 1e6) / _rate;
 
@@ -245,17 +259,18 @@ contract BaseToUsdAssimilator is IAssimilator {
             address(tokens[1])
         );
 
-        uint256 baseTokenBal = 0;
+        // uint256 baseTokenBal = 0;
+        (uint256 baseTokenBal, ) = _sortBalancesLikeVault(tokens, balances, address(usdc));
 
-        if (address(tokens[0]) == address(usdc)) {
-            console.log('viewNumeraireBalance: token[0] address is usdc');
-            baseTokenBal = balances[1];
-        } else if (address(tokens[1]) == address(usdc)) {
-            console.log('viewNumeraireBalance: token[1] address is usdc');
-            baseTokenBal = balances[0];
-        } else {
-            revert('usdc is not present in token array returned by Vault.getPoolTokens method');
-        }
+        // if (address(tokens[0]) == address(usdc)) {
+        //     console.log('viewNumeraireBalance: token[0] address is usdc');
+        //     baseTokenBal = balances[1];
+        // } else if (address(tokens[1]) == address(usdc)) {
+        //     console.log('viewNumeraireBalance: token[1] address is usdc');
+        //     baseTokenBal = balances[0];
+        // } else {
+        //     revert('usdc is not present in token array returned by Vault.getPoolTokens method');
+        // }
 
         if (baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
         console.log('baseTokenBal %s', baseTokenBal);
@@ -274,21 +289,23 @@ contract BaseToUsdAssimilator is IAssimilator {
 
         amount_ = ((_amount * _rate) / 1e8).divu(baseDecimals);
 
-        uint256 baseTokenBal = 0;
+        // uint256 baseTokenBal = 0;
 
         (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
 
-        if (address(tokens[0]) == address(usdc)) {
-            console.log('viewNumeraireAmountAndBalance: token[0] address is usdc');
-            baseTokenBal = balances[1];
-            console.log('baseTokenBal %s', baseTokenBal);
-        } else if (address(tokens[1]) == address(usdc)) {
-            console.log('viewNumeraireAmountAndBalance: token[1] address is usdc');
-            baseTokenBal = balances[0];
-            console.log('baseTokenBal %s', baseTokenBal);
-        } else {
-            revert('baseToken is not present in token array returned by Vault.getPoolTokens method');
-        }
+        (uint256 baseTokenBal, ) = _sortBalancesLikeVault(tokens, balances, address(usdc));
+
+        // if (address(tokens[0]) == address(usdc)) {
+        //     console.log('viewNumeraireAmountAndBalance: token[0] address is usdc');
+        //     baseTokenBal = balances[1];
+        //     console.log('baseTokenBal %s', baseTokenBal);
+        // } else if (address(tokens[1]) == address(usdc)) {
+        //     console.log('viewNumeraireAmountAndBalance: token[1] address is usdc');
+        //     baseTokenBal = balances[0];
+        //     console.log('baseTokenBal %s', baseTokenBal);
+        // } else {
+        //     revert('baseToken is not present in token array returned by Vault.getPoolTokens method');
+        // }
 
         balance_ = ((baseTokenBal * _rate) / 1e8).divu(baseDecimals);
     }
@@ -310,30 +327,32 @@ contract BaseToUsdAssimilator is IAssimilator {
             address(tokens[1])
         );
 
-        uint256 baseTokenBal = 0;
-        uint256 usdcBal = 0;
+        // uint256 baseTokenBal = 0;
+        // uint256 usdcBal = 0;
 
-        if (address(tokens[0]) == address(usdc)) {
-            console.log(
-                'viewNumeraireBalanceLPRatio: token[0] address %s. usdc address %s',
-                address(tokens[0]),
-                address(usdc)
-            );
+        (uint256 baseTokenBal, uint256 usdcBal) = _sortBalancesLikeVault(tokens, balances, address(usdc));
 
-            baseTokenBal = balances[1];
-            usdcBal = balances[0];
-        } else if (address(tokens[1]) == address(usdc)) {
-            console.log(
-                'viewNumeraireBalanceLPRatio: token[1] address %s is usdc address %s',
-                address(tokens[1]),
-                address(usdc)
-            );
+        // if (address(tokens[0]) == address(usdc)) {
+        //     console.log(
+        //         'viewNumeraireBalanceLPRatio: token[0] address %s. usdc address %s',
+        //         address(tokens[0]),
+        //         address(usdc)
+        //     );
 
-            baseTokenBal = balances[0];
-            usdcBal = balances[1];
-        } else {
-            revert('baseToken is not present in token array returned by Vault.getPoolTokens method');
-        }
+        //     baseTokenBal = balances[1];
+        //     usdcBal = balances[0];
+        // } else if (address(tokens[1]) == address(usdc)) {
+        //     console.log(
+        //         'viewNumeraireBalanceLPRatio: token[1] address %s is usdc address %s',
+        //         address(tokens[1]),
+        //         address(usdc)
+        //     );
+
+        //     baseTokenBal = balances[0];
+        //     usdcBal = balances[1];
+        // } else {
+        //     revert('baseToken is not present in token array returned by Vault.getPoolTokens method');
+        // }
 
         if (baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
         console.log('_baseTokenBal %s', baseTokenBal);
