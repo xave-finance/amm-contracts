@@ -98,6 +98,7 @@ library ProportionalLiquidity {
 
         // No liquidity
         if (_oGLiq == 0) {
+            console.log('viewProportionalDeposit: no liquidity');
             for (uint256 i = 0; i < curve.assets.length; i++) {
                 deposits_[i] = Assimilators.viewRawAmount(
                     curve.assets[i].addr,

@@ -185,42 +185,61 @@ contract BaseToUsdAssimilator is IAssimilator {
         console.log('_baseWeight %s', _baseWeight);
         console.log('_quoteWeight %s', _quoteWeight);
 
+        uint256 _baseTokenBal = 0;
+        uint256 _usdcBal = 0;
+
         if (address(tokens[0]) == address(usdc)) {
             console.log('tokens[0] is usdc %s', address(tokens[0]));
 
-            uint256 _baseTokenBal = balances[1];
-            uint256 _usdcBal = balances[0];
+            _baseTokenBal = balances[1];
+            _usdcBal = balances[0];
 
-            if (_baseTokenBal <= 0) return 0;
-            console.log('_baseTokenBal is %s. _usdcBal is %s', _baseTokenBal, _usdcBal);
+            // if (_baseTokenBal <= 0) return 0;
+            // console.log('_baseTokenBal is %s. _usdcBal is %s', _baseTokenBal, _usdcBal);
 
-            // base decimals
-            _baseTokenBal = _baseTokenBal.mul(1e18).div(_baseWeight);
-            console.log('_baseTokenBal divided by _baseWeight: %s', _baseTokenBal);
+            // // base decimals
+            // _baseTokenBal = _baseTokenBal.mul(1e18).div(_baseWeight);
+            // console.log('_baseTokenBal divided by _baseWeight: %s', _baseTokenBal);
 
-            _usdcBal = _usdcBal.mul(1e18).div(_quoteWeight);
-            console.log('_usdcBal divided by _quoteWeight: %s', _usdcBal);
+            // _usdcBal = _usdcBal.mul(1e18).div(_quoteWeight);
+            // console.log('_usdcBal divided by _quoteWeight: %s', _usdcBal);
 
-            uint256 _rate = _usdcBal.mul(baseDecimals).div(_baseTokenBal);
-            console.log('_rate: %s', _rate);
+            // uint256 _rate = _usdcBal.mul(baseDecimals).div(_baseTokenBal);
+            // console.log('_rate: %s', _rate);
 
-            amount_ = (_amount.mulu(baseDecimals) * 1e6) / _rate;
+            // amount_ = (_amount.mulu(baseDecimals) * 1e6) / _rate;
         } else if (address(tokens[1]) == address(usdc)) {
             console.log('tokens[1] is usdc %s', address(tokens[1]));
 
-            uint256 _baseTokenBal = balances[0];
-            uint256 _usdcBal = balances[1];
+            _baseTokenBal = balances[0];
+            _usdcBal = balances[1];
 
-            if (_baseTokenBal <= 0) return 0;
-            console.log('_baseTokenBal is %s. _usdcBal is %s', _baseTokenBal, _usdcBal);
+            // if (_baseTokenBal <= 0) return 0;
+            // console.log('_baseTokenBal is %s. _usdcBal is %s', _baseTokenBal, _usdcBal);
 
-            _usdcBal = _usdcBal.mul(1e18).div(_quoteWeight);
-            uint256 _rate = _usdcBal.mul(baseDecimals).div(_baseTokenBal);
+            // // base decimals
+            // _baseTokenBal = _baseTokenBal.mul(1e18).div(_baseWeight);
+            // console.log('_baseTokenBal divided by _baseWeight: %s', _baseTokenBal);
 
-            amount_ = (_amount.mulu(baseDecimals) * 1e6) / _rate;
+            // _usdcBal = _usdcBal.mul(1e18).div(_quoteWeight);
+            // uint256 _rate = _usdcBal.mul(baseDecimals).div(_baseTokenBal);
+
+            // amount_ = (_amount.mulu(baseDecimals) * 1e6) / _rate;
         } else {
             revert('viewRawAmountLPRatio: usdc is not present in token array returned by Vault.getPoolTokens method');
         }
+
+        if (_baseTokenBal <= 0) return 0;
+        console.log('_baseTokenBal is %s. _usdcBal is %s', _baseTokenBal, _usdcBal);
+
+        // base decimals
+        _baseTokenBal = _baseTokenBal.mul(1e18).div(_baseWeight);
+        console.log('_baseTokenBal divided by _baseWeight: %s', _baseTokenBal);
+
+        _usdcBal = _usdcBal.mul(1e18).div(_quoteWeight);
+        uint256 _rate = _usdcBal.mul(baseDecimals).div(_baseTokenBal);
+
+        amount_ = (_amount.mulu(baseDecimals) * 1e6) / _rate;
 
         console.log('amount_ %s', amount_);
     }
