@@ -14,12 +14,15 @@ describe('Assimilators', () => {
   let admin: Signer
   let adminAddress: string
   let calc: ReturnType<typeof calculator>
+  let poolId: string
 
   before('build test env', async () => {
     testEnv = await setupEnvironment()
     ;[admin] = await ethers.getSigners()
     adminAddress = await admin.getAddress()
     calc = calculator(testEnv.mockABDK)
+
+    poolId = await testEnv.fxPool.getPoolId()
   })
 
   it('Assimilator Factory is deployed properly', async () => {
@@ -141,7 +144,14 @@ describe('Assimilators', () => {
     ).to.equals(await calc.calculateRawAmount(INPUT_AMOUNT, xsgdAssimilatorDecimals, xsgdRateFromAssimilator))
 
     expect(
-      await xsgdAssimilatorContract.viewRawAmountLPRatio(baseWeight, quoteWeight, adminAddress, INPUT_AMOUNT),
+      await xsgdAssimilatorContract.viewRawAmountLPRatio(
+        baseWeight,
+        quoteWeight,
+        adminAddress,
+        INPUT_AMOUNT,
+        testEnv.vault.address,
+        poolId
+      ),
       'View raw amount LP ratio calculation is incorrect'
     ).to.equals(
       await calc.calculateRawAmountLpRatio(
@@ -160,13 +170,15 @@ describe('Assimilators', () => {
     ).to.equals(await calc.calculateNumeraireAmount(INPUT_AMOUNT, xsgdRateFromAssimilator, xsgdAssimilatorDecimals))
 
     expect(
-      await xsgdAssimilatorContract.viewNumeraireBalance(mockCurveAddress),
+      await xsgdAssimilatorContract.viewNumeraireBalance(mockCurveAddress, testEnv.vault.address, poolId),
       'View numeraire balance calculation is incorrect'
     ).to.equals(await calc.calculateNumeraireBalance(xsgdBalance, xsgdRateFromAssimilator, xsgdAssimilatorDecimals))
 
     const { amount_, balance_ } = await xsgdAssimilatorContract.viewNumeraireAmountAndBalance(
       mockCurveAddress,
-      INPUT_AMOUNT
+      INPUT_AMOUNT,
+      testEnv.vault.address,
+      poolId
     )
 
     expect(amount_).to.be.equals(
@@ -179,7 +191,13 @@ describe('Assimilators', () => {
     )
 
     expect(
-      await xsgdAssimilatorContract.viewNumeraireBalanceLPRatio(baseWeight, quoteWeight, mockCurveAddress),
+      await xsgdAssimilatorContract.viewNumeraireBalanceLPRatio(
+        baseWeight,
+        quoteWeight,
+        mockCurveAddress,
+        testEnv.vault.address,
+        poolId
+      ),
       'View Numeraire Balance LP Ratio calculation is incorrect'
     ).to.equals(await calc.calculateNumeraireBalanceLPRatio(usdcBalance, quoteWeight, xsgdBalance, baseWeight))
   })
@@ -207,7 +225,14 @@ describe('Assimilators', () => {
     ).to.equals(await calc.calculateRawAmount(INPUT_AMOUNT, eursAssimilatorDecimals, eursRateFromAssimilator))
 
     expect(
-      await eursAssimilatorContract.viewRawAmountLPRatio(baseWeight, quoteWeight, adminAddress, INPUT_AMOUNT),
+      await eursAssimilatorContract.viewRawAmountLPRatio(
+        baseWeight,
+        quoteWeight,
+        adminAddress,
+        INPUT_AMOUNT,
+        testEnv.vault.address,
+        poolId
+      ),
       'View raw amount LP ratio calculation is incorrect'
     ).to.equals(
       await calc.calculateRawAmountLpRatio(
@@ -226,13 +251,15 @@ describe('Assimilators', () => {
     ).to.equals(await calc.calculateNumeraireAmount(INPUT_AMOUNT, eursRateFromAssimilator, eursAssimilatorDecimals))
 
     expect(
-      await eursAssimilatorContract.viewNumeraireBalance(mockCurveAddress),
+      await eursAssimilatorContract.viewNumeraireBalance(mockCurveAddress, testEnv.vault.address, poolId),
       'View numeraire balance calculation is incorrect'
     ).to.equals(await calc.calculateNumeraireBalance(eursBalance, eursRateFromAssimilator, eursAssimilatorDecimals))
 
     const { amount_, balance_ } = await eursAssimilatorContract.viewNumeraireAmountAndBalance(
       mockCurveAddress,
-      INPUT_AMOUNT
+      INPUT_AMOUNT,
+      testEnv.vault.address,
+      poolId
     )
 
     expect(amount_).to.be.equals(
@@ -245,7 +272,13 @@ describe('Assimilators', () => {
     )
 
     expect(
-      await eursAssimilatorContract.viewNumeraireBalanceLPRatio(baseWeight, quoteWeight, mockCurveAddress),
+      await eursAssimilatorContract.viewNumeraireBalanceLPRatio(
+        baseWeight,
+        quoteWeight,
+        mockCurveAddress,
+        testEnv.vault.address,
+        poolId
+      ),
       'View Numeraire Balance LP Ratio calculation is incorrect'
     ).to.equals(await calc.calculateNumeraireBalanceLPRatio(usdcBalance, quoteWeight, eursBalance, baseWeight))
   })
@@ -273,7 +306,14 @@ describe('Assimilators', () => {
     ).to.equals(await calc.calculateRawAmount(INPUT_AMOUNT, fxPHPAssimilatorDecimals, fxPHPRateFromAssimilator))
 
     expect(
-      await fxPHPAssimilatorContract.viewRawAmountLPRatio(baseWeight, quoteWeight, adminAddress, INPUT_AMOUNT),
+      await fxPHPAssimilatorContract.viewRawAmountLPRatio(
+        baseWeight,
+        quoteWeight,
+        adminAddress,
+        INPUT_AMOUNT,
+        testEnv.vault.address,
+        poolId
+      ),
       'View raw amount LP ratio calculation is incorrect'
     ).to.equals(
       await calc.calculateRawAmountLpRatio(
@@ -292,13 +332,15 @@ describe('Assimilators', () => {
     ).to.equals(await calc.calculateNumeraireAmount(INPUT_AMOUNT, fxPHPRateFromAssimilator, fxPHPAssimilatorDecimals))
 
     expect(
-      await fxPHPAssimilatorContract.viewNumeraireBalance(mockCurveAddress),
+      await fxPHPAssimilatorContract.viewNumeraireBalance(mockCurveAddress, testEnv.vault.address, poolId),
       'View numeraire balance calculation is incorrect'
     ).to.equals(await calc.calculateNumeraireBalance(fxPHPBalance, fxPHPRateFromAssimilator, fxPHPAssimilatorDecimals))
 
     const { amount_, balance_ } = await fxPHPAssimilatorContract.viewNumeraireAmountAndBalance(
       mockCurveAddress,
-      INPUT_AMOUNT
+      INPUT_AMOUNT,
+      testEnv.vault.address,
+      poolId
     )
 
     expect(amount_).to.be.equals(
@@ -311,7 +353,13 @@ describe('Assimilators', () => {
     )
 
     expect(
-      await fxPHPAssimilatorContract.viewNumeraireBalanceLPRatio(baseWeight, quoteWeight, mockCurveAddress),
+      await fxPHPAssimilatorContract.viewNumeraireBalanceLPRatio(
+        baseWeight,
+        quoteWeight,
+        mockCurveAddress,
+        testEnv.vault.address,
+        poolId
+      ),
       'View Numeraire Balance LP Ratio calculation is incorrect'
     ).to.equals(await calc.calculateNumeraireBalanceLPRatio(usdcBalance, quoteWeight, fxPHPBalance, baseWeight))
   })
@@ -335,7 +383,14 @@ describe('Assimilators', () => {
     ).to.equals(await calc.calculateRawAmount(INPUT_AMOUNT, USDC_DECIMALS, usdcRateFromAssimilator))
 
     expect(
-      await usdcAssimilatorContract.viewRawAmountLPRatio(baseWeight, quoteWeight, mockCurveAddress, INPUT_AMOUNT),
+      await usdcAssimilatorContract.viewRawAmountLPRatio(
+        baseWeight,
+        quoteWeight,
+        mockCurveAddress,
+        INPUT_AMOUNT,
+        testEnv.vault.address,
+        poolId
+      ),
       'View raw amount LP ratio calculation is incorrect'
     ).to.equals(await testEnv.mockABDK.mulu(INPUT_AMOUNT, USDC_DECIMALS))
 
@@ -345,13 +400,15 @@ describe('Assimilators', () => {
     ).to.equals(await calc.calculateNumeraireAmount(INPUT_AMOUNT, usdcRateFromAssimilator, USDC_DECIMALS))
 
     expect(
-      await usdcAssimilatorContract.viewNumeraireBalance(mockCurveAddress),
+      await usdcAssimilatorContract.viewNumeraireBalance(mockCurveAddress, testEnv.vault.address, poolId),
       'View numeraire balance calculation is incorrect'
     ).to.equals(await calc.calculateNumeraireBalance(usdcBalance, usdcRateFromAssimilator, USDC_DECIMALS))
 
     const { amount_, balance_ } = await usdcAssimilatorContract.viewNumeraireAmountAndBalance(
       mockCurveAddress,
-      INPUT_AMOUNT
+      INPUT_AMOUNT,
+      testEnv.vault.address,
+      poolId
     )
 
     expect(amount_).to.be.equals(
@@ -364,7 +421,13 @@ describe('Assimilators', () => {
     )
 
     expect(
-      await usdcAssimilatorContract.viewNumeraireBalanceLPRatio(baseWeight, quoteWeight, mockCurveAddress),
+      await usdcAssimilatorContract.viewNumeraireBalanceLPRatio(
+        baseWeight,
+        quoteWeight,
+        mockCurveAddress,
+        testEnv.vault.address,
+        poolId
+      ),
       'View Numeraire Balance LP Ratio calculation is incorrect'
     ).to.equals(await calc.calculateNumeraireBalanceLPRatio(usdcBalance, quoteWeight, usdcBalance, baseWeight))
   })
