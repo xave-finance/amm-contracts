@@ -179,11 +179,11 @@ contract BaseToUsdAssimilator is IAssimilator {
     ) external view override returns (uint256 amount_) {
         // 1e6
         (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
-        console.log('viewRawAmountLPRatio: tokens %s', tokens);
-        console.log('viewRawAmountLPRatio: balances %s', balances);
+        console.log('viewRawAmountLPRatio: tokens[0] %s, token[1] %s', address(tokens[0]), address(tokens[1]));
+        console.log('viewRawAmountLPRatio: balances[0] %s, balances[1] %s', balances[0], balances[1]);
 
         if (address(tokens[0]) == address(usdc)) {
-            console.log('tokens[0] is usdc', address(tokens[0]));
+            console.log('tokens[0] is usdc %s', address(tokens[0]));
             uint256 _baseTokenBal = balances[1];
             if (_baseTokenBal <= 0) return 0;
 
@@ -194,7 +194,7 @@ contract BaseToUsdAssimilator is IAssimilator {
 
             amount_ = (_amount.mulu(baseDecimals) * 1e6) / _rate;
         } else {
-            console.log('tokens[1] is usdc', address(tokens[1]));
+            console.log('tokens[1] is usdc %s', address(tokens[1]));
             uint256 _baseTokenBal = balances[0];
             if (_baseTokenBal <= 0) return 0;
             uint256 _usdcBal = balances[1].mul(1e18).div(_quoteWeight);
