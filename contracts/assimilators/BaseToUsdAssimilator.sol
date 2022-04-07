@@ -238,25 +238,22 @@ contract BaseToUsdAssimilator is IAssimilator {
             address(tokens[1])
         );
 
+        uint256 baseTokenBal = 0;
+
         if (address(tokens[0]) == address(usdc)) {
             console.log('viewNumeraireBalance: token[0] address is usdc');
-
-            uint256 _baseTokenBal = balances[1];
-            if (_baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
-            console.log('_baseTokenBal %s', _baseTokenBal);
-
-            balance_ = ((_baseTokenBal * _rate) / 1e8).divu(baseDecimals);
+            baseTokenBal = balances[1];
         } else if (address(tokens[1]) == address(usdc)) {
             console.log('viewNumeraireBalance: token[1] address is usdc');
-
-            uint256 _baseTokenBal = balances[0];
-            if (_baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
-            console.log('_baseTokenBal %s', _baseTokenBal);
-
-            balance_ = ((_baseTokenBal * _rate) / 1e8).divu(baseDecimals);
+            baseTokenBal = balances[0];
         } else {
             revert('usdc is not present in token array returned by Vault.getPoolTokens method');
         }
+
+        if (baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
+        console.log('baseTokenBal %s', baseTokenBal);
+
+        balance_ = ((baseTokenBal * _rate) / 1e8).divu(baseDecimals);
     }
 
     // views the numeraire value of the current balance of the reserve, in this case baseToken
@@ -271,34 +268,23 @@ contract BaseToUsdAssimilator is IAssimilator {
 
         amount_ = ((_amount * _rate) / 1e8).divu(baseDecimals);
 
-        //  uint256 _balance = baseToken.balanceOf(_addr);
+        uint256 baseTokenBal = 0;
+
         (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
 
         if (address(tokens[0]) == address(usdc)) {
-            console.log('viewNumeraireBalance: token[0] address is usdc');
-
-            // needs token check
-            uint256 _baseTokenBal = balances[1];
-            // if (_baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
-            console.log('_baseTokenBal %s', _baseTokenBal);
-
-            balance_ = ((_baseTokenBal * _rate) / 1e8).divu(baseDecimals);
+            console.log('viewNumeraireAmountAndBalance: token[0] address is usdc');
+            baseTokenBal = balances[1];
+            console.log('baseTokenBal %s', baseTokenBal);
         } else if (address(tokens[1]) == address(usdc)) {
-            console.log('viewNumeraireBalance: token[1] address is usdc');
-
-            uint256 _baseTokenBal = balances[0];
-            // if (_baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
-            console.log('_baseTokenBal %s', _baseTokenBal);
-
-            balance_ = ((_baseTokenBal * _rate) / 1e8).divu(baseDecimals);
+            console.log('viewNumeraireAmountAndBalance: token[1] address is usdc');
+            baseTokenBal = balances[0];
+            console.log('baseTokenBal %s', baseTokenBal);
         } else {
             revert('baseToken is not present in token array returned by Vault.getPoolTokens method');
         }
 
-        // @TODO: Check selector depending on its position alphabetically on the curve storage
-        // uint256 _balance = balances[1];
-
-        // balance_ = ((_balance * _rate) / 1e8).divu(baseDecimals);
+        balance_ = ((baseTokenBal * _rate) / 1e8).divu(baseDecimals);
     }
 
     // views the numeraire value of the current balance of the reserve, in this case baseToken
