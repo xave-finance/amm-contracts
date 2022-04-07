@@ -242,7 +242,7 @@ contract BaseToUsdAssimilator is IAssimilator {
 
         if (baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
 
-        console.log('baseTokenBal %s', baseTokenBal);
+        // console.log('baseTokenBal %s', baseTokenBal);
 
         balance_ = ((baseTokenBal * _rate) / 1e8).divu(baseDecimals);
     }
