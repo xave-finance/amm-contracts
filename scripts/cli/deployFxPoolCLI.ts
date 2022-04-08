@@ -12,7 +12,7 @@ inquirer
       type: 'list',
       name: 'network',
       message: 'Which network to deploy',
-      choices: ['kovan', 'rinkeby'],
+      choices: ['kovan', 'rinkeby', 'matic'],
     },
     {
       type: 'list',

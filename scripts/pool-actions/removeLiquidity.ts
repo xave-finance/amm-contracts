@@ -3,10 +3,9 @@ import Vault from '@balancer-labs/v2-deployments/deployed/kovan/Vault.json'
 import open from 'open'
 import { sortAddresses } from '../utils/sortAddresses'
 import { BigNumber } from 'ethers'
+import { getProportionalLiquidityAddress } from '../utils/addresses'
 
 declare const ethers: any
-
-import { proportionalLiquidity as proportionalLiquidityAddress } from '../constants/deployedAddresses'
 
 export default async (taskArgs: any) => {
   const [deployer] = await ethers.getSigners()
@@ -21,8 +20,15 @@ export default async (taskArgs: any) => {
   const lptAmount = taskArgs.lptamount
   const toInternalBalance = taskArgs.tointernalbalance === 'true'
 
+  const proportionalLiquidityAddress = getProportionalLiquidityAddress(network)
+  if (!proportionalLiquidityAddress) {
+    console.error(`Address for ProportionalLiquidity not available on ${network}!`)
+    return
+  }
+
   const lptAmountBN = ethers.utils.parseEther(`${lptAmount}`)
   console.log('lptAmountBN:', lptAmountBN.toString())
+
   const FXPool = await ethers.getContractFactory('FXPool', {
     libraries: {
       ProportionalLiquidity: proportionalLiquidityAddress,
@@ -30,8 +36,8 @@ export default async (taskArgs: any) => {
   })
   const viewWithdrawResponse = await FXPool.attach(poolAddress).viewWithdraw(lptAmountBN)
   console.log('viewWithdrawResponse:', viewWithdrawResponse.toString())
-  const baseAmountBN = viewWithdrawResponse[1]
-  const quoteAmountBN = viewWithdrawResponse[0]
+  const baseAmountBN = viewWithdrawResponse[0]
+  const quoteAmountBN = viewWithdrawResponse[1]
 
   const sortedAddresses = sortAddresses([baseToken, quoteToken])
   console.log('sorted addresses:', sortedAddresses)
@@ -42,6 +48,7 @@ export default async (taskArgs: any) => {
   } else {
     liquidityToRemove = [quoteAmountBN, baseAmountBN]
   }
+
   console.log('liquidityToRemove:', liquidityToRemove.toString())
 
   const payload = ethers.utils.defaultAbiCoder.encode(['uint256', 'address[]'], [lptAmountBN, sortedAddresses])

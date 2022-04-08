@@ -120,6 +120,14 @@ export default {
       },
       blockGasLimit: 20000000,
     },
+    matic: {
+      chainId: 137,
+      url: `https://polygon-mainnet.infura.io/v3/${INFURA_PROJECT_ID}`,
+      accounts: {
+        mnemonic: MNEMONIC_SEED,
+      },
+      gasPrice: 8000000000,
+    },
     localhost: {
       chainId: 1337,
       url: 'http://127.0.0.1:8545/',

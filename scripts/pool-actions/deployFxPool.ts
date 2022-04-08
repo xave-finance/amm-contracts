@@ -3,6 +3,7 @@ import {
   getTokenOracleAddress,
   getAssimilatorFactoryAddress,
   getVaultAddress,
+  getProportionalLiquidityAddress,
 } from '../utils/addresses'
 import { AssimilatorFactory } from '../../typechain/AssimilatorFactory'
 import { FXPool } from '../../typechain/FXPool'
@@ -62,11 +63,26 @@ export default async (taskArgs: any) => {
     return
   }
 
+  /** Step# - get ProportionalLiquidity & AssimilatorFactory address */
+  let assimilatorFactoryAddress: string | undefined
+  let proportionalLiquidityAddress: string | undefined
+  if (!freshDeploy) {
+    assimilatorFactoryAddress = getAssimilatorFactoryAddress(network)
+    if (!assimilatorFactoryAddress) {
+      console.error(`Address for AssimilatorFactory not available on ${network}!`)
+      return
+    }
+    proportionalLiquidityAddress = getProportionalLiquidityAddress(network)
+    if (!proportionalLiquidityAddress) {
+      console.error(`Address for ProportionalLiquidity not available on ${network}!`)
+      return
+    }
+  }
+
   /**
    * Step# - deploy or get assimilator factory
    **/
   let assimilatorFactory: AssimilatorFactory
-  let assimilatorFactoryAddress: string
   const AssimilatorFactoryFactory = await ethers.getContractFactory('AssimilatorFactory')
 
   if (freshDeploy) {
@@ -78,9 +94,8 @@ export default async (taskArgs: any) => {
     assimilatorFactory = await AssimilatorFactoryFactory.deploy(quoteTokenOracleAddress, quoteTokenAddress)
     await assimilatorFactory.deployed()
     console.log(`> AssimilatorFactory deployed at: ${assimilatorFactory.address}`)
-    assimilatorFactoryAddress = assimilatorFactory.address
   } else {
-    assimilatorFactoryAddress = getAssimilatorFactoryAddress(network)
+    console.log(`> Reusing AssimilatorFactory at `, assimilatorFactoryAddress)
     assimilatorFactory = AssimilatorFactoryFactory.attach(assimilatorFactoryAddress)
   }
 
@@ -90,27 +105,42 @@ export default async (taskArgs: any) => {
   /**
    * Step# - deploy baseToken assimilator
    **/
-  console.log(`> Deploying ${baseToken} assimilator...`)
-  console.table({
-    base: baseTokenAddress,
-    baseDecimals: baseTokenDecimals,
-    oracle: baseTokenOracleAddress,
-  })
-  await assimilatorFactory.newBaseAssimilator(
-    baseTokenAddress,
-    ethers.utils.parseUnits('1', baseTokenDecimals),
-    baseTokenOracleAddress
-  )
-  const baseAssimilatorAddress = await assimilatorFactory.getAssimilator(baseTokenAddress)
-  console.log(`> ${baseToken} assimilator deployed at: ${baseAssimilatorAddress}`)
+  let baseAssimilatorAddress: string
+  console.log(`> Checking if ${baseToken} assimilator is already deployed...`)
+  const baseAssimilator = await assimilatorFactory.getAssimilator(baseTokenAddress)
+  if (baseAssimilator !== ethers.constants.AddressZero) {
+    baseAssimilatorAddress = baseAssimilator
+    console.log(`> ${baseToken} assimilator is already deployed at ${baseAssimilator}`)
+  } else {
+    console.log(`> Deploying ${baseToken} assimilator...`)
+    console.table({
+      base: baseTokenAddress,
+      baseDecimals: baseTokenDecimals,
+      oracle: baseTokenOracleAddress,
+    })
+    await assimilatorFactory.newBaseAssimilator(
+      baseTokenAddress,
+      ethers.utils.parseUnits('1', baseTokenDecimals),
+      baseTokenOracleAddress
+    )
+    baseAssimilatorAddress = await assimilatorFactory.getAssimilator(baseTokenAddress)
+    console.log(`> ${baseToken} assimilator deployed at: ${baseAssimilatorAddress}`)
+  }
 
   /**
    * Step# - deploy pool
    **/
+  let proportionalLiquidity
   const ProportionalLiquidityFactory = await ethers.getContractFactory('ProportionalLiquidity')
-  const proportionalLiquidity = await ProportionalLiquidityFactory.deploy()
-  await proportionalLiquidity.deployed()
-  console.log('> ProportionalLiquidity deployed at:', proportionalLiquidity.address)
+
+  if (freshDeploy) {
+    const proportionalLiquidity = await ProportionalLiquidityFactory.deploy()
+    await proportionalLiquidity.deployed()
+    console.log('> ProportionalLiquidity deployed at:', proportionalLiquidity.address)
+  } else {
+    console.log(`> Reusing ProportionalLiquidity at `, proportionalLiquidityAddress)
+    proportionalLiquidity = AssimilatorFactoryFactory.attach(proportionalLiquidityAddress)
+  }
 
   const FXPoolFactory = await ethers.getContractFactory('FXPool', {
     libraries: {

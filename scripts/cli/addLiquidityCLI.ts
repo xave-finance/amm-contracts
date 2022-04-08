@@ -1,9 +1,8 @@
+import { getEnabledPools } from '../utils/addresses'
 const inquirer = require('inquirer')
 const childProcess = require('child_process')
 
 const runNpmCommand = (command: string) => childProcess.execSync(command, { stdio: [0, 1, 2] })
-
-import { pools, listOfPools } from '../constants/deployedAddresses'
 
 inquirer
   .prompt([
@@ -14,10 +13,9 @@ inquirer
       choices: ['kovan', 'matic'],
     },
     {
-      type: 'list',
-      name: 'pool',
-      message: 'Specify Pool',
-      choices: listOfPools,
+      type: 'input',
+      name: 'poolId',
+      message: 'Specify Pool ID',
     },
     {
       type: 'input',
@@ -37,16 +35,20 @@ inquirer
   ])
   .then(async (answers: any) => {
     const network = answers.network
-    const pool = answers.pool as string
+    const poolId = answers.poolId as string
     const baseAmount = answers.baseAmount
     const quoteAmount = answers.quoteAmount
     const frominternalbalance = answers.fromInternalBalance
 
-    const key = pool.split(':')[0]
-    const selectedPool = pools[key as keyof typeof pools]
-    const poolId = selectedPool.poolId
-    const baseTokenAddress = selectedPool.baseToken
-    const quoteTokenAddress = selectedPool.quoteToken
+    const pools = await getEnabledPools(network)
+    const pool = pools ? pools.find((p) => p.poolId === poolId) : undefined
+    if (!pool) {
+      console.error(`poolId[${poolId}] not available on ${network}!`)
+      return
+    }
+
+    const baseTokenAddress = pool.assets[0]
+    const quoteTokenAddress = pool.assets[1]
 
     console.log(
       `npx hardhat add-liquidity ` +
