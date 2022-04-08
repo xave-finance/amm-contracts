@@ -163,33 +163,28 @@ contract UsdcToUsdAssimilator is IAssimilator {
         amount_ = ((_amount * _rate) / 1e8).divu(DECIMALS);
     }
 
-    function _sortBalancesLikeVault(
-        address baseTokenAddress,
-        address quoteTokenAddress,
-        uint256[] memory balances,
+    function _getBalancesFromVault(
+        address vault,
+        bytes32 poolId,
         address quoteTokenAddressToCompare
-    ) internal pure returns (uint256 quoteTokenBal) {
-        if (baseTokenAddress == quoteTokenAddressToCompare) {
+    ) internal view returns (uint256 quoteTokenBal) {
+        (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
+
+        if (address(tokens[0]) == quoteTokenAddressToCompare) {
             quoteTokenBal = balances[0];
-        } else if (quoteTokenAddress == quoteTokenAddressToCompare) {
+        } else if (address(tokens[1]) == quoteTokenAddressToCompare) {
             quoteTokenBal = balances[1];
         } else {
             revert(
-                '_sortBalancesLikeVault: quoteTokenAddress is not present in token array returned by Vault.getPoolTokens method'
+                '_getBalancesFromVault: quoteTokenAddress is not present in token array returned by Vault.getPoolTokens method'
             );
         }
     }
 
-    function viewNumeraireBalance(
-        address _addr,
-        address vault,
-        bytes32 poolId
-    ) public view override returns (int128 balance_) {
+    function viewNumeraireBalance(address vault, bytes32 poolId) public view override returns (int128 balance_) {
         uint256 _rate = getRate();
 
-        (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
-
-        uint256 quoteBalance = _sortBalancesLikeVault(address(tokens[0]), address(tokens[1]), balances, address(usdc));
+        uint256 quoteBalance = _getBalancesFromVault(vault, poolId, address(usdc));
 
         if (quoteBalance <= 0) return ABDKMath64x64.fromUInt(0);
 
@@ -223,9 +218,7 @@ contract UsdcToUsdAssimilator is IAssimilator {
 
         amount_ = ((_amount * _rate) / 1e8).divu(DECIMALS);
 
-        (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
-
-        uint256 quoteBalance = _sortBalancesLikeVault(address(tokens[0]), address(tokens[1]), balances, address(usdc));
+        uint256 quoteBalance = _getBalancesFromVault(vault, poolId, address(usdc));
 
         balance_ = ((quoteBalance * _rate) / 1e8).divu(DECIMALS);
     }

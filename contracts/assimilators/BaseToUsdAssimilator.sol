@@ -169,24 +169,23 @@ contract BaseToUsdAssimilator is IAssimilator {
         amount_ = (_amount.mulu(baseDecimals) * 1e8) / _rate;
     }
 
-    function _sortBalancesLikeVault(
-        address baseTokenAddress,
-        address quoteTokenAddress,
-        uint256[] memory balances,
+    function _getBalancesFromVault(
+        address vault,
+        bytes32 poolId,
         address quoteTokenAddressToCompare
-    ) internal pure returns (uint256 baseTokenBal, uint256 quoteTokenBal) {
-        if (baseTokenAddress == quoteTokenAddressToCompare) {
-            // console.log('tokens[0] is usdc %s', address(tokens[0]));
+    ) internal view returns (uint256 baseTokenBal, uint256 quoteTokenBal) {
+        (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
 
+        if (address(tokens[0]) == quoteTokenAddressToCompare) {
+            // console.log('tokens[0] is usdc %s', address(tokens[0]));
             baseTokenBal = balances[1];
             quoteTokenBal = balances[0];
-        } else if (quoteTokenAddress == quoteTokenAddressToCompare) {
+        } else if (address(tokens[1]) == quoteTokenAddressToCompare) {
             // console.log('tokens[1] is usdc %s', address(tokens[1]));
-
             baseTokenBal = balances[0];
             quoteTokenBal = balances[1];
         } else {
-            revert('_sortBalancesLikeVault: usdc is not present in token array returned by Vault.getPoolTokens method');
+            revert('_getBalancesFromVault: usdc is not present in token array returned by Vault.getPoolTokens method');
         }
     }
 
@@ -198,19 +197,13 @@ contract BaseToUsdAssimilator is IAssimilator {
         address vault,
         bytes32 poolId
     ) external view override returns (uint256 amount_) {
-        (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
         // console.log('viewRawAmountLPRatio: tokens[0] %s, token[1] %s', address(tokens[0]), address(tokens[1]));
         // console.log('viewRawAmountLPRatio: balances[0] %s, balances[1] %s', balances[0], balances[1]);
         // console.log('baseDecimals %s', baseDecimals);
         // console.log('_baseWeight %s', _baseWeight);
         // console.log('_quoteWeight %s', _quoteWeight);
 
-        (uint256 baseTokenBal, uint256 usdcBal) = _sortBalancesLikeVault(
-            address(tokens[0]),
-            address(tokens[1]),
-            balances,
-            address(usdc)
-        );
+        (uint256 baseTokenBal, uint256 usdcBal) = _getBalancesFromVault(vault, poolId, address(usdc));
 
         if (baseTokenBal <= 0) return 0;
 
@@ -231,25 +224,19 @@ contract BaseToUsdAssimilator is IAssimilator {
 
     // views the numeraire value of the current balance of the reserve, in this case baseToken
     function viewNumeraireBalance(
-        address _addr,
+        // address _addr,
         address vault,
         bytes32 poolId
     ) external view override returns (int128 balance_) {
         uint256 _rate = getRate();
 
-        (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
         // console.log(
         //     'viewNumeraireBalance: token[0] address %s. token[1] address %s',
         //     address(tokens[0]),
         //     address(tokens[1])
         // );
 
-        (uint256 baseTokenBal, ) = _sortBalancesLikeVault(
-            address(tokens[0]),
-            address(tokens[1]),
-            balances,
-            address(usdc)
-        );
+        (uint256 baseTokenBal, ) = _getBalancesFromVault(vault, poolId, address(usdc));
 
         if (baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
 
@@ -269,14 +256,7 @@ contract BaseToUsdAssimilator is IAssimilator {
 
         amount_ = ((_amount * _rate) / 1e8).divu(baseDecimals);
 
-        (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
-
-        (uint256 baseTokenBal, ) = _sortBalancesLikeVault(
-            address(tokens[0]),
-            address(tokens[1]),
-            balances,
-            address(usdc)
-        );
+        (uint256 baseTokenBal, ) = _getBalancesFromVault(vault, poolId, address(usdc));
 
         balance_ = ((baseTokenBal * _rate) / 1e8).divu(baseDecimals);
     }
@@ -291,19 +271,13 @@ contract BaseToUsdAssimilator is IAssimilator {
         address vault,
         bytes32 poolId
     ) external view override returns (int128 balance_) {
-        (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
         // console.log(
         //     'viewNumeraireBalanceLPRatio: token[0] address %s. token[1] address %s',
         //     address(tokens[0]),
         //     address(tokens[1])
         // );
 
-        (uint256 baseTokenBal, uint256 usdcBal) = _sortBalancesLikeVault(
-            address(tokens[0]),
-            address(tokens[1]),
-            balances,
-            address(usdc)
-        );
+        (uint256 baseTokenBal, uint256 usdcBal) = _getBalancesFromVault(vault, poolId, address(usdc));
 
         if (baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
 

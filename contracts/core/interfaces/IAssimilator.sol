@@ -58,11 +58,7 @@ interface IAssimilator {
         bytes32
     ) external view returns (int128);
 
-    function viewNumeraireBalance(
-        address,
-        address,
-        bytes32
-    ) external view returns (int128);
+    function viewNumeraireBalance(address, bytes32) external view returns (int128);
 
     function viewNumeraireAmountAndBalance(
         uint256,
