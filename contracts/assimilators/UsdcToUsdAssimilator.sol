@@ -163,28 +163,32 @@ contract UsdcToUsdAssimilator is IAssimilator {
         amount_ = ((_amount * _rate) / 1e8).divu(DECIMALS);
     }
 
-    function viewNumeraireBalance(
-        address _addr,
+    function _getBalancesFromVault(
         address vault,
-        bytes32 poolId
-    ) public view override returns (int128 balance_) {
+        bytes32 poolId,
+        address quoteTokenAddressToCompare
+    ) internal view returns (uint256 quoteTokenBal) {
+        (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
+
+        if (address(tokens[0]) == quoteTokenAddressToCompare) {
+            quoteTokenBal = balances[0];
+        } else if (address(tokens[1]) == quoteTokenAddressToCompare) {
+            quoteTokenBal = balances[1];
+        } else {
+            revert(
+                '_getBalancesFromVault: quoteTokenAddress is not present in token array returned by Vault.getPoolTokens method'
+            );
+        }
+    }
+
+    function viewNumeraireBalance(address vault, bytes32 poolId) public view override returns (int128 balance_) {
         uint256 _rate = getRate();
 
-        (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
-        // uint256 _balance = usdc.balanceOf(_addr);
-        // uint256 _balance = balances[0];
-        // needs token check
+        uint256 quoteBalance = _getBalancesFromVault(vault, poolId, address(usdc));
 
-        uint256 _balance = 0;
-        if (address(tokens[0]) == address(usdc)) {
-            _balance = balances[0];
-        } else {
-            _balance = balances[1];
-        }
+        if (quoteBalance <= 0) return ABDKMath64x64.fromUInt(0);
 
-        if (_balance <= 0) return ABDKMath64x64.fromUInt(0);
-
-        balance_ = ((_balance * _rate) / 1e8).divu(DECIMALS);
+        balance_ = ((quoteBalance * _rate) / 1e8).divu(DECIMALS);
     }
 
     // views the numeraire value of the current balance of the reserve wrt to USD
@@ -197,8 +201,6 @@ contract UsdcToUsdAssimilator is IAssimilator {
         bytes32 poolId
     ) external view override returns (int128 balance_) {
         (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
-        //  uint256 _balance = usdc.balanceOf(_addr);
-        // needs token check
 
         if (address(tokens[0]) == address(usdc)) {
             return balances[0].divu(DECIMALS);
@@ -208,7 +210,6 @@ contract UsdcToUsdAssimilator is IAssimilator {
     }
 
     function viewNumeraireAmountAndBalance(
-        address _addr,
         uint256 _amount,
         address vault,
         bytes32 poolId
@@ -217,17 +218,8 @@ contract UsdcToUsdAssimilator is IAssimilator {
 
         amount_ = ((_amount * _rate) / 1e8).divu(DECIMALS);
 
-        // uint256 _balance = usdc.balanceOf(_addr);
-        // needs token check
-        (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
+        uint256 quoteBalance = _getBalancesFromVault(vault, poolId, address(usdc));
 
-        uint256 _balance = 0;
-        if (address(tokens[0]) == address(usdc)) {
-            _balance = balances[0];
-        } else {
-            _balance = balances[1];
-        }
-
-        balance_ = ((_balance * _rate) / 1e8).divu(DECIMALS);
+        balance_ = ((quoteBalance * _rate) / 1e8).divu(DECIMALS);
     }
 }
