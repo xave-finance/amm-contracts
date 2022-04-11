@@ -73,6 +73,7 @@ library ProportionalLiquidity {
             _newShells = _newShells.mul(_totalShells);
         }
 
+        // this is impt
         requireLiquidityInvariant(curve, _totalShells, _newShells, _oGLiqProp, _oBalsProp);
 
         //   mint(curve, msg.sender, curves_ = _newShells.mulu(1e18));
@@ -89,8 +90,6 @@ library ProportionalLiquidity {
         bytes32 poolId
     ) external view returns (uint256 curves_, uint256[] memory) {
         int128 __deposit = _deposit.divu(1e18);
-
-        // uint256 _length =
 
         (int128 _oGLiq, int128[] memory _oBals) = getGrossLiquidityAndBalancesForDeposit(curve, vault, poolId);
 

@@ -117,13 +117,11 @@ describe('FXPool', () => {
 
     let liquidityToAdd: BigNumber[]
     if (sortedAddresses[0] === fxPHPAddress) {
-      console.log('sortedAddresses[0] ', fxPHPAddress, ' is fxPHP')
       liquidityToAdd = [viewDeposit[1][0], viewDeposit[1][1]]
     } else if (sortedAddresses[1] === fxPHPAddress) {
-      console.log('sortedAddresses[1] ', fxPHPAddress, ' is fxPHP')
       liquidityToAdd = [viewDeposit[1][1], viewDeposit[1][0]]
     } else {
-      throw console.error('sortedAddresses[0] or sortedAddresses[1] is not expected')
+      throw console.error('1st onJoin: sortedAddresses[0] or sortedAddresses[1] is not expected')
     }
     console.log('liquidityToAdd result: ', liquidityToAdd)
 
@@ -200,7 +198,10 @@ describe('FXPool', () => {
       userData: payload,
       fromInternalBalance: false,
     }
+    console.log('about to call 2nd join')
+    // this reverts for me
     await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.not.be.reverted
+    console.log('2nd join done')
 
     const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
     const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
@@ -212,13 +213,13 @@ describe('FXPool', () => {
       } `
     )
 
-    // expect(afterLpBalance, 'Current LP Balance not expected').to.be.equals(beforeLpBalance.add(viewDeposit[0]))
-    // expect(afterVaultfxPhpBalance, 'Current fxPHP Balance not expected').to.be.equals(
-    //   beforeVaultfxPhpBalance.add(viewDeposit[1][0])
-    // )
-    // expect(afterVaultUsdcBalance, 'Current USDC Balance not expected').to.be.equals(
-    //   beforeVaultUsdcBalance.add(viewDeposit[1][1])
-    // )
+    expect(afterLpBalance, 'Current LP Balance not expected').to.be.equals(beforeLpBalance.add(viewDeposit[0]))
+    expect(afterVaultfxPhpBalance, 'Current fxPHP Balance not expected').to.be.equals(
+      beforeVaultfxPhpBalance.add(viewDeposit[1][0])
+    )
+    expect(afterVaultUsdcBalance, 'Current USDC Balance not expected').to.be.equals(
+      beforeVaultUsdcBalance.add(viewDeposit[1][1])
+    )
   })
 
   it('Removes liquidity inside the FXPool calling the vault and triggering onExit hook -2', async () => {
@@ -249,13 +250,13 @@ describe('FXPool', () => {
     console.log(
       `afterlpbalance: ${afterLpBalance}, aftervaultbalance: ${afterVaultfxPhpBalance}, afterVaultUsdcBalance: ${afterVaultUsdcBalance}`
     )
-    // expect(afterLpBalance, 'Current LP Balance not expected').to.be.equals(beforeLpBalance.sub(tokensToBurn))
-    // expect(afterVaultfxPhpBalance, 'Current fxPHP Balance not expected').to.be.equals(
-    //   beforeVaultfxPhpBalance.sub(withdrawTokensOut[0])
-    // )
-    // expect(afterVaultUsdcBalance, 'Current USDC Balance not expected').to.be.equals(
-    //   beforeVaultUsdcBalance.sub(withdrawTokensOut[1])
-    // )
+    expect(afterLpBalance, 'Current LP Balance not expected').to.be.equals(beforeLpBalance.sub(tokensToBurn))
+    expect(afterVaultfxPhpBalance, 'Current fxPHP Balance not expected').to.be.equals(
+      beforeVaultfxPhpBalance.sub(withdrawTokensOut[0])
+    )
+    expect(afterVaultUsdcBalance, 'Current USDC Balance not expected').to.be.equals(
+      beforeVaultUsdcBalance.sub(withdrawTokensOut[1])
+    )
   })
   it.skip('Swaps tokan a and token b  calling the vault and triggering onSwap hook', async () => {
     /// VAULT INDEX: index 0: USDC, index 1: fxPHP
@@ -290,7 +291,7 @@ describe('FXPool', () => {
     console.log('FX USDC Pool amount: ', await testEnv.USDC.balanceOf(testEnv.vault.address))
   })
   it('Previews swap caclculation from the onSwap hook', async () => {})
-  it('Previews swap caclculation when providing single sided liquiditu from the onJoin and onExit hook', async () => {})
+  it('Previews swap caclculation when providing single sided liquidity from the onJoin and onExit hook', async () => {})
 
   it('can pause pool', async () => {
     expect(await testEnv.fxPool.paused()).to.be.equals(false)
