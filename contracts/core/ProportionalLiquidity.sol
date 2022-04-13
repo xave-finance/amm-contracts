@@ -181,9 +181,9 @@ library ProportionalLiquidity {
 
     */
 
-    /*
     function proportionalWithdraw(Storage.Curve storage curve, uint256 _withdrawal)
         external
+        view
         returns (uint256[] memory)
     {
         uint256 _length = curve.assets.length;
@@ -198,11 +198,7 @@ library ProportionalLiquidity {
         int128 _multiplier = __withdrawal.div(_totalShells);
 
         for (uint256 i = 0; i < _length; i++) {
-            withdrawals_[i] = Assimilators.outputNumeraire(
-                curve.assets[i].addr,
-                msg.sender,
-                _oBals[i].mul(_multiplier)
-            );
+            withdrawals_[i] = Assimilators.viewRawAmount(curve.assets[i].addr, _oBals[i].mul(_multiplier));
         }
 
         requireLiquidityInvariant(curve, _totalShells, __withdrawal.neg(), _oGLiq, _oBals);
@@ -212,7 +208,6 @@ library ProportionalLiquidity {
         return withdrawals_;
     }
 
-*/
     function viewProportionalWithdraw(
         Storage.Curve storage curve,
         uint256 _withdrawal,

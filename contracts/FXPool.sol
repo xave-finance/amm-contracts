@@ -403,14 +403,9 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     ) external override returns (uint256[] memory amountsOut, uint256[] memory dueProtocolFeeAmounts) {
         (uint256 tokensToBurn, address[] memory assetAddresses) = abi.decode(userData, (uint256, address[]));
 
-        uint256[] memory amountToWithdraw = ProportionalLiquidity.viewProportionalWithdraw(
-            curve,
-            tokensToBurn,
-            address(curve.vault),
-            curve.poolId
-        );
-        // console.log('Withdraw 1: ', amountToWithdraw[0]);
-        // console.log('Withdraw 2: ', amountToWithdraw[1]);
+        uint256[] memory amountToWithdraw = ProportionalLiquidity.proportionalWithdraw(curve, tokensToBurn);
+        console.log('Withdraw 1: ', amountToWithdraw[0]);
+        console.log('Withdraw 2: ', amountToWithdraw[1]);
 
         {
             amountsOut = new uint256[](2);
@@ -524,10 +519,8 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         );
 
         if (_assetAddress == derivatives[0]) {
-            // console.log('_getAssetIndex: _assetAddress %s is 0', _assetAddress);
             return 0;
         } else {
-            // console.log('_getAssetIndex: _assetAddress %s is 1', _assetAddress);
             return 1;
         }
     }
