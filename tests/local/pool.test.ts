@@ -99,20 +99,16 @@ describe('FXPool', () => {
 
     // add 10,000 USD or ~250k PHP and ~5k USDC to the pool
     const numeraireAmount = parseEther('10000')
-    console.log('numeraireAmount: ', numeraireAmount)
     const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
     const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
     // call the vault to add liquidity
     const viewDeposit = await testEnv.fxPool.viewDeposit(numeraireAmount)
-    console.log('viewDeposit result: ', viewDeposit)
     console.log('viewDeposit: ', viewDeposit)
 
-    console.log('sortedAddresses: ', sortedAddresses)
     let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
     let fxPHPIsSortedIndex0 = sortedAddresses[0] === fxPHPAddress
-    console.log('fxPHPIsSortedIndex0 ', fxPHPIsSortedIndex0)
     let fxPHPIsSortedIndex1 = sortedAddresses[1] === fxPHPAddress
 
     let liquidityToAdd: BigNumber[]
@@ -127,14 +123,13 @@ describe('FXPool', () => {
 
     const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [liquidityToAdd, sortedAddresses])
 
-    // i think we need to call viewDeposit first then pass the token amounts here to maxAmountsIn
     const joinPoolRequest = {
       assets: sortedAddresses,
+      // i think we need to pass viewDeposit[1,0] and viewDeposit[1,1] here
       maxAmountsIn: [ethers.utils.parseUnits('10000000'), ethers.utils.parseUnits('10000000')],
       userData: payload,
       fromInternalBalance: false,
     }
-    console.log('about to call joinPool')
     await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.not.be.reverted
 
     const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
@@ -196,17 +191,14 @@ describe('FXPool', () => {
     const joinPoolRequest = {
       assets: sortedAddresses,
       /**
-       * increase maxAmountsIn? getting balancer err 506 - "Join would cost more than the user-supplied maximum tokens in"
-       * i think we need to call viewDeposit first then pass the token amounts here to maxAmountsIn
+       * increase maxAmountsIn? joinPool reverts with balancer err 506 - "Join would cost more than the user-supplied maximum tokens in"
+       * i think we need to pass viewDeposit[1,0] and viewDeposit[1,1] here
        */
       maxAmountsIn: [ethers.utils.parseUnits('1000000'), ethers.utils.parseUnits('10000000')],
       userData: payload,
       fromInternalBalance: false,
     }
-    console.log('about to call 2nd join')
-    // this reverts for me
     await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.not.be.reverted
-    console.log('2nd join done')
 
     const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
     const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
