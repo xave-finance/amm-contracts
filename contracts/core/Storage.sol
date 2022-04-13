@@ -40,6 +40,7 @@ contract Storage {
         uint256 totalSupply;
         //   mapping(address => uint256) balances;
         mapping(address => mapping(address => uint256)) allowances;
+        // Vault reference
         IVault vault;
         bytes32 poolId;
     }
