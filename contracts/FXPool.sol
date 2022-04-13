@@ -337,18 +337,15 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
         uint256 totalDepositNumeraire = _convertToNumeraire(tokensIn[0], _getAssetIndex(assetAddresses[0])) +
             _convertToNumeraire(tokensIn[1], _getAssetIndex(assetAddresses[1]));
-        console.log('token0 amount: ', tokensIn[0]);
-        console.log('token1 amount: ', tokensIn[1]);
-        console.log('totalDepositNumeraire ', totalDepositNumeraire);
+        // console.log('token0 amount: ', tokensIn[0]);
+        // console.log('token1 amount: ', tokensIn[1]);
+        // console.log('totalDepositNumeraire ', totalDepositNumeraire);
 
         // to verify input amount is actual amount
         (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.proportionalDeposit(
             curve,
             totalDepositNumeraire * 1e18
         );
-        console.log('lpTokens ', lpTokens);
-        console.log('amountToDeposit[0] ', amountToDeposit[0]);
-        console.log('amountToDeposit[1] ', amountToDeposit[1]);
 
         // @todo within the threshold
         // require(

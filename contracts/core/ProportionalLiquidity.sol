@@ -107,7 +107,6 @@ library ProportionalLiquidity {
 
         // No liquidity
         if (_oGLiq == 0) {
-            console.log('viewProportionalDeposit: no liquidity');
             for (uint256 i = 0; i < curve.assets.length; i++) {
                 deposits_[i] = Assimilators.viewRawAmount(
                     curve.assets[i].addr,
@@ -115,7 +114,6 @@ library ProportionalLiquidity {
                 );
             }
         } else {
-            console.log('viewProportionalDeposit: existing pool ratio');
             // We already have an existing pool ratio
             // this must be respected
             //  int128 _multiplier = __deposit.div(_oGLiq);
@@ -136,10 +134,6 @@ library ProportionalLiquidity {
             }
         }
 
-        console.log('viewProportionalDeposit: deposits_ length = %s', deposits_.length);
-        console.log('viewProportionalDeposit: deposits_[0] is %s', deposits_[0]);
-        console.log('viewProportionalDeposit: deposits_[1] is %s', deposits_[1]);
-
         int128 _totalShells = curve.totalSupply.divu(1e18);
 
         int128 _newShells = __deposit;
@@ -150,8 +144,6 @@ library ProportionalLiquidity {
         }
 
         curves_ = _newShells.mulu(1e18);
-
-        console.log('viewProportionalDeposit: curves_ is %s', curves_);
 
         return (curves_, deposits_);
     }
