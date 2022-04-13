@@ -127,6 +127,7 @@ describe('FXPool', () => {
 
     const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [liquidityToAdd, sortedAddresses])
 
+    // i think we need to call viewDeposit first then pass the token amounts here to maxAmountsIn
     const joinPoolRequest = {
       assets: sortedAddresses,
       maxAmountsIn: [ethers.utils.parseUnits('10000000'), ethers.utils.parseUnits('10000000')],
@@ -194,7 +195,11 @@ describe('FXPool', () => {
     const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [liquidityToAdd, sortedAddresses])
     const joinPoolRequest = {
       assets: sortedAddresses,
-      maxAmountsIn: [ethers.utils.parseUnits('10000000'), ethers.utils.parseUnits('10000000')],
+      /**
+       * increase maxAmountsIn? getting balancer err 506 - "Join would cost more than the user-supplied maximum tokens in"
+       * i think we need to call viewDeposit first then pass the token amounts here to maxAmountsIn
+       */
+      maxAmountsIn: [ethers.utils.parseUnits('1000000'), ethers.utils.parseUnits('10000000')],
       userData: payload,
       fromInternalBalance: false,
     }
