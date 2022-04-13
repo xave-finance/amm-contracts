@@ -64,6 +64,7 @@ library ProportionalLiquidity {
         requireLiquidityInvariant(curve, _totalShells, _newShells, _oGLiqProp, _oBalsProp);
 
         //   mint(curve, msg.sender, curves_ = _newShells.mulu(1e18));
+        curves_ = _newShells.mulu(1e18);
 
         return (curves_, deposits_);
     }

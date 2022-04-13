@@ -346,6 +346,9 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             curve,
             totalDepositNumeraire * 1e18
         );
+        console.log('lpTokens ', lpTokens);
+        console.log('amountToDeposit[0] ', amountToDeposit[0]);
+        console.log('amountToDeposit[1] ', amountToDeposit[1]);
 
         // @todo within the threshold
         // require(
