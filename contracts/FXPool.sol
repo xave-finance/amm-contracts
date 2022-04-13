@@ -27,8 +27,8 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
     // The Balancer pool data
     // Note we change style to match Balancer's custom getter
-    IVault private immutable _vault;
-    bytes32 private immutable _poolId;
+    // IVault private immutable _vault;
+    // bytes32 private immutable _poolId;
 
     // The percent of each trade's implied yield to collect as LP fee
     uint256 public immutable percentFee;
@@ -92,8 +92,12 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         vault.registerTokens(poolId, tokens, new address[](2));
 
         // Set immutable state variables
-        _vault = vault;
-        _poolId = poolId;
+        // _vault = vault;
+        // _poolId = poolId;
+
+        curve.vault = vault;
+        curve.poolId = poolId;
+
         percentFee = _percentFee;
         expiration = _expiration; // use as deadline for swaps and liquidity functions?
         unitSeconds = _unitSeconds;
@@ -127,11 +131,13 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     /// @dev Returns the vault for this pool
     /// @return The vault for this pool
     function getVault() external view returns (IVault) {
-        return _vault;
+        // return _vault;
+        return curve.vault;
     }
 
     function getPoolId() external view override returns (bytes32) {
-        return _poolId;
+        // return _poolId;
+        return curve.poolId;
     }
 
     function getFee() private view returns (int128 fee_) {
@@ -141,7 +147,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         int128[] memory _bals = new int128[](2);
 
         for (uint256 i = 0; i < _bals.length; i++) {
-            int128 _bal = Assimilators.viewNumeraireBalance(curve.assets[i].addr, address(_vault), _poolId);
+            int128 _bal = Assimilators.viewNumeraireBalance(curve.assets[i].addr, address(curve.vault), curve.poolId);
 
             _bals[i] = _bal;
 
@@ -336,11 +342,9 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         console.log('totalDepositNumeraire ', totalDepositNumeraire);
 
         // to verify input amount is actual amount
-        (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.viewProportionalDeposit(
+        (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.proportionalDeposit(
             curve,
-            totalDepositNumeraire * 1e18,
-            address(_vault),
-            _poolId
+            totalDepositNumeraire * 1e18
         );
 
         // @todo within the threshold
@@ -402,8 +406,8 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256[] memory amountToWithdraw = ProportionalLiquidity.viewProportionalWithdraw(
             curve,
             tokensToBurn,
-            address(_vault),
-            _poolId
+            address(curve.vault),
+            curve.poolId
         );
         // console.log('Withdraw 1: ', amountToWithdraw[0]);
         // console.log('Withdraw 2: ', amountToWithdraw[1]);
@@ -471,11 +475,11 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     // @todo add curve modifiers
     function viewDeposit(uint256 _deposit) external view returns (uint256, uint256[] memory) {
         // curvesToMint_, depositsToMake_
-        return ProportionalLiquidity.viewProportionalDeposit(curve, _deposit, address(_vault), _poolId);
+        return ProportionalLiquidity.viewProportionalDeposit(curve, _deposit, address(curve.vault), curve.poolId);
     }
 
     function viewWithdraw(uint256 _curvesToBurn) external view returns (uint256[] memory) {
-        return ProportionalLiquidity.viewProportionalWithdraw(curve, _curvesToBurn, address(_vault), _poolId);
+        return ProportionalLiquidity.viewProportionalWithdraw(curve, _curvesToBurn, address(curve.vault), curve.poolId);
     }
 
     function _withinThreshold(uint256 a, uint256 b) internal pure returns (bool) {
@@ -520,10 +524,10 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         );
 
         if (_assetAddress == derivatives[0]) {
-            console.log('_getAssetIndex: _assetAddress %s is 0', _assetAddress);
+            // console.log('_getAssetIndex: _assetAddress %s is 0', _assetAddress);
             return 0;
         } else {
-            console.log('_getAssetIndex: _assetAddress %s is 1', _assetAddress);
+            // console.log('_getAssetIndex: _assetAddress %s is 1', _assetAddress);
             return 1;
         }
     }
