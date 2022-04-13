@@ -23,28 +23,29 @@ library ProportionalLiquidity {
     int128 public constant ONE = 0x10000000000000000;
     int128 public constant ONE_WEI = 0x12;
 
-    /*
-    function proportionalDeposit(Storage.Curve storage curve, uint256 _deposit)
-        external
-        returns (uint256 curves_, uint256[] memory)
-    {
+    function proportionalDeposit(
+        Storage.Curve storage curve,
+        uint256 _deposit,
+        address vault,
+        bytes32 poolId
+    ) external view returns (uint256 curves_, uint256[] memory) {
         int128 __deposit = _deposit.divu(1e18);
 
         uint256 _length = curve.assets.length;
 
         uint256[] memory deposits_ = new uint256[](_length);
 
-        (int128 _oGLiq, int128[] memory _oBals) = getGrossLiquidityAndBalancesForDeposit(curve);
+        (int128 _oGLiq, int128[] memory _oBals) = getGrossLiquidityAndBalancesForDeposit(curve, vault, poolId);
 
         // Needed to calculate liquidity invariant
-        (int128 _oGLiqProp, int128[] memory _oBalsProp) = getGrossLiquidityAndBalances(curve);
+        (int128 _oGLiqProp, int128[] memory _oBalsProp) = getGrossLiquidityAndBalances(curve, vault, poolId);
 
         // No liquidity, oracle sets the ratio
         if (_oGLiq == 0) {
             for (uint256 i = 0; i < _length; i++) {
                 // Variable here to avoid stack-too-deep errors
                 int128 _d = __deposit.mul(curve.weights[i]);
-                deposits_[i] = Assimilators.intakeNumeraire(curve.assets[i].addr, _d.add(ONE_WEI));
+                deposits_[i] = Assimilators.viewRawAmount(curve.assets[i].addr, _d.add(ONE_WEI));
             }
         } else {
             // We already have an existing pool ratio
@@ -55,11 +56,13 @@ library ProportionalLiquidity {
             uint256 _quoteWeight = curve.weights[1].mulu(1e18);
 
             for (uint256 i = 0; i < _length; i++) {
-                deposits_[i] = Assimilators.intakeNumeraireLPRatio(
+                deposits_[i] = Assimilators.viewRawAmountLPRatio(
                     curve.assets[i].addr,
                     _baseWeight,
                     _quoteWeight,
-                    _oBals[i].mul(_multiplier).add(ONE_WEI)
+                    _oBals[i].mul(_multiplier).add(ONE_WEI),
+                    vault,
+                    poolId
                 );
             }
         }
@@ -74,15 +77,13 @@ library ProportionalLiquidity {
         }
 
         // this is impt
-        requireLiquidityInvariant(curve, _totalShells, _newShells, _oGLiqProp, _oBalsProp);
+        requireLiquidityInvariant(curve, _totalShells, _newShells, _oGLiqProp, _oBalsProp, vault, poolId);
 
         //   mint(curve, msg.sender, curves_ = _newShells.mulu(1e18));
 
         return (curves_, deposits_);
     }
 
-
-*/
     function viewProportionalDeposit(
         Storage.Curve storage curve,
         uint256 _deposit,
@@ -277,16 +278,16 @@ library ProportionalLiquidity {
         return (grossLiquidity_, balances_);
     }
 
-    /*
-    @todo check implementation
     function requireLiquidityInvariant(
         Storage.Curve storage curve,
         int128 _curves,
         int128 _newShells,
         int128 _oGLiq,
-        int128[] memory _oBals
+        int128[] memory _oBals,
+        address vault,
+        bytes32 poolId
     ) private view {
-        (int128 _nGLiq, int128[] memory _nBals) = getGrossLiquidityAndBalances(curve);
+        (int128 _nGLiq, int128[] memory _nBals) = getGrossLiquidityAndBalances(curve, vault, poolId);
 
         int128 _beta = curve.beta;
         int128 _delta = curve.delta;
@@ -299,7 +300,6 @@ library ProportionalLiquidity {
         CurveMath.enforceLiquidityInvariant(_curves, _newShells, _oGLiq, _nGLiq, _omega, _psi);
     }
 
-    */
     /*
     function burn(
         Storage.Curve storage curve,
