@@ -56,7 +56,7 @@ library ProportionalLiquidity {
             // uint256 _quoteWeight = curve.weights[1].mulu(1e18);
             // int128[] memory weights = curve.weights;
             // Storage.Assimilator[] memory assims = curve.assets;
-            deposits_ = _calculateDepositsViewRawAmountLPRatio(curve, __deposit, vault, poolId);
+            deposits_ = _calculateDepositsForExistingLiquidity(curve, __deposit, vault, poolId);
             // for (uint256 i = 0; i < _length; i++) {
             //     int128 amount = _oBals[i].mul(_multiplier).add(ONE_WEI);
 
@@ -90,7 +90,7 @@ library ProportionalLiquidity {
         return (curves_, deposits_);
     }
 
-    function _calculateDepositsViewRawAmountLPRatio(
+    function _calculateDepositsForExistingLiquidity(
         Storage.Curve storage curve,
         int128 __deposit,
         address vault,
