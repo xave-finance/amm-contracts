@@ -7,6 +7,8 @@ import { CONTRACT_REVERT } from '../constants'
 import { sortAddresses } from '../common/helpers/utils'
 import { mockToken } from '../constants/mockTokenList'
 import { getAssimilatorContract } from '../common/contractGetters'
+import { ViewDepositData } from '.././common/types/types'
+import { sortTokenAddressesLikeVault } from '../common/helpers/sorter'
 
 describe('FXPool', () => {
   let testEnv: TestEnv
@@ -109,14 +111,17 @@ describe('FXPool', () => {
 
     let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
 
-    let liquidityToAdd: BigNumber[]
-    if (sortedAddresses[0] === fxPHPAddress) {
-      liquidityToAdd = [viewDeposit[1][0], viewDeposit[1][1]]
-    } else if (sortedAddresses[1] === fxPHPAddress) {
-      liquidityToAdd = [viewDeposit[1][1], viewDeposit[1][0]]
-    } else {
-      throw console.error('1st onJoin: sortedAddresses[0] or sortedAddresses[1] is not expected')
-    }
+    let liquidityToAdd: BigNumber[] = sortTokenAddressesLikeVault(sortedAddresses, fxPHPAddress, {
+      lptAmount: viewDeposit[0],
+      deposits: viewDeposit[1],
+    })
+    // if (sortedAddresses[0] === fxPHPAddress) {
+    //   liquidityToAdd = [viewDeposit[1][0], viewDeposit[1][1]]
+    // } else if (sortedAddresses[1] === fxPHPAddress) {
+    //   liquidityToAdd = [viewDeposit[1][1], viewDeposit[1][0]]
+    // } else {
+    //   throw console.error('1st onJoin: sortedAddresses[0] or sortedAddresses[1] is not expected')
+    // }
     console.log('liquidityToAdd result: ', liquidityToAdd)
 
     const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [liquidityToAdd, sortedAddresses])
@@ -183,14 +188,28 @@ describe('FXPool', () => {
 
     const viewDeposit = await testEnv.fxPool.viewDeposit(numeraireAmount)
 
-    const liquidityToAdd = [viewDeposit[1][1], viewDeposit[1][0]] // @todo how to make dynamic?
+    let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
+
+    // const liquidityToAdd = [viewDeposit[1][1], viewDeposit[1][0]] // @todo how to make dynamic?
+    let liquidityToAdd: BigNumber[] = sortTokenAddressesLikeVault(sortedAddresses, fxPHPAddress, {
+      lptAmount: viewDeposit[0],
+      deposits: viewDeposit[1],
+    })
+    // if (sortedAddresses[0] === fxPHPAddress) {
+    //   liquidityToAdd = [viewDeposit[1][0], viewDeposit[1][1]]
+    // } else if (sortedAddresses[1] === fxPHPAddress) {
+    //   liquidityToAdd = [viewDeposit[1][1], viewDeposit[1][0]]
+    // } else {
+    //   throw console.error('1st onJoin: sortedAddresses[0] or sortedAddresses[1] is not expected')
+    // }
+    console.log('liquidityToAdd result: ', liquidityToAdd)
     const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [liquidityToAdd, sortedAddresses])
     const joinPoolRequest = {
       assets: sortedAddresses,
       // increase maxAmountsIn? joinPool reverts with balancer err 506 - "Join would cost more than the user-supplied maximum tokens in"
       // i think we need to pass viewDeposit[1,0] and viewDeposit[1,1] here
-      maxAmountsIn: [ethers.utils.parseUnits('1000000'), ethers.utils.parseUnits('10000000')],
-      // maxAmountsIn: [liquidityToAdd[0], liquidityToAdd[1]],
+      // maxAmountsIn: [ethers.utils.parseUnits('1000000'), ethers.utils.parseUnits('10000000')],
+      maxAmountsIn: [liquidityToAdd[0], liquidityToAdd[1]],
       userData: payload,
       fromInternalBalance: false,
     }
