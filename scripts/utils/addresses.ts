@@ -1,40 +1,56 @@
-import { kovan as haloKovanAddresses } from '@halodao/halodao-contract-addresses'
+import { mainnet, kovan, rinkeby, matic, arb, arbTestnet } from '@halodao/halodao-contract-addresses'
 
-export const getTokenAddress = (network: string, baseToken: string) => {
+const getHaloAddresses = (network: string) => {
   switch (network) {
     case 'kovan':
-      return haloKovanAddresses.tokens[baseToken as keyof typeof haloKovanAddresses.tokens]
+      return kovan
+    case 'rinkeby':
+      return rinkeby
+    case 'arbTestnet':
+      return arbTestnet
+    case 'mainnet':
+      return mainnet
+    case 'matic':
+      return matic
+    case 'arb':
+      return arb
     default:
       return undefined
   }
+}
+
+export const getTokenAddress = (network: string, baseToken: string) => {
+  const haloAddresses = getHaloAddresses(network)
+  if (!haloAddresses) return undefined
+  return haloAddresses.tokens[baseToken as keyof typeof haloAddresses.tokens]
 }
 
 export const getTokenOracleAddress = (network: string, baseToken: string) => {
-  // @todo: store & get address from `@halodao/halodao-contract-addresses`
-  switch (baseToken) {
-    case 'USDC':
-      return '0x9211c6b3BF41A10F78539810Cf5c64e1BB78Ec60'
-    case 'fxPHP':
-      return '0x84fdC8dD500F29902C99c928AF2A91970E7432b6'
-    case 'XSGD':
-      return undefined
-    case 'EURS':
-      return '0x0c15Ab9A0DB086e062194c273CC79f41597Bbf13'
-    default:
-      return undefined
-  }
+  const haloAddresses = getHaloAddresses(network)
+  if (!haloAddresses) return undefined
+  return haloAddresses.ammV2.oracles[baseToken as keyof typeof haloAddresses.ammV2.oracles]
 }
 
 export const getAssimilatorFactoryAddress = (network: string) => {
-  // @todo: store & get address from `@halodao/halodao-contract-addresses`
-  return '0x14590aA441C2e72383e66695dFA67cA93c39C289'
+  const haloAddresses = getHaloAddresses(network)
+  if (!haloAddresses) return undefined
+  return haloAddresses.ammV2.assimilatorFactory
+}
+
+export const getProportionalLiquidityAddress = (network: string) => {
+  const haloAddresses = getHaloAddresses(network)
+  if (!haloAddresses) return undefined
+  return haloAddresses.ammV2.proportionalLiquidity
 }
 
 export const getVaultAddress = (network: string) => {
-  switch (network) {
-    case 'kovan':
-      return haloKovanAddresses.ammV2.vault
-    default:
-      return undefined
-  }
+  const haloAddresses = getHaloAddresses(network)
+  if (!haloAddresses) return undefined
+  return haloAddresses.ammV2.vault
+}
+
+export const getEnabledPools = (network: string) => {
+  const haloAddresses = getHaloAddresses(network)
+  if (!haloAddresses) return undefined
+  return haloAddresses.ammV2.pools.enabled
 }
