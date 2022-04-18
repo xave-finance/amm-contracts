@@ -134,7 +134,7 @@ export default async (taskArgs: any) => {
   const ProportionalLiquidityFactory = await ethers.getContractFactory('ProportionalLiquidity')
 
   if (freshDeploy) {
-    const proportionalLiquidity = await ProportionalLiquidityFactory.deploy()
+    proportionalLiquidity = await ProportionalLiquidityFactory.deploy()
     await proportionalLiquidity.deployed()
     console.log('> ProportionalLiquidity deployed at:', proportionalLiquidity.address)
   } else {
