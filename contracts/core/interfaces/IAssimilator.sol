@@ -42,7 +42,7 @@ interface IAssimilator {
     function viewRawAmountLPRatio(
         uint256,
         uint256,
-        address,
+        // address,
         int128,
         address,
         bytes32

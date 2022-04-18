@@ -332,6 +332,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256 protocolSwapFee,
         bytes calldata userData
     ) external override whenNotPaused returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts) {
+        console.log('onJoinPool: enter');
         // userData
         (uint256[] memory tokensIn, address[] memory assetAddresses) = abi.decode(userData, (uint256[], address[]));
 
@@ -341,12 +342,20 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         // console.log('token1 amount: ', tokensIn[1]);
         // console.log('totalDepositNumeraire ', totalDepositNumeraire);
 
-        // to verify input amount is actual amount
-        (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.proportionalDeposit(
+        console.log('onJoinPool: calling proportionalDeposit');
+        // (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.proportionalDeposit(
+        //     curve,
+        //     totalDepositNumeraire * 1e18
+        // );
+        // this works
+        (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.viewProportionalDeposit(
             curve,
-            totalDepositNumeraire * 1e18
+            totalDepositNumeraire * 1e18,
+            address(curve.vault),
+            curve.poolId
         );
 
+        // can we remove this?
         // @todo within the threshold
         // require(
         //     _withinThreshold(amountToDeposit[_getAssetIndex(assetAddresses[0])], tokensIn[0]),

@@ -23,7 +23,7 @@
     "test-local": "npx hardhat test tests/local/*.test.ts --logs",
     "test-debug": "hardhat test tests/local/assimilators.test.ts",
     "typecheck": "yarn compile && tsc --noEmit",
-    "recompile": "rm -rf artifacts && rm -rf cache && npx hardhat compile",
+    "recompile": "rm -rf artifacts && rm -rf cache && yarn compile-fix",
     "load-balancer-contracts": "sh scripts/shell/load-balancer-contracts.sh",
     "compile-fix": "TS_NODE_TRANSPILE_ONLY=1 npx hardhat compile"
   },

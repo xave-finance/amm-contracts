@@ -60,7 +60,7 @@ library Assimilators {
         amount_ = IAssimilator(_assim).viewRawAmountLPRatio(
             _baseWeight,
             _quoteWeight,
-            address(this),
+            // address(this),
             _amount,
             vault,
             poolId
