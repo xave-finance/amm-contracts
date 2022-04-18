@@ -359,6 +359,9 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
         // token a to numeraire, token b to numeraire , add, pass to viewProportional deposit
         // amountsIn = tokensIn;
+
+        console.log('Deposit 1: ', amountToDeposit[_getAssetIndex(assetAddresses[0])]);
+        console.log('Deposit 2: ', amountToDeposit[_getAssetIndex(assetAddresses[1])]);
         {
             amountsIn = new uint256[](2);
             amountsIn[0] = amountToDeposit[_getAssetIndex(assetAddresses[0])];
@@ -406,6 +409,9 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256[] memory amountToWithdraw = ProportionalLiquidity.proportionalWithdraw(curve, tokensToBurn);
         console.log('Withdraw 1: ', amountToWithdraw[0]);
         console.log('Withdraw 2: ', amountToWithdraw[1]);
+
+        console.log('Withdraw 1: ', amountToWithdraw[_getAssetIndex(assetAddresses[0])]);
+        console.log('Withdraw 2: ', amountToWithdraw[_getAssetIndex(assetAddresses[1])]);
 
         {
             amountsOut = new uint256[](2);
@@ -518,6 +524,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             'FXPool: Address is not a derivative'
         );
 
+        console.log(derivatives[0]);
         if (_assetAddress == derivatives[0]) {
             return 0;
         } else {

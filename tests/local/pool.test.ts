@@ -143,7 +143,6 @@ describe('FXPool', () => {
     expect(afterVaultUsdcBalance, 'Current USDC Balance not expected').to.be.equals(
       beforeVaultUsdcBalance.add(viewDeposit[1][1])
     )
-    console.log(await testEnv.fxPool.viewDeposit(parseEther('23')))
   })
   it('Removes liquidity inside the FXPool calling the vault and triggering onExit hook', async () => {
     const poolId = await testEnv.fxPool.getPoolId()
@@ -184,7 +183,6 @@ describe('FXPool', () => {
     const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
     const viewDeposit = await testEnv.fxPool.viewDeposit(numeraireAmount)
-    console.log('view deposit 2: ', viewDeposit)
 
     const liquidityToAdd = [viewDeposit[1][1], viewDeposit[1][0]] // @todo how to make dynamic?
     const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [liquidityToAdd, sortedAddresses])

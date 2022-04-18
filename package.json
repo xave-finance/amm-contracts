@@ -5,6 +5,7 @@
   "repository": "https://github.com/HaloDAO/halodao-amm-v2",
   "license": "GPL-3.0-or-later",
   "scripts": {
+    "start": "yarn reset && yarn test:debug",
     "clean": "npx hardhat clean",
     "compile": "hardhat compile",
     "deploy:token": "ts-node scripts/cli/deployTokenCLI.ts",
@@ -20,7 +21,7 @@
     "node": "npx hardhat node",
     "test": "npx hardhat test --logs",
     "test-local": "npx hardhat test tests/local/*.test.ts --logs",
-    "test-debug": "hardhat test tests/local/pool.test.ts",
+    "test-debug": "hardhat test tests/local/assimilators.test.ts",
     "typecheck": "yarn compile && tsc --noEmit",
     "recompile": "rm -rf artifacts && rm -rf cache && npx hardhat compile",
     "load-balancer-contracts": "sh scripts/shell/load-balancer-contracts.sh",
