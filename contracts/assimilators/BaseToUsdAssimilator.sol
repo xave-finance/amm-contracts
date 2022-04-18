@@ -215,11 +215,7 @@ contract BaseToUsdAssimilator is IAssimilator {
     }
 
     // views the numeraire value of the current balance of the reserve, in this case baseToken
-    function viewNumeraireBalance(
-        // address _addr,
-        address vault,
-        bytes32 poolId
-    ) external view override returns (int128 balance_) {
+    function viewNumeraireBalance(address vault, bytes32 poolId) external view override returns (int128 balance_) {
         uint256 _rate = getRate();
 
         (uint256 baseTokenBal, ) = _getBalancesFromVault(vault, poolId, address(usdc));

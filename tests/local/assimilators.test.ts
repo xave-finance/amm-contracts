@@ -170,12 +170,12 @@ describe('Assimilators', () => {
     ).to.equals(await calc.calculateNumeraireAmount(INPUT_AMOUNT, xsgdRateFromAssimilator, xsgdAssimilatorDecimals))
 
     expect(
-      await xsgdAssimilatorContract.viewNumeraireBalance(mockCurveAddress, testEnv.vault.address, poolId),
+      await xsgdAssimilatorContract.viewNumeraireBalance(/*mockCurveAddress, */ testEnv.vault.address, poolId),
       'View numeraire balance calculation is incorrect'
     ).to.equals(await calc.calculateNumeraireBalance(xsgdBalance, xsgdRateFromAssimilator, xsgdAssimilatorDecimals))
 
     const { amount_, balance_ } = await xsgdAssimilatorContract.viewNumeraireAmountAndBalance(
-      mockCurveAddress,
+      // mockCurveAddress,
       INPUT_AMOUNT,
       testEnv.vault.address,
       poolId
@@ -251,12 +251,12 @@ describe('Assimilators', () => {
     ).to.equals(await calc.calculateNumeraireAmount(INPUT_AMOUNT, eursRateFromAssimilator, eursAssimilatorDecimals))
 
     expect(
-      await eursAssimilatorContract.viewNumeraireBalance(mockCurveAddress, testEnv.vault.address, poolId),
+      await eursAssimilatorContract.viewNumeraireBalance(/*mockCurveAddress, */ testEnv.vault.address, poolId),
       'View numeraire balance calculation is incorrect'
     ).to.equals(await calc.calculateNumeraireBalance(eursBalance, eursRateFromAssimilator, eursAssimilatorDecimals))
 
     const { amount_, balance_ } = await eursAssimilatorContract.viewNumeraireAmountAndBalance(
-      mockCurveAddress,
+      // mockCurveAddress,
       INPUT_AMOUNT,
       testEnv.vault.address,
       poolId
@@ -332,12 +332,12 @@ describe('Assimilators', () => {
     ).to.equals(await calc.calculateNumeraireAmount(INPUT_AMOUNT, fxPHPRateFromAssimilator, fxPHPAssimilatorDecimals))
 
     expect(
-      await fxPHPAssimilatorContract.viewNumeraireBalance(mockCurveAddress, testEnv.vault.address, poolId),
+      await fxPHPAssimilatorContract.viewNumeraireBalance(/*mockCurveAddress, */ testEnv.vault.address, poolId),
       'View numeraire balance calculation is incorrect'
     ).to.equals(await calc.calculateNumeraireBalance(fxPHPBalance, fxPHPRateFromAssimilator, fxPHPAssimilatorDecimals))
 
     const { amount_, balance_ } = await fxPHPAssimilatorContract.viewNumeraireAmountAndBalance(
-      mockCurveAddress,
+      // mockCurveAddress,
       INPUT_AMOUNT,
       testEnv.vault.address,
       poolId
@@ -400,12 +400,12 @@ describe('Assimilators', () => {
     ).to.equals(await calc.calculateNumeraireAmount(INPUT_AMOUNT, usdcRateFromAssimilator, USDC_DECIMALS))
 
     expect(
-      await usdcAssimilatorContract.viewNumeraireBalance(mockCurveAddress, testEnv.vault.address, poolId),
+      await usdcAssimilatorContract.viewNumeraireBalance(/*mockCurveAddress, */ testEnv.vault.address, poolId),
       'View numeraire balance calculation is incorrect'
     ).to.equals(await calc.calculateNumeraireBalance(usdcBalance, usdcRateFromAssimilator, USDC_DECIMALS))
 
     const { amount_, balance_ } = await usdcAssimilatorContract.viewNumeraireAmountAndBalance(
-      mockCurveAddress,
+      // mockCurveAddress,
       INPUT_AMOUNT,
       testEnv.vault.address,
       poolId

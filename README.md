@@ -7,7 +7,7 @@ This repository contains the smart contracts source code and markets configurati
 ## Quick Start
 
 - `yarn` to install all dependencies
-- `yarn compile` to generate initial typechain depedencies
+- `yarn start` to clean prior modules and contract builds, generate initial typechain depedencies, rebuild contracts and run all tests from the [local](./tests/local) folder
 
 ## Environment Variables
 
