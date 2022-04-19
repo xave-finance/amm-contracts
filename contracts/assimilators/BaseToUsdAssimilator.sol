@@ -194,9 +194,7 @@ contract BaseToUsdAssimilator is IAssimilator {
         address vault,
         bytes32 poolId
     ) external view override returns (uint256 amount_) {
-        console.log('viewRawAmountLPRatio: entered');
         (uint256 baseTokenBal, uint256 usdcBal) = _getBalancesFromVault(vault, poolId, address(usdc));
-        console.log('viewRawAmountLPRatio: _getBalancesFromVault done');
 
         if (baseTokenBal <= 0) return 0;
 
@@ -207,8 +205,6 @@ contract BaseToUsdAssimilator is IAssimilator {
         uint256 _rate = usdcBal.mul(baseDecimals).div(baseTokenBal);
 
         amount_ = (_amount.mulu(baseDecimals) * 1e6) / _rate;
-
-        console.log('viewRawAmountLPRatio: amount_ is %s', amount_);
     }
 
     // takes a raw amount and returns the numeraire amount

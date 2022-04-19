@@ -149,7 +149,6 @@ contract UsdcToUsdAssimilator is IAssimilator {
     function viewRawAmountLPRatio(
         uint256,
         uint256,
-        // address,
         int128 _amount,
         address,
         bytes32

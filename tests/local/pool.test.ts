@@ -119,6 +119,7 @@ describe('FXPool', () => {
 
     const joinPoolRequest = {
       assets: sortedAddresses,
+      // https://dev.balancer.fi/resources/joins-and-exits/pool-joins#maxamountsin
       // maxAmountsIn: [ethers.utils.parseUnits('10000000'), ethers.utils.parseUnits('10000000')],
       maxAmountsIn: [liquidityToAdd[0], liquidityToAdd[1]],
       userData: payload,
@@ -188,10 +189,9 @@ describe('FXPool', () => {
     const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [liquidityToAdd, sortedAddresses])
     const joinPoolRequest = {
       assets: sortedAddresses,
-      // increase maxAmountsIn? joinPool reverts with balancer err 506 - "Join would cost more than the user-supplied maximum tokens in"
-      // i think we need to pass viewDeposit[1,0] and viewDeposit[1,1] here
-      // maxAmountsIn: [ethers.utils.parseUnits('1000000'), ethers.utils.parseUnits('10000000')],
-      maxAmountsIn: [liquidityToAdd[0], liquidityToAdd[1]],
+      // https://dev.balancer.fi/resources/joins-and-exits/pool-joins#maxamountsin
+      maxAmountsIn: [ethers.utils.parseUnits('1000000'), ethers.utils.parseUnits('10000000')],
+      // maxAmountsIn: [liquidityToAdd[0], liquidityToAdd[1]],
       userData: payload,
       fromInternalBalance: false,
     }

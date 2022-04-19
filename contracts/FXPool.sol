@@ -333,23 +333,20 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         bytes calldata userData
     ) external override whenNotPaused returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts) {
         console.log('onJoinPool: enter');
-        // userData
         (uint256[] memory tokensIn, address[] memory assetAddresses) = abi.decode(userData, (uint256[], address[]));
 
-        uint256 totalDepositNumeraire = _convertToNumeraire(tokensIn[0], _getAssetIndex(assetAddresses[0])) +
-            _convertToNumeraire(tokensIn[1], _getAssetIndex(assetAddresses[1]));
+        uint256 totalDepositNumeraire = (_convertToNumeraire(tokensIn[0], _getAssetIndex(assetAddresses[0])) +
+            _convertToNumeraire(tokensIn[1], _getAssetIndex(assetAddresses[1]))) * 1e18;
 
-        console.log('onJoinPool: calling proportionalDeposit');
+        console.log('onJoinPool: calling deposit with totalDepositNumeraire ', totalDepositNumeraire);
         (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.proportionalDeposit(
             curve,
-            totalDepositNumeraire * 1e18
+            totalDepositNumeraire
         );
         // this works
         // (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.viewProportionalDeposit(
         //     curve,
-        //     totalDepositNumeraire * 1e18,
-        //     address(curve.vault),
-        //     curve.poolId
+        //     totalDepositNumeraire
         // );
 
         // can we remove this?
@@ -534,7 +531,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             'FXPool: Address is not a derivative'
         );
 
-        console.log(derivatives[0]);
         if (_assetAddress == derivatives[0]) {
             return 0;
         } else {

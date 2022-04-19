@@ -28,7 +28,6 @@ library ProportionalLiquidity {
         view
         returns (uint256 curves_, uint256[] memory)
     {
-        console.log('proportionalDeposit start');
         int128 __deposit = _deposit.divu(1e18);
 
         uint256 _length = curve.assets.length;
@@ -52,34 +51,25 @@ library ProportionalLiquidity {
             console.log('proportionalDeposit: existing liquidity');
             // We already have an existing pool ratio
             // which must be respected
-            // deposits_ = _calculateDepositsForExistingLiquidity(curve, __deposit, _oGLiq, _oBals, _length);
-            console.log('curve.assets.length', _length);
             int128 _multiplier = __deposit.div(_oGLiq);
             address vault = address(curve.vault);
             bytes32 poolId = curve.poolId;
 
             int128[] memory weights = curve.weights;
             Storage.Assimilator[] memory assims = curve.assets;
-            // uint256 _baseWeight = curve.weights[0].mulu(1e18);
-            // uint256 _quoteWeight = curve.weights[1].mulu(1e18);
 
             for (uint256 i = 0; i < _length; i++) {
-                console.log('_calculateDepositsForExistingLiquidity: loop #', i);
                 int128 amount = _oBals[i].mul(_multiplier).add(ONE_WEI);
 
                 deposits_[i] = Assimilators.viewRawAmountLPRatio(
                     assims[i].addr,
-                    // curve.assets[i].addr,
-                    // _baseWeight,
-                    // _quoteWeight,
                     weights[0].mulu(1e18),
                     weights[1].mulu(1e18),
                     amount,
-                    // curve
                     vault,
                     poolId
                 );
-                console.log('_calculateDepositsForExistingLiquidity: loop # %s result is %s', i, deposits_[i]);
+                console.log('proportionalDeposit: deposit_[%s] result is %s', i, deposits_[i]);
             }
         }
 
@@ -100,44 +90,10 @@ library ProportionalLiquidity {
         return (curves_, deposits_);
     }
 
-    // function _calculateDepositsForExistingLiquidity(
-    //     Storage.Curve storage curve,
-    //     int128 __deposit,
-    //     int128 _oGLiq,
-    //     int128[] memory _oBals,
-    //     uint256 _length
-    // ) internal view returns (uint256[] memory deposits) {
-    //     int128 _multiplier = __deposit.div(_oGLiq);
-    //     // int128[] memory weights = curve.weights;
-    //     Storage.Assimilator[] memory assims = curve.assets;
-
-    //     console.log('curve.assets.length', _length);
-
-    //     for (uint256 i = 0; i < _length; i++) {
-    //         console.log('_calculateDepositsForExistingLiquidity: loop #', i);
-    //         int128 amount = _oBals[i].mul(_multiplier).add(ONE_WEI);
-
-    //         console.log('_calculateDepositsForExistingLiquidity: loop # %s. calling viewRawAmountLPRatio', i);
-    //         deposits[i] = Assimilators.viewRawAmountLPRatio(
-    //             assims[i].addr,
-    //             // weights[0].mulu(1e18),
-    //             // weights[1].mulu(1e18),
-    //             amount,
-    //             curve
-    //         );
-    //         console.log('_calculateDepositsForExistingLiquidity: loop # %s result is %s', i, deposits[i]);
-    //     }
-    // }
-
     function viewProportionalDeposit(Storage.Curve storage curve, uint256 _deposit)
         external
         view
-        returns (
-            // address vault,
-            // bytes32 poolId
-            uint256 curves_,
-            uint256[] memory
-        )
+        returns (uint256 curves_, uint256[] memory)
     {
         int128 __deposit = _deposit.divu(1e18);
 
@@ -174,13 +130,11 @@ library ProportionalLiquidity {
                     curve.assets[i].addr,
                     _baseWeight,
                     _quoteWeight,
-                    // _oBals[i].mul(__deposit.div(_oGLiq)).add(ONE_WEI),
                     amount,
-                    // curve
                     vault,
                     poolId
                 );
-                console.log('viewProportionalDeposit: loop # %s result is %s', i, deposits_[i]);
+                console.log('viewProportionalDeposit: deposit_[%s] result is %s', i, deposits_[i]);
             }
         }
 
