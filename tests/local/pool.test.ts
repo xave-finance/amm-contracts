@@ -180,7 +180,6 @@ describe('FXPool', () => {
     const viewDeposit = await testEnv.fxPool.viewDeposit(numeraireAmount)
 
     let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
-    console.log('fxPHPAddress: ', fxPHPAddress)
 
     let liquidityToAdd: BigNumber[] = sortTokenAddressesLikeVault(sortedAddresses, fxPHPAddress, {
       lptAmount: viewDeposit[0],
@@ -191,15 +190,12 @@ describe('FXPool', () => {
     const joinPoolRequest = {
       assets: sortedAddresses,
       // https://dev.balancer.fi/resources/joins-and-exits/pool-joins#maxamountsin
-      maxAmountsIn: [ethers.utils.parseUnits('1000000'), ethers.utils.parseUnits('10000000')],
-      // maxAmountsIn: [liquidityToAdd[0], liquidityToAdd[1]],
+      // maxAmountsIn: [ethers.utils.parseUnits('1000000'), ethers.utils.parseUnits('10000000')],
+      maxAmountsIn: [liquidityToAdd[0], liquidityToAdd[1]],
       userData: payload,
       fromInternalBalance: false,
     }
-    // await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.not.be.reverted
-    console.log('joinPoolRequest packaged')
-    const onJoin2Res = await testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)
-    console.log('onJoin2Res: ', onJoin2Res)
+    await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.not.be.reverted
 
     const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
     const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
@@ -220,7 +216,7 @@ describe('FXPool', () => {
     )
   })
 
-  it.skip('Round 2 - Removes liquidity inside the FXPool calling the vault and triggering onExit hook', async () => {
+  it('Round 2 - Removes liquidity inside the FXPool calling the vault and triggering onExit hook', async () => {
     const poolId = await testEnv.fxPool.getPoolId()
     const tokensToBurn = parseEther('30')
     const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
@@ -291,7 +287,7 @@ describe('FXPool', () => {
   it.skip('Previews swap caclculation from the onSwap hook', async () => {})
   it.skip('Previews swap caclculation when providing single sided liquidity from the onJoin and onExit hook', async () => {})
 
-  it.skip('can pause pool', async () => {
+  it('can pause pool', async () => {
     expect(await testEnv.fxPool.paused()).to.be.equals(false)
 
     await expect(testEnv.fxPool.setPause(true)).to.emit(testEnv.fxPool, 'Paused').withArgs(adminAddress)

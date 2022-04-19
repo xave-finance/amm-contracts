@@ -41,14 +41,12 @@ library ProportionalLiquidity {
 
         // No liquidity, oracle sets the ratio
         if (_oGLiq == 0) {
-            console.log('proportionalDeposit: no liquidity');
             for (uint256 i = 0; i < _length; i++) {
                 // Variable here to avoid stack-too-deep errors
                 int128 _d = __deposit.mul(curve.weights[i]);
                 deposits_[i] = Assimilators.viewRawAmount(curve.assets[i].addr, _d.add(ONE_WEI));
             }
         } else {
-            console.log('proportionalDeposit: existing liquidity');
             // We already have an existing pool ratio
             // which must be respected
             int128 _multiplier = __deposit.div(_oGLiq);
@@ -69,7 +67,6 @@ library ProportionalLiquidity {
                     vault,
                     poolId
                 );
-                console.log('proportionalDeposit: deposit_[%s] result is %s', i, deposits_[i]);
             }
         }
 
@@ -112,8 +109,6 @@ library ProportionalLiquidity {
         } else {
             // We already have an existing pool ratio
             // this must be respected
-            //  int128 _multiplier = __deposit.div(_oGLiq);
-
             uint256 _baseWeight = curve.weights[0].mulu(1e18);
             uint256 _quoteWeight = curve.weights[1].mulu(1e18);
             address vault = address(curve.vault);
@@ -122,8 +117,6 @@ library ProportionalLiquidity {
 
             // Deposits into the pool is determined by existing LP ratio
             for (uint256 i = 0; i < curve.assets.length; i++) {
-                console.log('viewProportionalDeposit: loop #', i);
-
                 int128 amount = _oBals[i].mul(_multiplier).add(ONE_WEI);
 
                 deposits_[i] = Assimilators.viewRawAmountLPRatio(
@@ -134,7 +127,6 @@ library ProportionalLiquidity {
                     vault,
                     poolId
                 );
-                console.log('viewProportionalDeposit: deposit_[%s] result is %s', i, deposits_[i]);
             }
         }
 
@@ -151,39 +143,6 @@ library ProportionalLiquidity {
 
         return (curves_, deposits_);
     }
-
-    /*
-
-    // @todo implement in FXPool or use vault?
-    function emergencyProportionalWithdraw(Storage.Curve storage curve, uint256 _withdrawal)
-        external
-        returns (uint256[] memory)
-    {
-        uint256 _length = curve.assets.length;
-
-        (, int128[] memory _oBals) = getGrossLiquidityAndBalances(curve);
-
-        uint256[] memory withdrawals_ = new uint256[](_length);
-
-        int128 _totalShells = curve.totalSupply.divu(1e18);
-        int128 __withdrawal = _withdrawal.divu(1e18);
-
-        int128 _multiplier = __withdrawal.div(_totalShells);
-
-        for (uint256 i = 0; i < _length; i++) {
-            withdrawals_[i] = Assimilators.outputNumeraire(
-                curve.assets[i].addr,
-                msg.sender,
-                _oBals[i].mul(_multiplier)
-            );
-        }
-
-        //  burn(curve, msg.sender, _withdrawal);
-
-        return withdrawals_;
-    }
-
-    */
 
     function proportionalWithdraw(Storage.Curve storage curve, uint256 _withdrawal)
         external

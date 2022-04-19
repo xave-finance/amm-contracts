@@ -56,6 +56,8 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
     event EmergencyAlarm(bool isEmergency);
 
+    event OnJoinPool(bytes32 poolId, uint256 lptAmount, uint256[] amountsDeposited);
+
     modifier isEmergency() {
         require(emergency, 'FXPool/emergency-only-allowing-emergency-proportional-withdraw');
         _;
@@ -332,12 +334,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256 protocolSwapFee,
         bytes calldata userData
     ) external override whenNotPaused returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts) {
-        console.log('onJoinPool: enter');
         (uint256[] memory tokensIn, address[] memory assetAddresses) = abi.decode(userData, (uint256[], address[]));
-        console.log('onJoinPool: tokensIn[0]', tokensIn[0]);
-        console.log('onJoinPool: tokensIn[1]', tokensIn[1]);
-        console.log('onJoinPool: assetAddresses[0]', assetAddresses[0]);
-        console.log('onJoinPool: assetAddresses[1]', assetAddresses[1]);
 
         uint256 totalDepositNumeraire = (_convertToNumeraire(tokensIn[0], _getAssetIndex(assetAddresses[0])) +
             _convertToNumeraire(tokensIn[1], _getAssetIndex(assetAddresses[1]))) * 1e18;
@@ -347,28 +344,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             curve,
             totalDepositNumeraire
         );
-        // this works
-        // (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.viewProportionalDeposit(
-        //     curve,
-        //     totalDepositNumeraire
-        // );
-
-        // can we remove this?
-        // @todo within the threshold
-        // require(
-        //     _withinThreshold(amountToDeposit[_getAssetIndex(assetAddresses[0])], tokensIn[0]),
-        //     'FXPool: tokensIn[0] and amountsTodeposit[0] is not equal'
-        // );
-        // require(
-        //     _withinThreshold(amountToDeposit[_getAssetIndex(assetAddresses[1])], tokensIn[1]),
-        //     'FXPool: tokensIn[1] and amountsTodeposit[1] is not equal'
-        // );
-
-        // token a to numeraire, token b to numeraire , add, pass to viewProportional deposit
-        // amountsIn = tokensIn;
-
-        console.log('Deposit 1: ', amountToDeposit[_getAssetIndex(assetAddresses[0])]);
-        console.log('Deposit 2: ', amountToDeposit[_getAssetIndex(assetAddresses[1])]);
         {
             amountsIn = new uint256[](2);
             amountsIn[0] = amountToDeposit[_getAssetIndex(assetAddresses[0])];
@@ -387,6 +362,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         }
 
         // @todo emit tokensIn numeraireTokensIn0 numeraireTokensin1 totalNumeraire
+        emit OnJoinPool(poolId, lpTokens, amountToDeposit);
     }
 
     /// @dev Hook for leaving the pool that must be called from the vault.
@@ -482,12 +458,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     // Curve math
     // @todo add curve modifiers
     function viewDeposit(uint256 _deposit) external view returns (uint256, uint256[] memory) {
-        // curvesToMint_, depositsToMake_
-        return
-            ProportionalLiquidity.viewProportionalDeposit(
-                curve,
-                _deposit /*, address(curve.vault), curve.poolId*/
-            );
+        return ProportionalLiquidity.viewProportionalDeposit(curve, _deposit);
     }
 
     function viewWithdraw(uint256 _curvesToBurn) external view returns (uint256[] memory) {
