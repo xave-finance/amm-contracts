@@ -338,22 +338,19 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
         uint256 totalDepositNumeraire = _convertToNumeraire(tokensIn[0], _getAssetIndex(assetAddresses[0])) +
             _convertToNumeraire(tokensIn[1], _getAssetIndex(assetAddresses[1]));
-        // console.log('token0 amount: ', tokensIn[0]);
-        // console.log('token1 amount: ', tokensIn[1]);
-        // console.log('totalDepositNumeraire ', totalDepositNumeraire);
 
         console.log('onJoinPool: calling proportionalDeposit');
-        // (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.proportionalDeposit(
-        //     curve,
-        //     totalDepositNumeraire * 1e18
-        // );
-        // this works
-        (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.viewProportionalDeposit(
+        (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.proportionalDeposit(
             curve,
-            totalDepositNumeraire * 1e18,
-            address(curve.vault),
-            curve.poolId
+            totalDepositNumeraire * 1e18
         );
+        // this works
+        // (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.viewProportionalDeposit(
+        //     curve,
+        //     totalDepositNumeraire * 1e18,
+        //     address(curve.vault),
+        //     curve.poolId
+        // );
 
         // can we remove this?
         // @todo within the threshold
@@ -485,7 +482,11 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     // @todo add curve modifiers
     function viewDeposit(uint256 _deposit) external view returns (uint256, uint256[] memory) {
         // curvesToMint_, depositsToMake_
-        return ProportionalLiquidity.viewProportionalDeposit(curve, _deposit, address(curve.vault), curve.poolId);
+        return
+            ProportionalLiquidity.viewProportionalDeposit(
+                curve,
+                _deposit /*, address(curve.vault), curve.poolId*/
+            );
     }
 
     function viewWithdraw(uint256 _curvesToBurn) external view returns (uint256[] memory) {

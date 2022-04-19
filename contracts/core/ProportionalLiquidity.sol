@@ -52,7 +52,35 @@ library ProportionalLiquidity {
             console.log('proportionalDeposit: existing liquidity');
             // We already have an existing pool ratio
             // which must be respected
-            deposits_ = _calculateDepositsForExistingLiquidity(curve, __deposit, _oGLiq, _oBals);
+            // deposits_ = _calculateDepositsForExistingLiquidity(curve, __deposit, _oGLiq, _oBals, _length);
+            console.log('curve.assets.length', _length);
+            int128 _multiplier = __deposit.div(_oGLiq);
+            address vault = address(curve.vault);
+            bytes32 poolId = curve.poolId;
+
+            int128[] memory weights = curve.weights;
+            Storage.Assimilator[] memory assims = curve.assets;
+            // uint256 _baseWeight = curve.weights[0].mulu(1e18);
+            // uint256 _quoteWeight = curve.weights[1].mulu(1e18);
+
+            for (uint256 i = 0; i < _length; i++) {
+                console.log('_calculateDepositsForExistingLiquidity: loop #', i);
+                int128 amount = _oBals[i].mul(_multiplier).add(ONE_WEI);
+
+                deposits_[i] = Assimilators.viewRawAmountLPRatio(
+                    assims[i].addr,
+                    // curve.assets[i].addr,
+                    // _baseWeight,
+                    // _quoteWeight,
+                    weights[0].mulu(1e18),
+                    weights[1].mulu(1e18),
+                    amount,
+                    // curve
+                    vault,
+                    poolId
+                );
+                console.log('_calculateDepositsForExistingLiquidity: loop # %s result is %s', i, deposits_[i]);
+            }
         }
 
         int128 _totalShells = curve.totalSupply.divu(1e18);
@@ -72,46 +100,45 @@ library ProportionalLiquidity {
         return (curves_, deposits_);
     }
 
-    function _calculateDepositsForExistingLiquidity(
-        Storage.Curve storage curve,
-        int128 __deposit,
-        int128 _oGLiq,
-        int128[] memory _oBals
-    ) internal view returns (uint256[] memory deposits) {
-        int128 _multiplier = __deposit.div(_oGLiq);
-        int128[] memory weights = curve.weights;
-        Storage.Assimilator[] memory assims = curve.assets;
+    // function _calculateDepositsForExistingLiquidity(
+    //     Storage.Curve storage curve,
+    //     int128 __deposit,
+    //     int128 _oGLiq,
+    //     int128[] memory _oBals,
+    //     uint256 _length
+    // ) internal view returns (uint256[] memory deposits) {
+    //     int128 _multiplier = __deposit.div(_oGLiq);
+    //     // int128[] memory weights = curve.weights;
+    //     Storage.Assimilator[] memory assims = curve.assets;
 
-        // uint256[] memory depositsResult = new uint256[](curve.assets.length);
+    //     console.log('curve.assets.length', _length);
 
-        console.log('curve.assets.length', curve.assets.length);
+    //     for (uint256 i = 0; i < _length; i++) {
+    //         console.log('_calculateDepositsForExistingLiquidity: loop #', i);
+    //         int128 amount = _oBals[i].mul(_multiplier).add(ONE_WEI);
 
-        for (uint256 i = 0; i < curve.assets.length; i++) {
-            console.log('_calculateDepositsForExistingLiquidity: loop #', i);
-            int128 amount = _oBals[i].mul(_multiplier).add(ONE_WEI);
+    //         console.log('_calculateDepositsForExistingLiquidity: loop # %s. calling viewRawAmountLPRatio', i);
+    //         deposits[i] = Assimilators.viewRawAmountLPRatio(
+    //             assims[i].addr,
+    //             // weights[0].mulu(1e18),
+    //             // weights[1].mulu(1e18),
+    //             amount,
+    //             curve
+    //         );
+    //         console.log('_calculateDepositsForExistingLiquidity: loop # %s result is %s', i, deposits[i]);
+    //     }
+    // }
 
-            console.log('_calculateDepositsForExistingLiquidity: loop # %s. calling viewRawAmountLPRatio', i);
-            deposits[i] = Assimilators.viewRawAmountLPRatio(
-                // depositsResult[i] = Assimilators.viewRawAmountLPRatio(
-                assims[i].addr,
-                weights[0].mulu(1e18),
-                weights[1].mulu(1e18),
-                amount,
-                address(curve.vault),
-                curve.poolId
-            );
-            console.log('_calculateDepositsForExistingLiquidity: loop # %s result is %s', i, deposits[i]);
-        }
-
-        // deposits = depositsResult;
-    }
-
-    function viewProportionalDeposit(
-        Storage.Curve storage curve,
-        uint256 _deposit,
-        address vault,
-        bytes32 poolId
-    ) external view returns (uint256 curves_, uint256[] memory) {
+    function viewProportionalDeposit(Storage.Curve storage curve, uint256 _deposit)
+        external
+        view
+        returns (
+            // address vault,
+            // bytes32 poolId
+            uint256 curves_,
+            uint256[] memory
+        )
+    {
         int128 __deposit = _deposit.divu(1e18);
 
         (int128 _oGLiq, int128[] memory _oBals) = getGrossLiquidityAndBalancesForDeposit(curve);
@@ -133,15 +160,23 @@ library ProportionalLiquidity {
 
             uint256 _baseWeight = curve.weights[0].mulu(1e18);
             uint256 _quoteWeight = curve.weights[1].mulu(1e18);
+            address vault = address(curve.vault);
+            bytes32 poolId = curve.poolId;
+            int128 _multiplier = __deposit.div(_oGLiq);
 
             // Deposits into the pool is determined by existing LP ratio
             for (uint256 i = 0; i < curve.assets.length; i++) {
                 console.log('viewProportionalDeposit: loop #', i);
+
+                int128 amount = _oBals[i].mul(_multiplier).add(ONE_WEI);
+
                 deposits_[i] = Assimilators.viewRawAmountLPRatio(
                     curve.assets[i].addr,
                     _baseWeight,
                     _quoteWeight,
-                    _oBals[i].mul(__deposit.div(_oGLiq)).add(ONE_WEI),
+                    // _oBals[i].mul(__deposit.div(_oGLiq)).add(ONE_WEI),
+                    amount,
+                    // curve
                     vault,
                     poolId
                 );
@@ -247,12 +282,7 @@ library ProportionalLiquidity {
     function getGrossLiquidityAndBalancesForDeposit(Storage.Curve storage curve)
         internal
         view
-        returns (
-            // address vault,
-            // bytes32 poolId
-            int128 grossLiquidity_,
-            int128[] memory
-        )
+        returns (int128 grossLiquidity_, int128[] memory)
     {
         uint256 _length = curve.assets.length;
 
@@ -279,12 +309,7 @@ library ProportionalLiquidity {
     function getGrossLiquidityAndBalances(Storage.Curve storage curve)
         internal
         view
-        returns (
-            // address vault,
-            // bytes32 poolId
-            int128 grossLiquidity_,
-            int128[] memory
-        )
+        returns (int128 grossLiquidity_, int128[] memory)
     {
         uint256 _length = curve.assets.length;
 

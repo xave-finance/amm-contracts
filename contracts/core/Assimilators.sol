@@ -18,6 +18,7 @@ pragma solidity ^0.7.3;
 import '@openzeppelin/contracts/utils/Address.sol';
 import './interfaces/IAssimilator.sol';
 import './lib/ABDKMath64x64.sol';
+import './Storage.sol';
 
 library Assimilators {
     using ABDKMath64x64 for int128;
@@ -54,13 +55,15 @@ library Assimilators {
         uint256 _baseWeight,
         uint256 _quoteWeight,
         int128 _amount,
+        // Storage.Curve storage curve
         address vault,
         bytes32 poolId
     ) internal view returns (uint256 amount_) {
         amount_ = IAssimilator(_assim).viewRawAmountLPRatio(
             _baseWeight,
             _quoteWeight,
-            // address(this),
+            // curve.weights[0].mulu(1e18),
+            // curve.weights[1].mulu(1e18),
             _amount,
             vault,
             poolId
