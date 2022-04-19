@@ -195,7 +195,7 @@ contract UsdcToUsdAssimilator is IAssimilator {
     function viewNumeraireBalanceLPRatio(
         uint256,
         uint256,
-        address _addr,
+        // address _addr,
         address vault,
         bytes32 poolId
     ) external view override returns (int128 balance_) {

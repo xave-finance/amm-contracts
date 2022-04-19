@@ -180,6 +180,7 @@ describe('FXPool', () => {
     const viewDeposit = await testEnv.fxPool.viewDeposit(numeraireAmount)
 
     let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
+    console.log('fxPHPAddress: ', fxPHPAddress)
 
     let liquidityToAdd: BigNumber[] = sortTokenAddressesLikeVault(sortedAddresses, fxPHPAddress, {
       lptAmount: viewDeposit[0],

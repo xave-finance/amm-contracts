@@ -12,8 +12,10 @@ export const sortTokenAddressesLikeVault = (
 
   if (addresses[0] === baseTokenAddress) {
     console.log('sortTokensLikeVault: addresses[0] === baseTokenAddress')
+    console.log('usdc is ', addresses[1])
     liquidityToAdd = [viewDepositData.deposits[0], viewDepositData.deposits[1]]
   } else if (addresses[1] === baseTokenAddress) {
+    console.log('usdc is ', addresses[0])
     console.log('sortTokensLikeVault: addresses[1] === baseTokenAddress')
     liquidityToAdd = [viewDepositData.deposits[1], viewDepositData.deposits[0]]
   } else {

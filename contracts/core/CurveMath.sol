@@ -20,6 +20,8 @@ import './Storage.sol';
 import './lib/UnsafeMath64x64.sol';
 import './lib/ABDKMath64x64.sol';
 
+import 'hardhat/console.sol';
+
 library CurveMath {
     int128 private constant ONE = 0x10000000000000000;
     int128 private constant MAX = 0x4000000000000000; // .25 in layman's terms
@@ -204,15 +206,26 @@ library CurveMath {
         int128 _oGLiq,
         int128 _nGLiq,
         int128 _omega,
-        int128 _psi
-    ) internal pure {
+        int128 _psi /*pure*/
+    ) internal view {
+        console.log('enforceLiquidityInvariant: enter');
         if (_totalShells == 0 || 0 == _totalShells + _newShells) return;
 
         int128 _prevUtilPerShell = _oGLiq.sub(_omega).div(_totalShells);
+        console.log('enforceLiquidityInvariant: _prevUtilPerShell');
+        console.logInt(_prevUtilPerShell);
 
         int128 _nextUtilPerShell = _nGLiq.sub(_psi).div(_totalShells.add(_newShells));
+        console.log('enforceLiquidityInvariant: _nextUtilPerShell');
+        console.logInt(_nextUtilPerShell);
 
         int128 _diff = _nextUtilPerShell - _prevUtilPerShell;
+        console.log('enforceLiquidityInvariant: _diff');
+        console.logInt(_diff);
+
+        bool _isValid = 0 < _diff || _diff >= MAX_DIFF;
+        console.log('enforceLiquidityInvariant: _isValid');
+        console.logBool(_isValid);
 
         require(0 < _diff || _diff >= MAX_DIFF, 'Curve/liquidity-invariant-violation');
     }

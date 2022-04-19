@@ -334,6 +334,10 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     ) external override whenNotPaused returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts) {
         console.log('onJoinPool: enter');
         (uint256[] memory tokensIn, address[] memory assetAddresses) = abi.decode(userData, (uint256[], address[]));
+        console.log('onJoinPool: tokensIn[0]', tokensIn[0]);
+        console.log('onJoinPool: tokensIn[1]', tokensIn[1]);
+        console.log('onJoinPool: assetAddresses[0]', assetAddresses[0]);
+        console.log('onJoinPool: assetAddresses[1]', assetAddresses[1]);
 
         uint256 totalDepositNumeraire = (_convertToNumeraire(tokensIn[0], _getAssetIndex(assetAddresses[0])) +
             _convertToNumeraire(tokensIn[1], _getAssetIndex(assetAddresses[1]))) * 1e18;

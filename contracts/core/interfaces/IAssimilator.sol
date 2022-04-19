@@ -53,7 +53,7 @@ interface IAssimilator {
     function viewNumeraireBalanceLPRatio(
         uint256,
         uint256,
-        address,
+        // address,
         address,
         bytes32
     ) external view returns (int128);

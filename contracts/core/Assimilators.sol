@@ -101,7 +101,7 @@ library Assimilators {
         bal_ = IAssimilator(_assim).viewNumeraireBalanceLPRatio(
             _baseWeight,
             _quoteWeight,
-            address(this),
+            // address(this),
             vault,
             poolId
         );

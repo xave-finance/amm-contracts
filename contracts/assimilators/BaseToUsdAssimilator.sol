@@ -246,7 +246,7 @@ contract BaseToUsdAssimilator is IAssimilator {
     function viewNumeraireBalanceLPRatio(
         uint256 _baseWeight,
         uint256 _quoteWeight,
-        address _addr,
+        // address _addr,
         address vault,
         bytes32 poolId
     ) external view override returns (int128 balance_) {
