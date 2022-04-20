@@ -130,7 +130,9 @@ describe('FXPool', () => {
         userData: payload,
         fromInternalBalance: false,
       }
-      await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.not.be.reverted
+      await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest))
+        .to.emit(testEnv.fxPool, 'OnJoinPool')
+        .withArgs(poolId, viewDeposit[0], [viewDeposit[1][0], viewDeposit[1][1]])
 
       const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
       const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
@@ -154,7 +156,8 @@ describe('FXPool', () => {
     const hlpTokensToBurninWei = parseEther(hlpTokenAmountInEther)
 
     /**
-     * on loop %8, withdraw gets liquidity invariant violation
+     * why loopCount - 2?
+     * on loop # loop-2, withdraw gets liquidity invariant violation
      * suspect is viewDeposit takes numeraire directly unlike onJoinPool that converts base token amounts to numeraire
      * same behavior if you set loopCount to 5 -> withdraw #3 gets liquidity invariant violation possibly due to pool getting too small, thus withdrawals affecting invariant...?
      */
@@ -176,9 +179,9 @@ describe('FXPool', () => {
         toInternalBalance: false,
       }
 
-      await expect(testEnv.vault.exitPool(poolId, adminAddress, adminAddress, exitPoolRequest)).to.not.be.reverted
-      // const exitRes = await testEnv.vault.exitPool(poolId, adminAddress, adminAddress, exitPoolRequest)
-      // console.log('exitRes: ', exitRes)
+      await expect(testEnv.vault.exitPool(poolId, adminAddress, adminAddress, exitPoolRequest))
+        .to.emit(testEnv.fxPool, 'OnExitPool')
+        .withArgs(poolId, hlpTokensToBurninWei, [withdrawTokensOut[0], withdrawTokensOut[1]])
 
       const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
       const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
