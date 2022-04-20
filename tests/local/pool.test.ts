@@ -112,6 +112,10 @@ describe('FXPool', () => {
       const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
       const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
+      // figure out what 50:50 fxPHP:USDC is
+      // package userData payload
+      // pass to viewDeposit
+
       // get estimated tokens
       const viewDeposit = await testEnv.fxPool.viewDeposit(depositAmountInWei.toString())
 
