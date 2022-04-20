@@ -459,8 +459,15 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
     // Curve math
     // @todo add curve modifiers
-    function viewDeposit(uint256 _deposit) external view returns (uint256, uint256[] memory) {
-        return ProportionalLiquidity.viewProportionalDeposit(curve, _deposit);
+    function viewDeposit(bytes calldata userData) external view returns (uint256, uint256[] memory) {
+        (uint256[] memory tokensIn, address[] memory assetAddresses) = abi.decode(userData, (uint256[], address[]));
+
+        uint256 totalDepositNumeraire = (_convertToNumeraire(tokensIn[0], _getAssetIndex(assetAddresses[0])) +
+            _convertToNumeraire(tokensIn[1], _getAssetIndex(assetAddresses[1]))) * 1e18;
+
+        console.log('viewDeposit: calling deposit with totalDepositNumeraire ', totalDepositNumeraire);
+
+        return ProportionalLiquidity.viewProportionalDeposit(curve, totalDepositNumeraire);
     }
 
     function viewWithdraw(uint256 _curvesToBurn) external view returns (uint256[] memory) {
