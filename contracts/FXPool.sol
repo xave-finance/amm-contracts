@@ -56,7 +56,8 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
     event EmergencyAlarm(bool isEmergency);
 
-    event OnJoinPool(bytes32 poolId, uint256 lptAmount, uint256[] amountsDeposited);
+    event OnJoinPool(bytes32 poolId, uint256 lptAmountMinted, uint256[] amountsDeposited);
+    event OnExitPool(bytes32 poolId, uint256 lptAmountBurned, uint256[] amountsWithdrawn);
 
     modifier isEmergency() {
         require(emergency, 'FXPool/emergency-only-allowing-emergency-proportional-withdraw');
@@ -361,7 +362,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             dueProtocolFeeAmounts[1] = 0;
         }
 
-        // @todo emit tokensIn numeraireTokensIn0 numeraireTokensin1 totalNumeraire
         emit OnJoinPool(poolId, lpTokens, amountToDeposit);
     }
 
@@ -411,6 +411,8 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             dueProtocolFeeAmounts[0] = 0;
             dueProtocolFeeAmounts[1] = 0;
         }
+
+        emit OnExitPool(poolId, tokensToBurn, amountToWithdraw);
     }
 
     // ADMIN AND ACCESS CONTROL FUNCTIONS
