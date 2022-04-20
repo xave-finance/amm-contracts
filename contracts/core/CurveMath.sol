@@ -206,21 +206,15 @@ library CurveMath {
         int128 _oGLiq,
         int128 _nGLiq,
         int128 _omega,
-        int128 _psi /*pure*/
-    ) internal view {
+        int128 _psi
+    ) internal pure {
         if (_totalShells == 0 || 0 == _totalShells + _newShells) return;
 
         int128 _prevUtilPerShell = _oGLiq.sub(_omega).div(_totalShells);
-        console.logInt(_prevUtilPerShell);
 
         int128 _nextUtilPerShell = _nGLiq.sub(_psi).div(_totalShells.add(_newShells));
-        console.logInt(_nextUtilPerShell);
 
         int128 _diff = _nextUtilPerShell - _prevUtilPerShell;
-        console.logInt(_diff);
-
-        bool _isValid = 0 < _diff || _diff >= MAX_DIFF;
-        console.logBool(_isValid);
 
         require(0 < _diff || _diff >= MAX_DIFF, 'Curve/liquidity-invariant-violation');
     }

@@ -244,21 +244,18 @@ library ProportionalLiquidity {
         int128 _oGLiq,
         int128[] memory _oBals // int128 numeraireDepositToAdd
     ) private view {
-        // add to nGliq and nBals cause Vault does transfers after onJoin
         (int128 _nGLiq, int128[] memory _nBals) = getGrossLiquidityAndBalances(curve);
+
+        // add to nGliq cause Vault does transfers after onJoin
         _nGLiq += _newShells;
-        console.logInt(_nGLiq);
-        console.logInt(_oGLiq);
 
         int128 _beta = curve.beta;
         int128 _delta = curve.delta;
         int128[] memory _weights = curve.weights;
 
         int128 _omega = CurveMath.calculateFee(_oGLiq, _oBals, _beta, _delta, _weights);
-        console.logInt(_omega);
 
         int128 _psi = CurveMath.calculateFee(_nGLiq, _nBals, _beta, _delta, _weights);
-        console.logInt(_psi);
 
         CurveMath.enforceLiquidityInvariant(_curves, _newShells, _oGLiq, _nGLiq, _omega, _psi);
     }

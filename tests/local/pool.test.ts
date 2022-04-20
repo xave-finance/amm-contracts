@@ -145,8 +145,6 @@ describe('FXPool', () => {
       expect(afterVaultUsdcBalance, 'Current USDC Balance not expected').to.be.equals(
         beforeVaultUsdcBalance.add(viewDeposit[1][1])
       )
-
-      console.log(`Deposit #${i} done`)
     }
   })
 
@@ -194,8 +192,6 @@ describe('FXPool', () => {
       expect(afterVaultUsdcBalance, 'Current USDC Balance not expected').to.be.equals(
         beforeVaultUsdcBalance.sub(withdrawTokensOut[1])
       )
-
-      console.log(`Withdraw #${i} done`)
     }
   })
 
