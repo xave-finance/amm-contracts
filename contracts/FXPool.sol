@@ -340,7 +340,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256 totalDepositNumeraire = (_convertToNumeraire(tokensIn[0], _getAssetIndex(assetAddresses[0])) +
             _convertToNumeraire(tokensIn[1], _getAssetIndex(assetAddresses[1]))) * 1e18;
 
-        console.log('onJoinPool: calling deposit with totalDepositNumeraire ', totalDepositNumeraire);
         (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.proportionalDeposit(
             curve,
             totalDepositNumeraire
@@ -390,11 +389,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         (uint256 tokensToBurn, address[] memory assetAddresses) = abi.decode(userData, (uint256, address[]));
 
         uint256[] memory amountToWithdraw = ProportionalLiquidity.proportionalWithdraw(curve, tokensToBurn);
-        console.log('Withdraw 1: ', amountToWithdraw[0]);
-        console.log('Withdraw 2: ', amountToWithdraw[1]);
-
-        console.log('Withdraw 1: ', amountToWithdraw[_getAssetIndex(assetAddresses[0])]);
-        console.log('Withdraw 2: ', amountToWithdraw[_getAssetIndex(assetAddresses[1])]);
 
         {
             amountsOut = new uint256[](2);
