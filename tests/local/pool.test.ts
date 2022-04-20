@@ -113,7 +113,7 @@ describe('FXPool', () => {
       const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
       // get estimated tokens
-      const viewDeposit = await testEnv.fxPool.viewDeposit(depositAmountInWei)
+      const viewDeposit = await testEnv.fxPool.viewDeposit(depositAmountInWei.toString())
 
       let liquidityToAdd: BigNumber[] = sortTokenAddressesLikeVault(sortedAddresses, fxPHPAddress, {
         lptAmount: viewDeposit[0],
