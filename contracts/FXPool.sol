@@ -331,9 +331,10 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             data.minTargetAmount,
             data.deadline
         ) = abi.decode(swapRequest.userData, (uint256, uint256, uint256));
-
         data.isTargetSwap = swapRequest.kind == IVault.SwapKind.GIVEN_IN;
+        console.log('onSwap: data unpacked');
 
+        console.log('onSwap: checking swap kind');
         if (data.isTargetSwap) {
             data.outputAmount = FXSwaps.viewOriginSwap(
                 curve,
