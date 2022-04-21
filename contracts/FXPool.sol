@@ -8,7 +8,7 @@ import '@balancer-labs/v2-pool-utils/contracts/BalancerPoolToken.sol';
 
 import './core/Storage.sol';
 import './core/ProportionalLiquidity.sol';
-// import './core/Swaps.sol';
+import './core/Swaps.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {Pausable} from '@openzeppelin/contracts/utils/Pausable.sol';
 import {ReentrancyGuard} from '@openzeppelin/contracts/utils/ReentrancyGuard.sol';

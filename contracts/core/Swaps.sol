@@ -9,15 +9,17 @@ import './CurveMath.sol';
 import './lib/UnsafeMath64x64.sol';
 import './lib/ABDKMath64x64.sol';
 
-import '@openzeppelin/contracts/math/SafeMath.sol';
+// importing copy paste OZ SafeMath here to avoid circular dependency + balancer version has missing funcs
+import './lib/OZSafeMath.sol';
 
+// import '@openzeppelin/contracts/math/SafeMath.sol';
 // import {SafeMath} from '@balancer-labs/v2-solidity-utils/contracts/openzeppelin/SafeMath.sol';
 
 library Swaps {
     using ABDKMath64x64 for int128;
     using UnsafeMath64x64 for int128;
     using ABDKMath64x64 for uint256;
-    using SafeMath for uint256;
+    using OZSafeMath for uint256;
 
     // move to FXPool
     event Trade(
