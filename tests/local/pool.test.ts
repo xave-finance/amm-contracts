@@ -192,7 +192,7 @@ describe('FXPool', () => {
     }
   })
 
-  it('Swaps tokan a and token b  calling the vault and triggering onSwap hook', async () => {
+  it.skip('Swaps tokan a and token b  calling the vault and triggering onSwap hook', async () => {
     /// VAULT INDEX: index 0: USDC, index 1: fxPHP
     console.log('Before USDC: ', await testEnv.USDC.balanceOf(adminAddress))
     console.log('Before fxPHP: ', await testEnv.fxPHP.balanceOf(adminAddress))
