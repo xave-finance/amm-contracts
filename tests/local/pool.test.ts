@@ -157,13 +157,6 @@ describe('FXPool', () => {
     const hlpTokenAmountInEther = '1000'
     const hlpTokensToBurninWei = parseEther(hlpTokenAmountInEther)
 
-    /**
-     * why loopCount - 2?
-     * on loop # loop-2, withdraw gets liquidity invariant violation
-     * suspect is viewDeposit takes numeraire directly unlike onJoinPool that converts base token amounts to numeraire
-     * same behavior if you set loopCount to 5 -> withdraw #3 gets liquidity invariant violation possibly due to pool getting too small, thus withdrawals affecting invariant...?
-     */
-    // for (var i = 0; i < loopCount - 2; i++) {
     for (var i = 0; i < loopCount; i++) {
       console.log('Withdraw #', i, ' with total withdraw amount ', 2000 * i)
       const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
