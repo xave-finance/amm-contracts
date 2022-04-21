@@ -23,6 +23,11 @@ library ProportionalLiquidity {
     int128 public constant ONE = 0x10000000000000000;
     int128 public constant ONE_WEI = 0x12;
 
+    struct JoinExitData {
+        uint256[] uintAmounts;
+        int128[] intAmounts;
+    }
+
     function proportionalDeposit(Storage.Curve storage curve, uint256 _deposit)
         external
         view
@@ -32,7 +37,9 @@ library ProportionalLiquidity {
 
         uint256 _length = curve.assets.length;
 
-        uint256[] memory deposits_ = new uint256[](_length);
+        // uint256[] memory deposits_ = new uint256[](_length);
+        // int128[] memory intDepositAmounts = new int128[](_length);
+        JoinExitData memory depositData = JoinExitData(new uint256[](_length), new int128[](_length));
 
         (int128 _oGLiq, int128[] memory _oBals) = getGrossLiquidityAndBalancesForDeposit(curve);
 
@@ -44,7 +51,7 @@ library ProportionalLiquidity {
             for (uint256 i = 0; i < _length; i++) {
                 // Variable here to avoid stack-too-deep errors
                 int128 _d = __deposit.mul(curve.weights[i]);
-                deposits_[i] = Assimilators.viewRawAmount(curve.assets[i].addr, _d.add(ONE_WEI));
+                depositData.uintAmounts[i] = Assimilators.viewRawAmount(curve.assets[i].addr, _d.add(ONE_WEI));
             }
         } else {
             // We already have an existing pool ratio
@@ -57,13 +64,15 @@ library ProportionalLiquidity {
             Storage.Assimilator[] memory assims = curve.assets;
 
             for (uint256 i = 0; i < _length; i++) {
-                int128 amount = _oBals[i].mul(_multiplier).add(ONE_WEI);
+                // int128 amount = _oBals[i].mul(_multiplier).add(ONE_WEI);
+                depositData.intAmounts[i] = _oBals[i].mul(_multiplier).add(ONE_WEI);
 
-                deposits_[i] = Assimilators.viewRawAmountLPRatio(
+                depositData.uintAmounts[i] = Assimilators.viewRawAmountLPRatio(
                     assims[i].addr,
                     weights[0].mulu(1e18),
                     weights[1].mulu(1e18),
-                    amount,
+                    // amount,
+                    depositData.intAmounts[i],
                     vault,
                     poolId
                 );
@@ -79,12 +88,22 @@ library ProportionalLiquidity {
             _newShells = _newShells.mul(_totalShells);
         }
 
-        requireLiquidityInvariant(curve, _totalShells, _newShells, _oGLiqProp, _oBalsProp);
+        /*
+         * Problem: to validate deposit via invariant check, 
+         we need to simulate the gross liquidity and token balances of the pool after deposit
+         at this point, the balancer vault has not transferred deposit funds from user to vault yet 
+            (this will happen after the hook is called by the vault)
+         * Solution: 
+            * pass deposits_ here now so that we can update balances within requireLiquidityInvariant
+            * within requireLiquidityInvariant, need to update new gross liquidity (_nGliq var) to reflect the new higher or lower pool liquidity
+                by adding _newShells to _nGLiq
+         */
+        requireLiquidityInvariant(curve, _totalShells, _newShells, _oGLiqProp, _oBalsProp, depositData.intAmounts);
 
         // assign return value to curves_ instead of the original mint(curve, msg.sender, curves_ = _newShells.mulu(1e18));
         curves_ = _newShells.mulu(1e18);
 
-        return (curves_, deposits_);
+        return (curves_, depositData.uintAmounts);
     }
 
     function viewProportionalDeposit(Storage.Curve storage curve, uint256 _deposit)
@@ -151,9 +170,11 @@ library ProportionalLiquidity {
     {
         uint256 _length = curve.assets.length;
 
+        JoinExitData memory withdrawData = JoinExitData(new uint256[](_length), new int128[](_length));
+
         (int128 _oGLiq, int128[] memory _oBals) = getGrossLiquidityAndBalances(curve);
 
-        uint256[] memory withdrawals_ = new uint256[](_length);
+        // uint256[] memory withdrawals_ = new uint256[](_length);
 
         int128 _totalShells = curve.totalSupply.divu(1e18);
         int128 __withdrawal = _withdrawal.divu(1e18);
@@ -161,14 +182,16 @@ library ProportionalLiquidity {
         int128 _multiplier = __withdrawal.div(_totalShells);
 
         for (uint256 i = 0; i < _length; i++) {
-            withdrawals_[i] = Assimilators.viewRawAmount(curve.assets[i].addr, _oBals[i].mul(_multiplier));
+            int128 amount = _oBals[i].mul(_multiplier);
+            withdrawData.intAmounts[i] = amount.neg();
+            withdrawData.uintAmounts[i] = Assimilators.viewRawAmount(curve.assets[i].addr, amount);
         }
 
-        requireLiquidityInvariant(curve, _totalShells, __withdrawal.neg(), _oGLiq, _oBals);
+        requireLiquidityInvariant(curve, _totalShells, __withdrawal.neg(), _oGLiq, _oBals, withdrawData.intAmounts);
 
         //   burn(curve, msg.sender, _withdrawal);
 
-        return withdrawals_;
+        return withdrawData.uintAmounts;
     }
 
     function viewProportionalWithdraw(
@@ -242,12 +265,18 @@ library ProportionalLiquidity {
         int128 _curves,
         int128 _newShells,
         int128 _oGLiq,
-        int128[] memory _oBals // int128 numeraireDepositToAdd
+        int128[] memory _oBals,
+        int128[] memory intDepositAmounts
     ) private view {
         (int128 _nGLiq, int128[] memory _nBals) = getGrossLiquidityAndBalances(curve);
 
+        // 'simulate' the deposit/withdrawal of token balances
+        for (uint256 i = 0; i < _nBals.length; i++) {
+            _nBals[i] = _nBals[i].add(intDepositAmounts[i]);
+        }
+
         // add to nGliq cause Vault does transfers after onJoin
-        _nGLiq += _newShells;
+        _nGLiq = _nGLiq.add(_newShells);
 
         int128 _beta = curve.beta;
         int128 _delta = curve.delta;
