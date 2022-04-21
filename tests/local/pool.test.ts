@@ -2,13 +2,14 @@ import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { BigNumber, BytesLike, Signer } from 'ethers'
 import { setupEnvironment, TestEnv } from '../common/setupEnvironment'
-import { parseEther, parseUnits } from '@ethersproject/units'
+import { formatUnits, parseEther, parseUnits } from '@ethersproject/units'
 import { CONTRACT_REVERT } from '../constants'
 import { sortAddresses } from '../common/helpers/utils'
 import { mockToken } from '../constants/mockTokenList'
 import { getAssimilatorContract } from '../common/contractGetters'
 import { ViewDepositData } from '.././common/types/types'
 import { sortTokenAddressesLikeVault } from '../common/helpers/sorter'
+import { calculateOtherTokenIn } from '../common/helpers/frontend'
 
 describe('FXPool', () => {
   let testEnv: TestEnv
@@ -32,6 +33,8 @@ describe('FXPool', () => {
   const quoteWeight = parseUnits('0.5')
 
   const loopCount = 10
+  const usdcDecimals = mockToken[0].decimal
+  const fxPHPDecimals = mockToken[3].decimal
 
   before('build test env', async () => {
     testEnv = await setupEnvironment()
@@ -73,6 +76,7 @@ describe('FXPool', () => {
     expect(curveDetails.cap).to.be.equals(0)
     expect(curveDetails.totalSupply).to.be.equals(0)
   })
+
   it('Initializes the FXPool and set curve parameters', async () => {
     await expect(
       testEnv.fxPool.initialize(
@@ -97,31 +101,65 @@ describe('FXPool', () => {
     await expect(testEnv.fxPool.setParams(ALPHA, BETA, MAX, EPSILON, LAMBDA)).to.emit(testEnv.fxPool, 'ParametersSet')
     //  .withArgs(ALPHA, BETA, MAX, EPSILON, LAMBDA) - check delta calculation
   })
+
   it('Adds liquidity to the FXPool via the Vault which triggers the onJoin hook', async () => {
     await testEnv.fxPHP.approve(testEnv.vault.address, ethers.constants.MaxUint256)
     await testEnv.USDC.approve(testEnv.vault.address, ethers.constants.MaxUint256)
 
-    // add per iteration roughly 10,000 USD or ~250k PHP and ~5k USDC to the pool
-    const depositAmountInEther = '2000'
-    const depositAmountInWei = parseEther(depositAmountInEther)
-
     let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
 
-    for (var i = 0; i < loopCount; i++) {
-      console.log('Deposit #', i, ' with total deposit amount ', 2000 * loopCount)
-      // const depositAmountInEther = '1000' + i
-      // const depositAmountInWei = parseEther(depositAmountInEther)
+    /**
+     * Loop scenario:
+     * 0..4 fxPHP is the input token
+     * 5..9 usdc is the input token
+     **/
+    const amountsIn = [1000, 2000, 10000, 100, 5000, 10, 50, 100, 1000, 500]
 
+    for (var i = 0; i < loopCount; i++) {
       const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
       const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
       const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
-      // figure out what 50:50 fxPHP:USDC is
-      // package userData payload
-      // pass to viewDeposit
+      const poolTokens = await testEnv.vault.getPoolTokens(poolId)
+      const amountIn = amountsIn[i]
+      const tokenInIndex = i < loopCount / 2 ? 0 : 1
+
+      const otherAmountIn = await calculateOtherTokenIn(
+        `${amountIn}`,
+        tokenInIndex,
+        [poolTokens.balances[0], poolTokens.balances[1]],
+        [fxPHPDecimals, usdcDecimals],
+        [fxPHPAssimilatorAddress, usdcAssimilatorAddress]
+      )
+
+      const sortedAmountsIn: BigNumber[] = []
+      if (sortedAddresses[0] === fxPHPAddress) {
+        console.log(`Deposit #${i} sorted addresses: fxPHP, USDC`)
+        sortedAmountsIn[0] = tokenInIndex === 0 ? parseUnits(`${amountIn}`, fxPHPDecimals) : otherAmountIn
+        sortedAmountsIn[1] = tokenInIndex === 0 ? otherAmountIn : parseUnits(`${amountIn}`, usdcDecimals)
+        console.log(
+          `viewDeposit #${i} sorted amounts in: `,
+          formatUnits(sortedAmountsIn[0], fxPHPDecimals),
+          formatUnits(sortedAmountsIn[1], usdcDecimals)
+        )
+      } else {
+        console.log(`Deposit #${i} sorted addresses: USDC, fxPHP`)
+        sortedAmountsIn[0] = tokenInIndex === 0 ? otherAmountIn : parseUnits(`${amountIn}`, usdcDecimals)
+        sortedAmountsIn[1] = tokenInIndex === 0 ? parseUnits(`${amountIn}`, fxPHPDecimals) : otherAmountIn
+        console.log(
+          `viewDeposit #${i} sorted amounts in: `,
+          formatUnits(sortedAmountsIn[0], usdcDecimals),
+          formatUnits(sortedAmountsIn[1], fxPHPDecimals)
+        )
+      }
+
+      const userData = ethers.utils.defaultAbiCoder.encode(
+        ['uint256[]', 'address[]'],
+        [sortedAmountsIn, sortedAddresses]
+      )
 
       // get estimated tokens
-      const viewDeposit = await testEnv.fxPool.viewDeposit(depositAmountInWei.toString())
+      const viewDeposit = await testEnv.fxPool.viewDeposit(userData)
 
       let liquidityToAdd: BigNumber[] = sortTokenAddressesLikeVault(sortedAddresses, fxPHPAddress, {
         lptAmount: viewDeposit[0],
@@ -269,6 +307,7 @@ describe('FXPool', () => {
       .to.emit(testEnv.fxPool, 'EmergencyAlarm')
       .withArgs(false) // reset for now, test emergency withdraw
   })
+
   it('can set cap when owner', async () => {
     const curveDetails = await testEnv.fxPool.curve()
 
