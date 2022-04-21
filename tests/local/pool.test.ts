@@ -127,16 +127,14 @@ describe('FXPool', () => {
       const joinPoolRequest = {
         assets: sortedAddresses,
         // https://dev.balancer.fi/resources/joins-and-exits/pool-joins#maxamountsin
-        maxAmountsIn: [ethers.utils.parseUnits('10000000'), ethers.utils.parseUnits('10000000')],
-        // maxAmountsIn: [liquidityToAdd[0], liquidityToAdd[1]],
+        // maxAmountsIn: [ethers.utils.parseUnits('10000000'), ethers.utils.parseUnits('10000000')],
+        maxAmountsIn: [liquidityToAdd[0], liquidityToAdd[1]],
         userData: payload,
         fromInternalBalance: false,
       }
       await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest))
         .to.emit(testEnv.fxPool, 'OnJoinPool')
         .withArgs(poolId, viewDeposit[0], [viewDeposit[1][0], viewDeposit[1][1]])
-      // const joinRes = await testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)
-      // console.log('joinRes:', joinRes)
 
       const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
       const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
@@ -194,7 +192,7 @@ describe('FXPool', () => {
     }
   })
 
-  it.skip('Swaps tokan a and token b  calling the vault and triggering onSwap hook', async () => {
+  it('Swaps tokan a and token b  calling the vault and triggering onSwap hook', async () => {
     /// VAULT INDEX: index 0: USDC, index 1: fxPHP
     console.log('Before USDC: ', await testEnv.USDC.balanceOf(adminAddress))
     console.log('Before fxPHP: ', await testEnv.fxPHP.balanceOf(adminAddress))
@@ -229,7 +227,7 @@ describe('FXPool', () => {
   // it('Previews swap caclculation from the onSwap hook', async () => {})
   // it('Previews swap caclculation when providing single sided liquidity from the onJoin and onExit hook', async () => {})
 
-  it.skip('can pause pool', async () => {
+  it('can pause pool', async () => {
     expect(await testEnv.fxPool.paused()).to.be.equals(false)
 
     await expect(testEnv.fxPool.setPause(true)).to.emit(testEnv.fxPool, 'Paused').withArgs(adminAddress)
@@ -241,7 +239,7 @@ describe('FXPool', () => {
     await expect(testEnv.fxPool.setPause(false)).to.emit(testEnv.fxPool, 'Unpaused').withArgs(adminAddress) // reset for now, test if pool functions can still be used when paused
   })
 
-  it.skip('can trigger emergency alarm', async () => {
+  it('can trigger emergency alarm', async () => {
     expect(await testEnv.fxPool.emergency()).to.be.equals(false)
     expect(await testEnv.fxPool.setEmergency(true))
       .to.emit(testEnv.fxPool, 'EmergencyAlarm')
