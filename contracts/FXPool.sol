@@ -314,10 +314,11 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         console.log('onSwap: enter');
 
         require(msg.sender == address(curve.vault), 'Non Vault caller');
-        console.log('vault is caller');
+        console.log('onSwap: vault is caller');
 
         // unpack swapRequest from external caller (FE or another contract)
         SwapData memory data;
+        console.log('onSwap: data unpack');
         data.originAddress = address(swapRequest.tokenIn);
         data.originAmount = currentBalanceTokenIn;
         data.targetAmount = currentBalanceTokenOut;

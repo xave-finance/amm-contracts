@@ -1,4 +1,4 @@
-import { BigNumber } from 'ethers'
+import { BigNumber, BytesLike } from 'ethers'
 
 export type ViewDepositData = {
   lptAmount: BigNumber
@@ -16,20 +16,21 @@ export type TokenDataMapping = {
 }
 
 export type SwapDataForVault = {
-  poolId: string
-  assetIn: string
-  assetOut: string
+  poolId: BytesLike
+  assetInIndex: BigNumber
+  assetOutIndex: BigNumber
   amount: number
+  userData: BytesLike
 }
 
-export type SwapStructDataForVault = {
-  poolId: string
-  kind: number
-  assetIn: string
-  assetOut: string
-  amount: string
-  userData: string
-}
+// export type SwapStructDataForVault = {
+//   poolId: string
+//   kind: number
+//   assetIn: string
+//   assetOut: string
+//   amount: string
+//   userData: string
+// }
 
 export type SwapFundStructForVault = {
   sender: string

@@ -237,7 +237,9 @@ describe('FXPool', () => {
     }
     console.log('fund_struct: ', fund_struct)
 
-    const swaps = [
+    const userData = ''
+
+    const swaps: types.SwapDataForVault[] = [
       {
         poolId: poolId as BytesLike,
         assetInIndex: BigNumber.from(0), // in USDC
