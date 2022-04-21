@@ -43,6 +43,13 @@ export const getProportionalLiquidityAddress = (network: string) => {
   return haloAddresses.ammV2.proportionalLiquidity
 }
 
+// need to add haloAddresses.ammV2.swapLib to @halodao/halodao-contract-addresses package
+// export const getSwapLibAddress = (network: string) => {
+//   const haloAddresses = getHaloAddresses(network)
+//   if (!haloAddresses) return undefined
+//   return haloAddresses.ammV2.swapLib
+// }
+
 export const getVaultAddress = (network: string) => {
   const haloAddresses = getHaloAddresses(network)
   if (!haloAddresses) return undefined

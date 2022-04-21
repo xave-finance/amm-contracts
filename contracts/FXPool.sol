@@ -8,7 +8,7 @@ import '@balancer-labs/v2-pool-utils/contracts/BalancerPoolToken.sol';
 
 import './core/Storage.sol';
 import './core/ProportionalLiquidity.sol';
-import './core/Swaps.sol';
+import './core/FXSwaps.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {Pausable} from '@openzeppelin/contracts/utils/Pausable.sol';
 import {ReentrancyGuard} from '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
@@ -286,6 +286,18 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         lambda_ = curve.lambda.mulu(1e18);
     }
 
+    struct SwapData {
+        address originAddress;
+        uint256 originAmount;
+        uint256 maxOriginAmount;
+        address targetAddress;
+        uint256 targetAmount;
+        uint256 minTargetAmount;
+        uint256 deadline;
+        bool isTargetSwap;
+        uint256 outputAmount;
+    }
+
     // Trade Functionality
     // @todo trade functionality
     /// @dev Called by the Vault on swaps to get a price quote
@@ -298,14 +310,48 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256 currentBalanceTokenIn,
         uint256 currentBalanceTokenOut
     ) public override whenNotPaused returns (uint256) {
-        // just hacking this until we implement the invariant :)
+        // how to impl deadline? on this hook func or in Swaps lib?
+        console.log('onSwap');
 
-        // console.log('TOKEN IN');
-        // console.log(currentBalanceTokenIn);
-        // console.log('TOKEN OUT');
-        // console.log(currentBalanceTokenOut);
+        require(msg.sender == address(curve.vault), 'Non Vault caller');
 
-        return _calculateInvariant(currentBalanceTokenIn, 0, 1);
+        // unpack swapRequest from external caller (FE or another contract)
+        SwapData memory data;
+        (
+            data.originAddress,
+            data.originAmount,
+            data.maxOriginAmount,
+            data.targetAddress,
+            data.targetAmount,
+            data.minTargetAmount,
+            data.deadline
+        ) = abi.decode(swapRequest.userData, (address, uint256, uint256, address, uint256, uint256, uint256));
+
+        data.isTargetSwap = swapRequest.kind == IVault.SwapKind.GIVEN_IN;
+
+        // unwrap swapRequest
+        data.originAddress = address(swapRequest.tokenIn);
+        data.targetAddress = address(swapRequest.tokenOut);
+
+        if (data.isTargetSwap) {
+            data.outputAmount = FXSwaps.viewOriginSwap(
+                curve,
+                data.originAddress,
+                data.targetAddress,
+                data.originAmount
+            );
+            require(data.targetAmount >= data.minTargetAmount, 'Curve/below-min-target-amount');
+            return data.outputAmount;
+        } else {
+            data.outputAmount = FXSwaps.viewTargetSwap(
+                curve,
+                data.originAddress,
+                data.targetAddress,
+                data.targetAmount
+            );
+            require(data.originAmount <= data.maxOriginAmount, 'Curve/above-max-origin-amount');
+            return data.outputAmount;
+        }
     }
 
     /// @dev Hook for joining the pool that must be called from the vault.
