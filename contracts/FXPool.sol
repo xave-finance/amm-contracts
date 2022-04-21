@@ -95,10 +95,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
         vault.registerTokens(poolId, tokens, new address[](2));
 
-        // Set immutable state variables
-        // _vault = vault;
-        // _poolId = poolId;
-
         curve.vault = vault;
         curve.poolId = poolId;
 
@@ -135,12 +131,10 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     /// @dev Returns the vault for this pool
     /// @return The vault for this pool
     function getVault() external view returns (IVault) {
-        // return _vault;
         return curve.vault;
     }
 
     function getPoolId() external view override returns (bytes32) {
-        // return _poolId;
         return curve.poolId;
     }
 
