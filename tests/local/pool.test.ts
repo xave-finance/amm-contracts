@@ -108,9 +108,7 @@ describe('FXPool', () => {
     let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
 
     for (var i = 0; i < loopCount; i++) {
-      console.log('Deposit #', i, ' with total deposit amount ', 2000 * loopCount)
-      // const depositAmountInEther = '1000' + i
-      // const depositAmountInWei = parseEther(depositAmountInEther)
+      console.log('Deposit #', i, ' with total deposit amount ', 2000 * i)
 
       const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
       const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
@@ -167,7 +165,7 @@ describe('FXPool', () => {
      */
     // for (var i = 0; i < loopCount - 2; i++) {
     for (var i = 0; i < loopCount; i++) {
-      console.log('Withdraw #', i)
+      console.log('Withdraw #', i, ' with total withdraw amount ', 1000 * i)
       const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
       const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
       const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)

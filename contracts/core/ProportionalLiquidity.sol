@@ -269,42 +269,22 @@ library ProportionalLiquidity {
         int128[] memory intDepositAmounts
     ) private view {
         (int128 _nGLiq, int128[] memory _nBals) = getGrossLiquidityAndBalances(curve);
-        console.log('requireLiquidityInvariant: _nGLiq: ');
-        console.logInt(_nGLiq);
 
         // 'simulate' the deposit/withdrawal of token balances
         for (uint256 i = 0; i < _nBals.length; i++) {
-            console.log('requireLiquidityInvariant: loop %s', i);
-
-            console.log('requireLiquidityInvariant: intDepositAmounts[%s]: ', i);
-            console.logInt(intDepositAmounts[i]);
-
-            console.log('requireLiquidityInvariant: current _nBals[%s]: ', i);
-            console.logInt(_nBals[i]);
-
             _nBals[i] = _nBals[i].add(intDepositAmounts[i]);
-            console.log('requireLiquidityInvariant: new _nBals[%s]: ', i);
-            console.logInt(_nBals[i]);
         }
 
         // add to nGliq cause Vault does transfers after onJoin
         _nGLiq = _nGLiq.add(_newShells);
-        console.log('requireLiquidityInvariant: _newShells: ');
-        console.logInt(_newShells);
-        console.log('requireLiquidityInvariant: _nGLiq += _newShells: ');
-        console.logInt(_nGLiq);
 
         int128 _beta = curve.beta;
         int128 _delta = curve.delta;
         int128[] memory _weights = curve.weights;
 
         int128 _omega = CurveMath.calculateFee(_oGLiq, _oBals, _beta, _delta, _weights);
-        console.log('requireLiquidityInvariant: _omega: ');
-        console.logInt(_omega);
 
         int128 _psi = CurveMath.calculateFee(_nGLiq, _nBals, _beta, _delta, _weights);
-        console.log('requireLiquidityInvariant: _psi: ');
-        console.logInt(_psi);
 
         CurveMath.enforceLiquidityInvariant(_curves, _newShells, _oGLiq, _nGLiq, _omega, _psi);
     }
