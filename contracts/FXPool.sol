@@ -302,8 +302,8 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     // @todo trade functionality
     /// @dev Called by the Vault on swaps to get a price quote
     /// @param swapRequest The request which contains the details of the swap
-    /// @param currentBalanceTokenIn The input token balance
-    /// @param currentBalanceTokenOut The output token balance
+    /// @param currentBalanceTokenIn The input token balance scaled to the base token decimals that the assimilators expect
+    /// @param currentBalanceTokenOut The output token balance scaled to the quote token decimals (6 for USDC) that the assimilators expect
     /// @return the amount of the output or input token amount of for swap
     function onSwap(
         SwapRequest memory swapRequest,
@@ -311,27 +311,28 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256 currentBalanceTokenOut
     ) public override whenNotPaused returns (uint256) {
         // how to impl deadline? on this hook func or in Swaps lib?
-        console.log('onSwap');
+        console.log('onSwap: enter');
 
         require(msg.sender == address(curve.vault), 'Non Vault caller');
+        console.log('vault is caller');
 
         // unpack swapRequest from external caller (FE or another contract)
         SwapData memory data;
+        data.originAddress = address(swapRequest.tokenIn);
+        data.originAmount = currentBalanceTokenIn;
+        data.targetAmount = currentBalanceTokenOut;
+        data.targetAddress = address(swapRequest.tokenOut);
         (
-            data.originAddress,
-            data.originAmount,
+            // data.originAddress,
+            // data.originAmount,
             data.maxOriginAmount,
-            data.targetAddress,
-            data.targetAmount,
+            // data.targetAddress,
+            // data.targetAmount,
             data.minTargetAmount,
             data.deadline
-        ) = abi.decode(swapRequest.userData, (address, uint256, uint256, address, uint256, uint256, uint256));
+        ) = abi.decode(swapRequest.userData, (uint256, uint256, uint256));
 
         data.isTargetSwap = swapRequest.kind == IVault.SwapKind.GIVEN_IN;
-
-        // unwrap swapRequest
-        data.originAddress = address(swapRequest.tokenIn);
-        data.targetAddress = address(swapRequest.tokenOut);
 
         if (data.isTargetSwap) {
             data.outputAmount = FXSwaps.viewOriginSwap(
