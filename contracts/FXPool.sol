@@ -360,7 +360,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
                 0
             );
             console.log('onSwap: data unpack');
-            // data.isTargetSwap = swapRequest.kind == IVault.SwapKind.GIVEN_OUT;
             console.log('onSwap: originAddress %s', data.originAddress);
             console.log('onSwap: originAmount %s', data.originAmount);
             console.log('onSwap: maxOriginAmount %s', data.maxOriginAmount);

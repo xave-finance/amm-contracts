@@ -150,20 +150,9 @@ library FXSwaps {
 
         for (uint256 i = 0; i < _length; i++) {
             if (i != _inputIx) {
-                // nBals_[i] = oBals_[i] = Assimilators.viewNumeraireBalance(
-                //     curve.assets[i].addr,
-                //     address(curve.vault),
-                //     curve.poolId
-                // );
                 nBals_[i] = oBals_[i] = _viewNumeraireBalance(curve, i);
             } else {
                 int128 _bal;
-                // (amt_, _bal) = Assimilators.viewNumeraireAmountAndBalance(
-                //     _assim,
-                //     _amt,
-                //     address(curve.vault),
-                //     curve.poolId
-                // );
                 (amt_, _bal) = _viewNumeraireAmountAndBalance(curve, _assim, _amt);
                 amt_ = amt_.neg();
 
@@ -179,18 +168,6 @@ library FXSwaps {
         nBals_[_outputIx] = ABDKMath64x64.sub(nBals_[_outputIx], amt_);
 
         return (amt_, oGLiq_, nGLiq_, nBals_, oBals_);
-    }
-
-    function _viewNumeraireBalance(Storage.Curve storage curve, uint256 index) internal view returns (int128) {
-        return Assimilators.viewNumeraireBalance(curve.assets[index].addr, address(curve.vault), curve.poolId);
-    }
-
-    function _viewNumeraireAmountAndBalance(
-        Storage.Curve storage curve,
-        address _assim,
-        uint256 _amt
-    ) internal view returns (int128 amt_, int128 bal_) {
-        return Assimilators.viewNumeraireAmountAndBalance(_assim, _amt, address(curve.vault), curve.poolId);
     }
 
     function viewOriginSwapData(
@@ -215,21 +192,9 @@ library FXSwaps {
         int128[] memory oBals_ = new int128[](_length);
 
         for (uint256 i = 0; i < _length; i++) {
-            if (i != _inputIx)
-                // nBals_[i] = oBals_[i] = Assimilators.viewNumeraireBalance(
-                //     curve.assets[i].addr,
-                //     address(curve.vault),
-                //     curve.poolId
-                // );
-                nBals_[i] = oBals_[i] = _viewNumeraireBalance(curve, i);
+            if (i != _inputIx) nBals_[i] = oBals_[i] = _viewNumeraireBalance(curve, i);
             else {
                 int128 _bal;
-                // (amt_, _bal) = Assimilators.viewNumeraireAmountAndBalance(
-                //     _assim,
-                //     _amt,
-                //     address(curve.vault),
-                //     curve.poolId
-                // );
                 (amt_, _bal) = _viewNumeraireAmountAndBalance(curve, _assim, _amt);
 
                 oBals_[i] = _bal;
@@ -244,5 +209,19 @@ library FXSwaps {
         nBals_[_outputIx] = ABDKMath64x64.sub(nBals_[_outputIx], amt_);
 
         return (amt_, oGLiq_, nGLiq_, nBals_, oBals_);
+    }
+
+    // internal function to avoid stack too deep
+    function _viewNumeraireBalance(Storage.Curve storage curve, uint256 index) internal view returns (int128) {
+        return Assimilators.viewNumeraireBalance(curve.assets[index].addr, address(curve.vault), curve.poolId);
+    }
+
+    // internal function to avoid stack too deep
+    function _viewNumeraireAmountAndBalance(
+        Storage.Curve storage curve,
+        address _assim,
+        uint256 _amt
+    ) internal view returns (int128 amt_, int128 bal_) {
+        return Assimilators.viewNumeraireAmountAndBalance(_assim, _amt, address(curve.vault), curve.poolId);
     }
 }
