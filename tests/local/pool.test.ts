@@ -186,8 +186,6 @@ describe('FXPool', () => {
       await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest))
         .to.emit(testEnv.fxPool, 'OnJoinPool')
         .withArgs(poolId, viewDeposit[0], [viewDeposit[1][0], viewDeposit[1][1]])
-      // const joinRes = await testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)
-      // console.log('joinRes:', joinRes)
 
       const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
       const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
@@ -208,15 +206,8 @@ describe('FXPool', () => {
     const hlpTokenAmountInEther = '1000'
     const hlpTokensToBurninWei = parseEther(hlpTokenAmountInEther)
 
-    /**
-     * why loopCount - 2?
-     * on loop # loop-2, withdraw gets liquidity invariant violation
-     * suspect is viewDeposit takes numeraire directly unlike onJoinPool that converts base token amounts to numeraire
-     * same behavior if you set loopCount to 5 -> withdraw #3 gets liquidity invariant violation possibly due to pool getting too small, thus withdrawals affecting invariant...?
-     */
-    // for (var i = 0; i < loopCount - 2; i++) {
     for (var i = 0; i < loopCount; i++) {
-      console.log('Withdraw #', i)
+      console.log('Withdraw #', i, ' with total withdraw amount ', 2000 * i)
       const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
       const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
       const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
@@ -287,7 +278,7 @@ describe('FXPool', () => {
   // it('Previews swap caclculation from the onSwap hook', async () => {})
   // it('Previews swap caclculation when providing single sided liquidity from the onJoin and onExit hook', async () => {})
 
-  it.skip('can pause pool', async () => {
+  it('can pause pool', async () => {
     expect(await testEnv.fxPool.paused()).to.be.equals(false)
 
     await expect(testEnv.fxPool.setPause(true)).to.emit(testEnv.fxPool, 'Paused').withArgs(adminAddress)
@@ -299,7 +290,7 @@ describe('FXPool', () => {
     await expect(testEnv.fxPool.setPause(false)).to.emit(testEnv.fxPool, 'Unpaused').withArgs(adminAddress) // reset for now, test if pool functions can still be used when paused
   })
 
-  it.skip('can trigger emergency alarm', async () => {
+  it('can trigger emergency alarm', async () => {
     expect(await testEnv.fxPool.emergency()).to.be.equals(false)
     expect(await testEnv.fxPool.setEmergency(true))
       .to.emit(testEnv.fxPool, 'EmergencyAlarm')
