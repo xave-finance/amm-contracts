@@ -310,14 +310,9 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256 currentBalanceTokenOut
     ) public override whenNotPaused returns (uint256) {
         // how to impl deadline? on this hook func or in Swaps lib?
-        console.log('onSwap: enter');
-
         require(msg.sender == address(curve.vault), 'Non Vault caller');
-        console.log('onSwap: vault is caller');
 
         bool isTargetSwap = swapRequest.kind == IVault.SwapKind.GIVEN_OUT;
-        console.log('onSwap: isTargetSwap ');
-        console.logBool(isTargetSwap);
 
         if (isTargetSwap) {
             console.log('onSwap: targetSwap');
@@ -333,6 +328,13 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
                 0,
                 0
             );
+            console.log('onSwap: originAddress %s', data.originAddress);
+            console.log('onSwap: originAmount %s', data.originAmount);
+            console.log('onSwap: maxOriginAmount %s', data.maxOriginAmount);
+            console.log('onSwap: targetAddress %s', data.targetAddress);
+            console.log('onSwap: targetAmount %s', data.targetAmount);
+            console.log('onSwap: minTargetAmount %s', data.minTargetAmount);
+            console.log('onSwap: outputAmount %s', data.outputAmount);
 
             data.outputAmount = FXSwaps.viewTargetSwap(
                 curve,
@@ -340,9 +342,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
                 data.targetAddress,
                 data.targetAmount
             );
-            console.log('onSwap: viewTargetSwap done. outputAmount %s', data.outputAmount);
-            bool isValid = data.outputAmount <= data.minTargetAmount;
-            console.log('onSwap: viewTargetSwap isValid %s', isValid);
             require(data.originAmount <= data.maxOriginAmount, 'Curve/above-max-origin-amount');
             return data.outputAmount;
         } else {
@@ -359,7 +358,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
                 0,
                 0
             );
-            console.log('onSwap: data unpack');
             console.log('onSwap: originAddress %s', data.originAddress);
             console.log('onSwap: originAmount %s', data.originAmount);
             console.log('onSwap: maxOriginAmount %s', data.maxOriginAmount);
@@ -375,8 +373,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
                 data.originAmount
             );
             console.log('onSwap: viewOriginSwap done. outputAmount %s', data.outputAmount);
-            bool isValid = data.targetAmount >= data.minTargetAmount;
-            console.log('onSwap: viewOriginSwap isValid %s', isValid);
             require(data.targetAmount >= data.minTargetAmount, 'Curve/below-min-target-amount');
             return data.outputAmount;
         }

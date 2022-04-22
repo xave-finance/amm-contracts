@@ -227,70 +227,42 @@ library CurveMath {
         int128[] memory _nBals,
         int128[] memory _weights
     ) private view {
-        console.log('enforceHalts: _oGLiq');
-        console.logInt(_oGLiq);
-        console.log('enforceHalts: _nGLiq');
-        console.logInt(_nGLiq);
-
         uint256 _length = _nBals.length;
-        console.log('enforceHalts: _length ', _length);
         int128 _alpha = curve.alpha;
-        console.log('enforceHalts: _alpha');
-        console.logInt(_alpha);
 
         for (uint256 i = 0; i < _length; i++) {
             int128 _nIdeal = _nGLiq.mul(_weights[i]);
-            console.log('enforceHalts: _nIdeal');
-            console.logInt(_nIdeal);
 
             if (_nBals[i] > _nIdeal) {
-                console.log('enforceHalts: 1st condition');
                 int128 _upperAlpha = ONE + _alpha;
-                console.log('enforceHalts: _upperAlpha');
-                console.logInt(_upperAlpha);
 
                 int128 _nHalt = _nIdeal.mul(_upperAlpha);
-                console.log('enforceHalts: _nHalt');
-                console.logInt(_nHalt);
 
                 if (_nBals[i] > _nHalt) {
-                    console.log('enforceHalts: nested condition level 2');
                     int128 _oHalt = _oGLiq.mul(_weights[i]).mul(_upperAlpha);
-                    console.log('enforceHalts: _oHalt');
-                    console.logInt(_oHalt);
 
                     if (_oBals[i] < _oHalt) {
-                        console.log('enforceHalts: nested condition level 3: upper halt');
                         revert('Curve/upper-halt');
                     }
                     if (_nBals[i] - _nHalt > _oBals[i] - _oHalt) {
-                        console.log('enforceHalts: nested condition level 3: upper halt #2');
                         revert('Curve/upper-halt');
                     }
                 }
             } else {
-                console.log('enforceHalts: 2nd condition');
                 int128 _lowerAlpha = ONE - _alpha;
-                console.log('enforceHalts: _lowerAlpha');
-                console.logInt(_lowerAlpha);
 
                 int128 _nHalt = _nIdeal.mul(_lowerAlpha);
-                console.log('enforceHalts: _nHalt');
                 console.logInt(_nHalt);
 
                 if (_nBals[i] < _nHalt) {
-                    console.log('enforceHalts: 2nd condition level 2');
                     int128 _oHalt = _oGLiq.mul(_weights[i]);
                     _oHalt = _oHalt.mul(_lowerAlpha);
-                    console.log('enforceHalts: 2nd condition level 2: _oHalt');
                     console.logInt(_oHalt);
 
                     if (_oBals[i] > _oHalt) {
-                        console.log('enforceHalts: 2nd nested condition level 3: lower halt');
                         revert('Curve/lower-halt');
                     }
                     if (_nHalt - _nBals[i] > _oHalt - _oBals[i]) {
-                        console.log('enforceHalts: 2nd nested condition level 3: lower halt #2');
                         revert('Curve/lower-halt');
                     }
                 }
