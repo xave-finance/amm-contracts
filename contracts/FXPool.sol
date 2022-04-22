@@ -277,7 +277,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         emit AssimilatorIncluded(_derivative, _numeraire, _reserve, _assimilator);
     }
 
-    function viewCurve()
+    function viewParameters()
         external
         view
         returns (
@@ -336,7 +336,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             console.log('onSwap: targetAddress %s', data.targetAddress);
             console.log('onSwap: targetAmount %s', data.targetAmount);
             console.log('onSwap: minTargetAmount %s', data.minTargetAmount);
-            console.log('onSwap: outputAmount %s', data.outputAmount);
 
             data.outputAmount = FXSwaps.viewTargetSwap(
                 curve,
@@ -344,6 +343,8 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
                 data.targetAddress,
                 data.targetAmount
             );
+            console.log('onSwap: viewTargetSwap done. outputAmount %s', data.outputAmount);
+
             require(data.originAmount <= data.maxOriginAmount, 'Curve/above-max-origin-amount');
             return data.outputAmount;
         } else {
@@ -366,7 +367,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             console.log('onSwap: targetAddress %s', data.targetAddress);
             console.log('onSwap: targetAmount %s', data.targetAmount);
             console.log('onSwap: minTargetAmount %s', data.minTargetAmount);
-            console.log('onSwap: outputAmount %s', data.outputAmount);
 
             data.outputAmount = FXSwaps.viewOriginSwap(
                 curve,
