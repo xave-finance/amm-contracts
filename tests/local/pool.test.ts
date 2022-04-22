@@ -107,13 +107,14 @@ describe('FXPool', () => {
     await testEnv.USDC.approve(testEnv.vault.address, ethers.constants.MaxUint256)
 
     // add per iteration roughly 10,000 USD or ~250k PHP and ~5k USDC to the pool
-    const depositAmountInEther = '2000'
+    const depositAmountInNumber = 2000
+    const depositAmountInEther = depositAmountInNumber.toString()
     const depositAmountInWei = parseEther(depositAmountInEther)
 
     let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
 
-    for (var i = 0; i < loopCount; i++) {
-      console.log('Deposit #', i, ' with total deposit amount ', 2000 * i)
+    for (var i = 1; i < loopCount + 1; i++) {
+      console.log('Deposit #', i, ' with total deposit amount ', depositAmountInNumber * i)
 
       const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
       const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
@@ -157,11 +158,12 @@ describe('FXPool', () => {
 
   it('Removes Liquidity from the FXPool via the Vault which triggers the onExit hook', async () => {
     // remove amount per iteration roughly 1,000 USD or ~25k PHP and ~500k USDC
-    const hlpTokenAmountInEther = '1000'
+    const hlptTokenAmountInNumber = 1000
+    const hlpTokenAmountInEther = hlptTokenAmountInNumber.toString()
     const hlpTokensToBurninWei = parseEther(hlpTokenAmountInEther)
 
-    for (var i = 0; i < loopCount; i++) {
-      console.log('Withdraw #', i, ' with total withdraw amount ', 2000 * i)
+    for (var i = 1; i < loopCount + 1; i++) {
+      console.log('Withdraw #', i, ' with total withdraw amount ', hlptTokenAmountInNumber * i)
       const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
       const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
       const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
@@ -197,6 +199,17 @@ describe('FXPool', () => {
     }
   })
 
+  it('Checks liquidity in the FXPool', async () => {
+    // const THRESHOLD = BigNumber.from(0.5)
+    // expectedLiquidity = prior numeraire balance
+    // actualLiquidity = test.env.vault.liquidity()
+    const liquidity = (await testEnv.fxPool.liquidity())[0]
+    console.log('liquidity ', await ethers.utils.formatEther(liquidity))
+    // await expect(liquidity, 'unexpected liquidity() result')
+    //   .to.be.greaterThan(BigNumber.from(10000))
+    //   .lessThan(BigNumber.from(10001))
+  })
+
   it('Swaps tokan a (usdc) and token b (fxPHP) calling the vault and triggering onSwap hook', async () => {
     /// VAULT INDEX: index 0: USDC, index 1: fxPHP
     console.log('Before USDC: ', await testEnv.USDC.balanceOf(adminAddress))
@@ -204,7 +217,7 @@ describe('FXPool', () => {
     console.log('FX PHP Pool amount: ', await testEnv.fxPHP.balanceOf(testEnv.vault.address))
     console.log('FX USDC Pool amount: ', await testEnv.USDC.balanceOf(testEnv.vault.address))
 
-    const usdcAmountToSwapInEther = 30
+    const usdcAmountToSwapInEther = 100
     const usdcSymbol = 'USDC'
     const usdcDecimals = 6
     const usdcAmountToSwapInWei = parseUnits(usdcAmountToSwapInEther.toString(), usdcDecimals)
@@ -249,14 +262,16 @@ describe('FXPool', () => {
     const swaps: types.SwapDataForVault[] = [
       {
         poolId: poolId as BytesLike,
-        assetInIndex: BigNumber.from(0), // in USDC
-        assetOutIndex: BigNumber.from(1), // out fxPHP
+        assetInIndex: BigNumber.from(0), // assetInIndex must match swapAssets ordering, in this case usdc is origin
+        assetOutIndex: BigNumber.from(1), // assetOutIndex must match swapAssets ordering, in this case fxPHP is target
         amount: usdcAmountToSwapInEther,
         userData: '0x' as BytesLike,
       },
     ]
     console.log('swaps: ', swaps)
-    const swapAssets: string[] = sortedAddresses
+    // the ordering of this array must match the SwapDataForVault.assetInIndex and SwapDataForVault.assetOutIndex
+    const swapAssets: string[] = [usdcAddress, fxPHPAddress]
+    console.log('swapAssets: ', swapAssets)
     const limits = [parseUnits('999999999', usdcDecimals), parseUnits('999999999')]
     const deadline = ethers.constants.MaxUint256
 

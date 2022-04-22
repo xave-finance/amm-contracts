@@ -507,6 +507,13 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         emergency = _emergency;
     }
 
+    /// @notice views the total amount of liquidity in the curve in numeraire value and format - 18 decimals
+    /// @return total_ the total value in the curve
+    /// @return individual_ the individual values in the curve
+    function liquidity() public view returns (uint256 total_, uint256[] memory individual_) {
+        return ProportionalLiquidity.viewLiquidity(curve);
+    }
+
     // Curve math
     // @todo add curve modifiers
     function viewDeposit(uint256 _deposit) external view returns (uint256, uint256[] memory) {
