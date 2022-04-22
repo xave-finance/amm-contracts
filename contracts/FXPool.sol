@@ -317,42 +317,54 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         console.log('onSwap: vault is caller');
 
         // unpack swapRequest from external caller (FE or another contract)
-        SwapData memory data;
+        SwapData memory data = SwapData(
+            address(swapRequest.tokenIn),
+            currentBalanceTokenIn,
+            0,
+            address(swapRequest.tokenOut),
+            currentBalanceTokenOut,
+            0,
+            0,
+            swapRequest.kind == IVault.SwapKind.GIVEN_IN,
+            0
+        );
         console.log('onSwap: data unpack');
-        data.originAddress = address(swapRequest.tokenIn);
-        data.originAmount = currentBalanceTokenIn;
-        data.targetAmount = currentBalanceTokenOut;
-        data.targetAddress = address(swapRequest.tokenOut);
-        (
-            // data.originAddress,
-            // data.originAmount,
-            data.maxOriginAmount,
-            // data.targetAddress,
-            // data.targetAmount,
-            data.minTargetAmount,
-            data.deadline
-        ) = abi.decode(swapRequest.userData, (uint256, uint256, uint256));
-        data.isTargetSwap = swapRequest.kind == IVault.SwapKind.GIVEN_IN;
-        console.log('onSwap: data unpacked');
+        data.isTargetSwap = swapRequest.kind == IVault.SwapKind.GIVEN_OUT;
+        console.log('onSwap: originAddress %s', data.originAddress);
+        console.log('onSwap: originAmount %s', data.originAmount);
+        console.log('onSwap: maxOriginAmount %s', data.maxOriginAmount);
+        console.log('onSwap: targetAddress %s', data.targetAddress);
+        console.log('onSwap: targetAmount %s', data.targetAmount);
+        console.log('onSwap: minTargetAmount %s', data.minTargetAmount);
+        console.log('onSwap: isTargetSwap %s', data.isTargetSwap);
+        console.log('onSwap: outputAmount %s', data.outputAmount);
 
         console.log('onSwap: checking swap kind');
         if (data.isTargetSwap) {
-            data.outputAmount = FXSwaps.viewOriginSwap(
-                curve,
-                data.originAddress,
-                data.targetAddress,
-                data.originAmount
-            );
-            require(data.targetAmount >= data.minTargetAmount, 'Curve/below-min-target-amount');
-            return data.outputAmount;
-        } else {
+            console.log('onSwap: targetSwap');
             data.outputAmount = FXSwaps.viewTargetSwap(
                 curve,
                 data.originAddress,
                 data.targetAddress,
                 data.targetAmount
             );
+            console.log('onSwap: viewTargetSwap done. outputAmount %s', data.outputAmount);
+            bool isValid = data.outputAmount <= data.minTargetAmount;
+            console.log('onSwap: viewTargetSwap isValid %s', isValid);
             require(data.originAmount <= data.maxOriginAmount, 'Curve/above-max-origin-amount');
+            return data.outputAmount;
+        } else {
+            console.log('onSwap: originSwap');
+            data.outputAmount = FXSwaps.viewOriginSwap(
+                curve,
+                data.originAddress,
+                data.targetAddress,
+                data.originAmount
+            );
+            console.log('onSwap: viewOriginSwap done. outputAmount %s', data.outputAmount);
+            bool isValid = data.targetAmount >= data.minTargetAmount;
+            console.log('onSwap: viewOriginSwap isValid %s', isValid);
+            require(data.targetAmount >= data.minTargetAmount, 'Curve/below-min-target-amount');
             return data.outputAmount;
         }
     }

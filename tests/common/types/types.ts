@@ -24,12 +24,9 @@ export type SwapDataForVault = {
 }
 
 // export type SwapStructDataForVault = {
-//   poolId: string
-//   kind: number
-//   assetIn: string
-//   assetOut: string
-//   amount: string
-//   userData: string
+//   swaps: SwapDataForVault[]
+//   maxOriginAmount: number
+//   minTargetAmount: number
 // }
 
 export type SwapFundStructForVault = {

@@ -223,6 +223,8 @@ describe('FXPool', () => {
 
     const fxPHPAddress = await testEnv.fxPHP.address
     const usdcAddress = await testEnv.USDC.address
+    console.log('fxPHP Address: ', fxPHPAddress)
+    console.log('usdc Address: ', usdcAddress)
 
     // // SwapKind is an Enum. This example handles a GIVEN_IN swap.
     // // https://github.com/balancer-labs/balancer-v2-monorepo/blob/0328ed575c1b36fb0ad61ab8ce848083543070b9/pkg/vault/contracts/interfaces/IVault.sol#L497
@@ -237,7 +239,12 @@ describe('FXPool', () => {
     }
     console.log('fund_struct: ', fund_struct)
 
-    const userData = ''
+    // const minTargetAmount = 0
+    // const maxOriginAmount = 0
+    // const userData = ethers.utils.defaultAbiCoder.encode(
+    //   ['uint256', 'uint256', 'uint256'],
+    //   [maxOriginAmount, minTargetAmount]
+    // )
 
     const swaps: types.SwapDataForVault[] = [
       {
@@ -248,12 +255,13 @@ describe('FXPool', () => {
         userData: '0x' as BytesLike,
       },
     ]
+    console.log('swaps: ', swaps)
     const swapAssets: string[] = sortedAddresses
     const limits = [parseUnits('999999999', usdcDecimals), parseUnits('999999999')]
     const deadline = ethers.constants.MaxUint256
 
     //dev.balancer.fi/guides/swaps/batch-swaps
-    https: await testEnv.vault.batchSwap(swap_kind, swaps, swapAssets, fund_struct, limits, deadline)
+    await testEnv.vault.batchSwap(swap_kind, swaps, swapAssets, fund_struct, limits, deadline)
     console.log('After USDC: ', await testEnv.USDC.balanceOf(adminAddress))
     console.log('After fxPHP: ', await testEnv.fxPHP.balanceOf(adminAddress))
     console.log('FX PHP Pool amount: ', await testEnv.fxPHP.balanceOf(testEnv.vault.address))
