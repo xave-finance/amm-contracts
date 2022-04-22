@@ -294,7 +294,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256 targetAmount;
         uint256 minTargetAmount;
         uint256 deadline;
-        bool isTargetSwap;
         uint256 outputAmount;
     }
 
@@ -316,32 +315,25 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         require(msg.sender == address(curve.vault), 'Non Vault caller');
         console.log('onSwap: vault is caller');
 
-        // unpack swapRequest from external caller (FE or another contract)
-        SwapData memory data = SwapData(
-            address(swapRequest.tokenIn),
-            currentBalanceTokenIn,
-            0,
-            address(swapRequest.tokenOut),
-            currentBalanceTokenOut,
-            0,
-            0,
-            swapRequest.kind == IVault.SwapKind.GIVEN_IN,
-            0
-        );
-        console.log('onSwap: data unpack');
-        data.isTargetSwap = swapRequest.kind == IVault.SwapKind.GIVEN_OUT;
-        console.log('onSwap: originAddress %s', data.originAddress);
-        console.log('onSwap: originAmount %s', data.originAmount);
-        console.log('onSwap: maxOriginAmount %s', data.maxOriginAmount);
-        console.log('onSwap: targetAddress %s', data.targetAddress);
-        console.log('onSwap: targetAmount %s', data.targetAmount);
-        console.log('onSwap: minTargetAmount %s', data.minTargetAmount);
-        console.log('onSwap: isTargetSwap %s', data.isTargetSwap);
-        console.log('onSwap: outputAmount %s', data.outputAmount);
+        bool isTargetSwap = swapRequest.kind == IVault.SwapKind.GIVEN_OUT;
+        console.log('onSwap: isTargetSwap ');
+        console.logBool(isTargetSwap);
 
-        console.log('onSwap: checking swap kind');
-        if (data.isTargetSwap) {
+        if (isTargetSwap) {
             console.log('onSwap: targetSwap');
+
+            // unpack swapRequest from external caller (FE or another contract)
+            SwapData memory data = SwapData(
+                address(swapRequest.tokenIn),
+                0, // cause we're in targetSwap not originSwap
+                0,
+                address(swapRequest.tokenOut),
+                swapRequest.amount,
+                0,
+                0,
+                0
+            );
+
             data.outputAmount = FXSwaps.viewTargetSwap(
                 curve,
                 data.originAddress,
@@ -355,6 +347,28 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             return data.outputAmount;
         } else {
             console.log('onSwap: originSwap');
+
+            // unpack swapRequest from external caller (FE or another contract)
+            SwapData memory data = SwapData(
+                address(swapRequest.tokenIn),
+                swapRequest.amount,
+                0,
+                address(swapRequest.tokenOut),
+                0, // cause we're in originSwap not targetSwap
+                0,
+                0,
+                0
+            );
+            console.log('onSwap: data unpack');
+            // data.isTargetSwap = swapRequest.kind == IVault.SwapKind.GIVEN_OUT;
+            console.log('onSwap: originAddress %s', data.originAddress);
+            console.log('onSwap: originAmount %s', data.originAmount);
+            console.log('onSwap: maxOriginAmount %s', data.maxOriginAmount);
+            console.log('onSwap: targetAddress %s', data.targetAddress);
+            console.log('onSwap: targetAmount %s', data.targetAmount);
+            console.log('onSwap: minTargetAmount %s', data.minTargetAmount);
+            console.log('onSwap: outputAmount %s', data.outputAmount);
+
             data.outputAmount = FXSwaps.viewOriginSwap(
                 curve,
                 data.originAddress,

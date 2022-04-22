@@ -204,7 +204,8 @@ describe('FXPool', () => {
     // expectedLiquidity = prior numeraire balance
     // actualLiquidity = test.env.vault.liquidity()
     const liquidity = (await testEnv.fxPool.liquidity())[0]
-    console.log('liquidity ', await ethers.utils.formatEther(liquidity))
+    console.log('liquidity number', await ethers.utils.formatEther(liquidity))
+    console.log('liquidity BigNumber', liquidity.toString())
     // await expect(liquidity, 'unexpected liquidity() result')
     //   .to.be.greaterThan(BigNumber.from(10000))
     //   .lessThan(BigNumber.from(10001))
@@ -217,12 +218,12 @@ describe('FXPool', () => {
     console.log('FX PHP Pool amount: ', await testEnv.fxPHP.balanceOf(testEnv.vault.address))
     console.log('FX USDC Pool amount: ', await testEnv.USDC.balanceOf(testEnv.vault.address))
 
-    const usdcAmountToSwapInEther = 100
+    const usdcAmountToSwapInEther = 1000
     const usdcSymbol = 'USDC'
     const usdcDecimals = 6
     const usdcAmountToSwapInWei = parseUnits(usdcAmountToSwapInEther.toString(), usdcDecimals)
 
-    const fxPHPAmountToSwapInEther = '30'
+    const fxPHPAmountToSwapInEther = '5000'
     const fxPHPSymbol = 'USDC'
     const fxPHPDecimals = 6
     const fxPHPAmountToSwapInWei = parseUnits(usdcAmountToSwapInEther.toString(), usdcDecimals)
@@ -259,7 +260,7 @@ describe('FXPool', () => {
     //   [maxOriginAmount, minTargetAmount]
     // )
 
-    const swaps: types.SwapDataForVault[] = [
+    const swaps: types.BatchSwapDataForVault[] = [
       {
         poolId: poolId as BytesLike,
         assetInIndex: BigNumber.from(0), // assetInIndex must match swapAssets ordering, in this case usdc is origin
@@ -269,6 +270,19 @@ describe('FXPool', () => {
       },
     ]
     console.log('swaps: ', swaps)
+
+    // const singleSwap: types.SingleSwapDataForVault[] = [
+    //   {
+    //     poolId: poolId as BytesLike,
+    //     kind: BigNumber.from(swap_kind),
+    //     assetIn: usdcAddress, // assetIn must match swapAssets ordering, in this case usdc is origin
+    //     assetOut: fxPHPAddress, // assetOut must match swapAssets ordering, in this case fxPHP is target
+    //     amount: usdcAmountToSwapInWei,
+    //     userData: '0x' as BytesLike,
+    //   },
+    // ]
+    // console.log('singleSwap: ', singleSwap)
+
     // the ordering of this array must match the SwapDataForVault.assetInIndex and SwapDataForVault.assetOutIndex
     const swapAssets: string[] = [usdcAddress, fxPHPAddress]
     console.log('swapAssets: ', swapAssets)
@@ -277,6 +291,7 @@ describe('FXPool', () => {
 
     //dev.balancer.fi/guides/swaps/batch-swaps
     await testEnv.vault.batchSwap(swap_kind, swaps, swapAssets, fund_struct, limits, deadline)
+    // await testEnv.vault.swap(singleSwap, fund_struct, parseUnits('999999999', usdcDecimals), deadline)
     console.log('After USDC: ', await testEnv.USDC.balanceOf(adminAddress))
     console.log('After fxPHP: ', await testEnv.fxPHP.balanceOf(adminAddress))
     console.log('FX PHP Pool amount: ', await testEnv.fxPHP.balanceOf(testEnv.vault.address))
