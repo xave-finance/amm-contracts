@@ -160,10 +160,16 @@ describe('FXPool', () => {
 
       // get estimated tokens
       const viewDeposit = await testEnv.fxPool.viewDeposit(userData)
+      console.log(
+        'viewDeposit amounts returned: ',
+        formatUnits(viewDeposit[1][0], fxPHPDecimals),
+        formatUnits(viewDeposit[1][1], usdcDecimals)
+      )
 
       let liquidityToAdd: BigNumber[] = sortTokenAddressesLikeVault(sortedAddresses, fxPHPAddress, {
         lptAmount: viewDeposit[0],
-        deposits: viewDeposit[1],
+        //deposits: viewDeposit[1],
+        deposits: sortedAmountsIn,
       })
 
       const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [liquidityToAdd, sortedAddresses])
@@ -171,8 +177,9 @@ describe('FXPool', () => {
       const joinPoolRequest = {
         assets: sortedAddresses,
         // https://dev.balancer.fi/resources/joins-and-exits/pool-joins#maxamountsin
-        maxAmountsIn: [ethers.utils.parseUnits('10000000'), ethers.utils.parseUnits('10000000')],
-        // maxAmountsIn: [liquidityToAdd[0], liquidityToAdd[1]],
+        //maxAmountsIn: [ethers.utils.parseUnits('10000000'), ethers.utils.parseUnits('10000000')],
+        //maxAmountsIn: [liquidityToAdd[0], liquidityToAdd[1]],
+        maxAmountsIn: sortedAmountsIn,
         userData: payload,
         fromInternalBalance: false,
       }
