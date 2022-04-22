@@ -18,15 +18,6 @@ library FXSwaps {
     using ABDKMath64x64 for uint256;
     using OZSafeMath for uint256;
 
-    // move to FXPool
-    event Trade(
-        address indexed trader,
-        address indexed origin,
-        address indexed target,
-        uint256 originAmount,
-        uint256 targetAmount
-    );
-
     int128 public constant ONE = 0x10000000000000000;
 
     function getOriginAndTarget(
@@ -49,14 +40,10 @@ library FXSwaps {
         address _target,
         uint256 _originAmount
     ) external view returns (uint256 tAmt_) {
-        console.log('viewOriginSwap: enter');
         (Storage.Assimilator memory _o, Storage.Assimilator memory _t) = getOriginAndTarget(curve, _origin, _target);
-        console.log('viewOriginSwap: _o.addr', _o.addr);
-        console.log('viewOriginSwap: _t.addr', _t.addr);
 
         if (_o.ix == _t.ix)
             return Assimilators.viewRawAmount(_t.addr, Assimilators.viewNumeraireAmount(_o.addr, _originAmount));
-        console.log('viewOriginSwap: origin index == taret index check done');
 
         (
             int128 _amt,
@@ -65,19 +52,12 @@ library FXSwaps {
             int128[] memory _nBals,
             int128[] memory _oBals
         ) = viewOriginSwapData(curve, _o.ix, _t.ix, _originAmount, _o.addr);
-        console.log('viewOriginSwap: swap data calculated');
 
         _amt = CurveMath.calculateTrade(curve, _oGLiq, _nGLiq, _oBals, _nBals, _amt, _t.ix);
-        console.log('viewOriginSwap: _amt');
-        console.logInt(_amt);
 
         _amt = _amt.us_mul(ONE - curve.epsilon);
-        console.log('viewOriginSwap: fee subtracted');
-        console.logInt(_amt);
 
         tAmt_ = Assimilators.viewRawAmount(_t.addr, _amt.abs());
-        console.log('viewOriginSwap: tAmt_');
-        console.logUint(tAmt_);
     }
 
     function viewTargetSwap(

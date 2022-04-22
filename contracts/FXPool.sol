@@ -26,14 +26,20 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     // The number of seconds in our timescalecons
     uint256 public immutable unitSeconds;
 
-    // The Balancer pool data
-    // Note we change style to match Balancer's custom getter
-    // IVault private immutable _vault;
-    // bytes32 private immutable _poolId;
-
     // The percent of each trade's implied yield to collect as LP fee
     uint256 public immutable percentFee;
     int128 private constant ONE_WEI = 0x12;
+
+    struct SwapData {
+        address originAddress;
+        uint256 originAmount;
+        uint256 maxOriginAmount;
+        address targetAddress;
+        uint256 targetAmount;
+        uint256 minTargetAmount;
+        uint256 deadline;
+        uint256 outputAmount;
+    }
 
     // EVENTS
     /// @notice This event allows the frontend to track the fees
@@ -59,6 +65,13 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
     event OnJoinPool(bytes32 poolId, uint256 lptAmountMinted, uint256[] amountsDeposited);
     event OnExitPool(bytes32 poolId, uint256 lptAmountBurned, uint256[] amountsWithdrawn);
+    event Trade(
+        address indexed trader,
+        address indexed origin,
+        address indexed target,
+        uint256 originAmount,
+        uint256 targetAmount
+    );
 
     modifier isEmergency() {
         require(emergency, 'FXPool/emergency-only-allowing-emergency-proportional-withdraw');
@@ -284,17 +297,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         epsilon_ = curve.epsilon.mulu(1e18);
 
         lambda_ = curve.lambda.mulu(1e18);
-    }
-
-    struct SwapData {
-        address originAddress;
-        uint256 originAmount;
-        uint256 maxOriginAmount;
-        address targetAddress;
-        uint256 targetAmount;
-        uint256 minTargetAmount;
-        uint256 deadline;
-        uint256 outputAmount;
     }
 
     // Trade Functionality

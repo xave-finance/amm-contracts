@@ -226,6 +226,11 @@ describe('FXPool', () => {
     console.log('FX PHP Pool amount: ', await testEnv.fxPHP.balanceOf(testEnv.vault.address))
     console.log('FX USDC Pool amount: ', await testEnv.USDC.balanceOf(testEnv.vault.address))
 
+    const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
+    const beforeTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
+    const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const beforeTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
     const usdcAmountToSwapInEther = 1000
     const usdcSymbol = 'USDC'
     const usdcDecimals = 6
@@ -275,12 +280,19 @@ describe('FXPool', () => {
 
     //dev.balancer.fi/guides/swaps/batch-swaps
     await testEnv.vault.batchSwap(SWAP_KIND, swaps, swapAssets, fund_struct, limits, deadline)
-    console.log('After USDC: ', await testEnv.USDC.balanceOf(adminAddress))
-    console.log('After fxPHP: ', await testEnv.fxPHP.balanceOf(adminAddress))
-    console.log('FX PHP Pool amount: ', await testEnv.fxPHP.balanceOf(testEnv.vault.address))
-    console.log('FX USDC Pool amount: ', await testEnv.USDC.balanceOf(testEnv.vault.address))
+
+    const afterTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
+    const afterTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
+    const afterTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+    // initial asserts, to be improved
+    expect(beforeTradeUserfxPHPBalance, 'Unexpected fxPHP User Balance').to.be.lt(afterTradeUserfxPHPBalance)
+    expect(beforeTradeUserUsdcBalance, 'Unexpected USDC User Balance').to.be.gt(afterTradeUserUsdcBalance)
+    expect(beforeTradefxPHPPoolBalance, 'Unexpected fxPHP Vault Balance').to.be.gt(afterTradefxPHPPoolBalance)
+    expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.lt(afterTradeUSDCPoolBalance)
   })
-  it('Batch swaps token a (fxPHP) and token b (usdc) calling the vault and triggering onSwap hook', async () => {
+  it('User batch swaps token A (fxPHP) for token B (usdc) calling the vault and triggering onSwap hook', async () => {
     /// VAULT INDEX: index 1: fxPHP, index 0: USDC
     const ASSET_IN_INDEX = 1
     const ASSET_OUT_INDEX = 0
@@ -290,10 +302,10 @@ describe('FXPool', () => {
     // 0 = GIVEN_IN, 1 = GIVEN_OUT
     const SWAP_KIND = 1
 
-    console.log('Before USDC: ', await testEnv.USDC.balanceOf(adminAddress))
-    console.log('Before fxPHP: ', await testEnv.fxPHP.balanceOf(adminAddress))
-    console.log('FX PHP Pool amount: ', await testEnv.fxPHP.balanceOf(testEnv.vault.address))
-    console.log('FX USDC Pool amount: ', await testEnv.USDC.balanceOf(testEnv.vault.address))
+    const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
+    const beforeTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
+    const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const beforeTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
     const usdcAmountToSwapInEther = 1000
     const usdcSymbol = 'USDC'
@@ -344,10 +356,17 @@ describe('FXPool', () => {
 
     //dev.balancer.fi/guides/swaps/batch-swaps
     await testEnv.vault.batchSwap(SWAP_KIND, swaps, swapAssets, fund_struct, limits, deadline)
-    console.log('After USDC: ', await testEnv.USDC.balanceOf(adminAddress))
-    console.log('After fxPHP: ', await testEnv.fxPHP.balanceOf(adminAddress))
-    console.log('FX PHP Pool amount: ', await testEnv.fxPHP.balanceOf(testEnv.vault.address))
-    console.log('FX USDC Pool amount: ', await testEnv.USDC.balanceOf(testEnv.vault.address))
+
+    const afterTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
+    const afterTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
+    const afterTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+    // initial asserts, to be improved
+    expect(beforeTradeUserfxPHPBalance, 'Unexpected fxPHP User Balance').to.be.gt(afterTradeUserfxPHPBalance)
+    expect(beforeTradeUserUsdcBalance, 'Unexpected USDC User Balance').to.be.lt(afterTradeUserUsdcBalance)
+    expect(beforeTradefxPHPPoolBalance, 'Unexpected fxPHP Vault Balance').to.be.lt(afterTradefxPHPPoolBalance)
+    expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.gt(afterTradeUSDCPoolBalance)
   })
   it.skip('Single swaps token a (usdc) and token b (fxPHP) calling the vault and triggering onSwap hook', async () => {
     /// VAULT INDEX: index 0: USDC, index 1: fxPHP
