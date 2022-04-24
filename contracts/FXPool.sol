@@ -316,11 +316,13 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
         bool isTargetSwap = swapRequest.kind == IVault.SwapKind.GIVEN_OUT;
 
+        SwapData memory data;
+
         if (isTargetSwap) {
             console.log('onSwap: targetSwap');
 
             // unpack swapRequest from external caller (FE or another contract)
-            SwapData memory data = SwapData(
+            data = SwapData(
                 address(swapRequest.tokenIn),
                 0, // cause we're in targetSwap not originSwap
                 0,
@@ -346,12 +348,11 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             console.log('onSwap: viewTargetSwap done. outputAmount %s', data.outputAmount);
 
             require(data.originAmount <= data.maxOriginAmount, 'Curve/above-max-origin-amount');
-            return data.outputAmount;
         } else {
             console.log('onSwap: originSwap');
 
             // unpack swapRequest from external caller (FE or another contract)
-            SwapData memory data = SwapData(
+            data = SwapData(
                 address(swapRequest.tokenIn),
                 swapRequest.amount,
                 0,
@@ -376,8 +377,12 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             );
             console.log('onSwap: viewOriginSwap done. outputAmount %s', data.outputAmount);
             require(data.targetAmount >= data.minTargetAmount, 'Curve/below-min-target-amount');
-            return data.outputAmount;
         }
+
+        emit Trade(msg.sender, data.originAddress, data.targetAddress, data.originAmount, data.outputAmount);
+
+        console.log('onSwap: outputAmount %s', data.outputAmount);
+        return data.outputAmount;
     }
 
     /// @dev Hook for joining the pool that must be called from the vault.

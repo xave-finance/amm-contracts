@@ -195,12 +195,12 @@ library FXSwaps {
         for (uint256 i = 0; i < _length; i++) {
             console.log('viewOriginSwapData: loop i', i);
             if (i != _inputIx) {
-                console.log('viewOriginSwapData: condition 1 loop i', i);
+                console.log('viewOriginSwapData: target index loop #', i);
                 nBals_[i] = oBals_[i] = _viewNumeraireBalance(curve, i);
                 console.log('viewOriginSwap: nBals_[i] and oBals_[i]');
                 console.logInt(nBals_[i]);
             } else {
-                console.log('viewOriginSwapData: condition 2 loop i', i);
+                console.log('viewOriginSwapData: origin index loop #', i);
                 int128 _bal;
                 (amt_, _bal) = _viewNumeraireAmountAndBalance(curve, _assim, _amt);
                 console.log('viewOriginSwap: amt_');
