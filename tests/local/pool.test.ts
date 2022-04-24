@@ -255,11 +255,6 @@ describe('FXPool', () => {
     const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const beforeTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
-    console.log('beforeTradeUserUsdcBalance: ', beforeTradeUserUsdcBalance)
-    console.log('beforeTradeUserfxPHPBalance: ', beforeTradeUserfxPHPBalance)
-    console.log('beforeTradefxPHPPoolBalance: ', beforeTradefxPHPPoolBalance)
-    console.log('beforeTradeUSDCPoolBalance: ', beforeTradeUSDCPoolBalance)
-
     const fxPHPAmountToSwapInEther = 5000
     const fxPHPDecimals = 18
 
@@ -325,11 +320,6 @@ describe('FXPool', () => {
     const afterTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
-    console.log('afterTradeUserUsdcBalance: ', await ethers.utils.formatUnits(afterTradeUserUsdcBalance, 6))
-    console.log('afterTradeUserfxPHPBalance: ', await ethers.utils.formatUnits(afterTradeUserfxPHPBalance, 18))
-    console.log('afterTradefxPHPPoolBalance: ', await ethers.utils.formatUnits(afterTradefxPHPPoolBalance, 18))
-    console.log('afterTradeUSDCPoolBalance: ', await ethers.utils.formatUnits(afterTradeUSDCPoolBalance, 6))
-
     // initial asserts, to be improved
     expect(beforeTradeUserfxPHPBalance, 'Unexpected fxPHP User Balance').to.be.gt(afterTradeUserfxPHPBalance)
     expect(beforeTradeUserUsdcBalance, 'Unexpected USDC User Balance').to.be.lt(afterTradeUserUsdcBalance)
@@ -366,10 +356,6 @@ describe('FXPool', () => {
     const afterTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
     const afterTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
-    console.log('afterTradeUserUsdcBalance: ', afterTradeUserUsdcBalance)
-    console.log('afterTradeUserfxPHPBalance: ', afterTradeUserfxPHPBalance)
-    console.log('afterTradefxPHPPoolBalance: ', afterTradefxPHPPoolBalance)
-    console.log('afterTradeUSDCPoolBalance: ', afterTradeUSDCPoolBalance)
 
     expect(beforeTradeUserfxPHPBalance, 'Unexpected fxPHP User Balance').to.be.lt(afterTradeUserfxPHPBalance)
     expect(beforeTradeUserUsdcBalance, 'Unexpected USDC User Balance').to.be.gt(afterTradeUserUsdcBalance)
@@ -377,15 +363,10 @@ describe('FXPool', () => {
     expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.lt(afterTradeUSDCPoolBalance)
   })
   it.skip('originSwap: User single swaps token A (fxPHP) and token B (USDC) calling the vault and triggering onSwap hook', async () => {
-    // VAULT INDEX: index 1: USDC, index 0: fxPHP
     const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
     const beforeTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
     const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const beforeTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
-    console.log('beforeTradeUserUsdcBalance: ', beforeTradeUserUsdcBalance)
-    console.log('beforeTradeUserfxPHPBalance: ', beforeTradeUserfxPHPBalance)
-    console.log('beforeTradefxPHPPoolBalance: ', beforeTradefxPHPPoolBalance)
-    console.log('beforeTradeUSDCPoolBalance: ', beforeTradeUSDCPoolBalance)
 
     const fxPHPAmountToSwapInEther = 1000
     const fxPHPDecimals = 18
@@ -410,10 +391,6 @@ describe('FXPool', () => {
     const afterTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
     const afterTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
-    console.log('afterTradeUserUsdcBalance: ', afterTradeUserUsdcBalance)
-    console.log('afterTradeUserfxPHPBalance: ', afterTradeUserfxPHPBalance)
-    console.log('afterTradefxPHPPoolBalance: ', afterTradefxPHPPoolBalance)
-    console.log('afterTradeUSDCPoolBalance: ', afterTradeUSDCPoolBalance)
 
     expect(beforeTradeUserfxPHPBalance, 'Unexpected fxPHP User Balance').to.be.gt(afterTradeUserfxPHPBalance)
     expect(beforeTradeUserUsdcBalance, 'Unexpected USDC User Balance').to.be.lt(afterTradeUserUsdcBalance)

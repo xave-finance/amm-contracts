@@ -20,10 +20,10 @@ export const buildExecute_BatchSwapGivenIn = async (
     const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const beforeTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
-    console.log('beforeTradeUserUsdcBalance: ', beforeTradeUserUsdcBalance)
-    console.log('beforeTradeUserfxPHPBalance: ', beforeTradeUserfxPHPBalance)
-    console.log('beforeTradefxPHPPoolBalance: ', beforeTradefxPHPPoolBalance)
-    console.log('beforeTradeUSDCPoolBalance: ', beforeTradeUSDCPoolBalance)
+    console.log('Batch Swap Given In: beforeTradeUserUsdcBalance: ', beforeTradeUserUsdcBalance)
+    console.log('Batch Swap Given In: beforeTradeUserfxPHPBalance: ', beforeTradeUserfxPHPBalance)
+    console.log('Batch Swap Given In: beforeTradefxPHPPoolBalance: ', beforeTradefxPHPPoolBalance)
+    console.log('Batch Swap Given In: beforeTradeUSDCPoolBalance: ', beforeTradeUSDCPoolBalance)
   }
 
   // SwapKind is an Enum
@@ -75,10 +75,22 @@ export const buildExecute_BatchSwapGivenIn = async (
     const afterTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(sender_address)
     const afterTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
-    console.log('afterTradeUserUsdcBalance: ', await ethers.utils.formatUnits(afterTradeUserUsdcBalance, 6))
-    console.log('afterTradeUserfxPHPBalance: ', await ethers.utils.formatUnits(afterTradeUserfxPHPBalance, 18))
-    console.log('afterTradefxPHPPoolBalance: ', await ethers.utils.formatUnits(afterTradefxPHPPoolBalance, 18))
-    console.log('afterTradeUSDCPoolBalance: ', await ethers.utils.formatUnits(afterTradeUSDCPoolBalance, 6))
+    console.log(
+      'Batch Swap Given In: afterTradeUserUsdcBalance: ',
+      await ethers.utils.formatUnits(afterTradeUserUsdcBalance, 6)
+    )
+    console.log(
+      'Batch Swap Given In: afterTradeUserfxPHPBalance: ',
+      await ethers.utils.formatUnits(afterTradeUserfxPHPBalance, 18)
+    )
+    console.log(
+      'Batch Swap Given In: afterTradefxPHPPoolBalance: ',
+      await ethers.utils.formatUnits(afterTradefxPHPPoolBalance, 18)
+    )
+    console.log(
+      'Batch Swap Given In: afterTradeUSDCPoolBalance: ',
+      await ethers.utils.formatUnits(afterTradeUSDCPoolBalance, 6)
+    )
   }
 }
 
@@ -98,10 +110,10 @@ export const buildExecute_BatchSwapGivenOut = async (
     const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const beforeTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
-    console.log('beforeTradeUserUsdcBalance: ', beforeTradeUserUsdcBalance)
-    console.log('beforeTradeUserfxPHPBalance: ', beforeTradeUserfxPHPBalance)
-    console.log('beforeTradefxPHPPoolBalance: ', beforeTradefxPHPPoolBalance)
-    console.log('beforeTradeUSDCPoolBalance: ', beforeTradeUSDCPoolBalance)
+    console.log('Batch Swap Given Out: beforeTradeUserUsdcBalance: ', beforeTradeUserUsdcBalance)
+    console.log('Batch Swap Given Out: beforeTradeUserfxPHPBalance: ', beforeTradeUserfxPHPBalance)
+    console.log('Batch Swap Given Out: beforeTradefxPHPPoolBalance: ', beforeTradefxPHPPoolBalance)
+    console.log('Batch Swap Given Out: beforeTradeUSDCPoolBalance: ', beforeTradeUSDCPoolBalance)
   }
 
   const SWAP_KIND = 1
@@ -150,10 +162,22 @@ export const buildExecute_BatchSwapGivenOut = async (
     const afterTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(sender_address)
     const afterTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
-    console.log('afterTradeUserUsdcBalance: ', await ethers.utils.formatUnits(afterTradeUserUsdcBalance, 6))
-    console.log('afterTradeUserfxPHPBalance: ', await ethers.utils.formatUnits(afterTradeUserfxPHPBalance, 18))
-    console.log('afterTradefxPHPPoolBalance: ', await ethers.utils.formatUnits(afterTradefxPHPPoolBalance, 18))
-    console.log('afterTradeUSDCPoolBalance: ', await ethers.utils.formatUnits(afterTradeUSDCPoolBalance, 6))
+    console.log(
+      'Batch Swap Given Out: afterTradeUserUsdcBalance: ',
+      await ethers.utils.formatUnits(afterTradeUserUsdcBalance, 6)
+    )
+    console.log(
+      'Batch Swap Given Out: afterTradeUserfxPHPBalance: ',
+      await ethers.utils.formatUnits(afterTradeUserfxPHPBalance, 18)
+    )
+    console.log(
+      'Batch Swap Given Out: afterTradefxPHPPoolBalance: ',
+      await ethers.utils.formatUnits(afterTradefxPHPPoolBalance, 18)
+    )
+    console.log(
+      'Batch Swap Given Out: afterTradeUSDCPoolBalance: ',
+      await ethers.utils.formatUnits(afterTradeUSDCPoolBalance, 6)
+    )
   }
 }
 
@@ -173,10 +197,10 @@ export const buildExecute_SingleSwapGivenIn = async (
     const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const beforeTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
-    console.log('beforeTradeUserUsdcBalance: ', beforeTradeUserUsdcBalance)
-    console.log('beforeTradeUserfxPHPBalance: ', beforeTradeUserfxPHPBalance)
-    console.log('beforeTradefxPHPPoolBalance: ', beforeTradefxPHPPoolBalance)
-    console.log('beforeTradeUSDCPoolBalance: ', beforeTradeUSDCPoolBalance)
+    console.log('Single Swap Given Out: beforeTradeUserUsdcBalance: ', beforeTradeUserUsdcBalance)
+    console.log('Single Swap Given Out: beforeTradeUserfxPHPBalance: ', beforeTradeUserfxPHPBalance)
+    console.log('Single Swap Given Out: beforeTradefxPHPPoolBalance: ', beforeTradefxPHPPoolBalance)
+    console.log('Single Swap Given Out: beforeTradeUSDCPoolBalance: ', beforeTradeUSDCPoolBalance)
   }
 
   const SWAP_KIND = 0
@@ -218,9 +242,21 @@ export const buildExecute_SingleSwapGivenIn = async (
     const afterTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(sender_address)
     const afterTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
-    console.log('afterTradeUserUsdcBalance: ', await ethers.utils.formatUnits(afterTradeUserUsdcBalance, 6))
-    console.log('afterTradeUserfxPHPBalance: ', await ethers.utils.formatUnits(afterTradeUserfxPHPBalance, 18))
-    console.log('afterTradefxPHPPoolBalance: ', await ethers.utils.formatUnits(afterTradefxPHPPoolBalance, 18))
-    console.log('afterTradeUSDCPoolBalance: ', await ethers.utils.formatUnits(afterTradeUSDCPoolBalance, 6))
+    console.log(
+      'Single Swap Given Out: afterTradeUserUsdcBalance: ',
+      await ethers.utils.formatUnits(afterTradeUserUsdcBalance, 6)
+    )
+    console.log(
+      'Single Swap Given Out: afterTradeUserfxPHPBalance: ',
+      await ethers.utils.formatUnits(afterTradeUserfxPHPBalance, 18)
+    )
+    console.log(
+      'Single Swap Given Out: afterTradefxPHPPoolBalance: ',
+      await ethers.utils.formatUnits(afterTradefxPHPPoolBalance, 18)
+    )
+    console.log(
+      'Single Swap Given Out: afterTradeUSDCPoolBalance: ',
+      await ethers.utils.formatUnits(afterTradeUSDCPoolBalance, 6)
+    )
   }
 }
