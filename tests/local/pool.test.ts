@@ -36,6 +36,9 @@ describe('FXPool', () => {
   const loopCount = 10
   const log = true // do console logging
 
+  const fxPHPDecimals = 18
+  const usdcDecimals = 6
+
   let contract_vault: Contract
 
   before('build test env', async () => {
@@ -249,14 +252,13 @@ describe('FXPool', () => {
     expect(beforeTradefxPHPPoolBalance, 'Unexpected fxPHP Vault Balance').to.be.gt(afterTradefxPHPPoolBalance)
     expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.lt(afterTradeUSDCPoolBalance)
   })
-  it.skip('targetSwap: User batch swaps token A (USDC) for token B (fxPHP) calling the vault and triggering the onSwap hook', async () => {
+  it('targetSwap: User batch swaps token A (USDC) for token B (fxPHP) calling the vault and triggering the onSwap hook', async () => {
     const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
     const beforeTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
     const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const beforeTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
     const fxPHPAmountToSwapInEther = 5000
-    const fxPHPDecimals = 18
 
     const fxPHPAddress = await testEnv.fxPHP.address
     console.log('fxPHP Address: ', fxPHPAddress)
@@ -288,7 +290,6 @@ describe('FXPool', () => {
 
   it('originSwap: User batch swaps token A (fxPHP) for token B (USDC) calling the vault and triggering the onSwap hook', async () => {
     const fxPHPAmountToSwapInEther = 1000
-    const fxPHPDecimals = 18
 
     const fxPHPAddress = await testEnv.fxPHP.address
     console.log('fxPHP Address: ', fxPHPAddress)
@@ -299,10 +300,6 @@ describe('FXPool', () => {
     const beforeTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
     const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const beforeTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
-    console.log('beforeTradeUserUsdcBalance: ', await ethers.utils.formatUnits(beforeTradeUserUsdcBalance, 6))
-    console.log('beforeTradeUserfxPHPBalance: ', await ethers.utils.formatUnits(beforeTradeUserfxPHPBalance, 18))
-    console.log('beforeTradefxPHPPoolBalance: ', await ethers.utils.formatUnits(beforeTradefxPHPPoolBalance, 18))
-    console.log('beforeTradeUSDCPoolBalance: ', await ethers.utils.formatUnits(beforeTradeUSDCPoolBalance, 6))
 
     await swaps.buildExecute_BatchSwapGivenIn(
       fxPHPAddress,
@@ -327,14 +324,12 @@ describe('FXPool', () => {
     expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.gt(afterTradeUSDCPoolBalance)
   })
   it('originSwap: User single swaps token A (USDC) for token B (fxPHP) calling the vault and triggering onSwap hook', async () => {
-    // VAULT INDEX: index 0: USDC, index 1: fxPHP
     const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
     const beforeTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
     const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const beforeTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
     const usdcAmountToSwapInEther = 1000
-    const usdcDecimals = 6
 
     const fxPHPAddress = await testEnv.fxPHP.address
     console.log('fxPHP Address: ', fxPHPAddress)
@@ -357,6 +352,7 @@ describe('FXPool', () => {
     const afterTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
+    // initial asserts, to be improved
     expect(beforeTradeUserfxPHPBalance, 'Unexpected fxPHP User Balance').to.be.lt(afterTradeUserfxPHPBalance)
     expect(beforeTradeUserUsdcBalance, 'Unexpected USDC User Balance').to.be.gt(afterTradeUserUsdcBalance)
     expect(beforeTradefxPHPPoolBalance, 'Unexpected fxPHP Vault Balance').to.be.gt(afterTradefxPHPPoolBalance)
@@ -392,6 +388,7 @@ describe('FXPool', () => {
     const afterTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
+    // initial asserts, to be improved
     expect(beforeTradeUserfxPHPBalance, 'Unexpected fxPHP User Balance').to.be.gt(afterTradeUserfxPHPBalance)
     expect(beforeTradeUserUsdcBalance, 'Unexpected USDC User Balance').to.be.lt(afterTradeUserUsdcBalance)
     expect(beforeTradefxPHPPoolBalance, 'Unexpected fxPHP Vault Balance').to.be.lt(afterTradefxPHPPoolBalance)
