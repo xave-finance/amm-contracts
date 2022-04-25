@@ -111,7 +111,7 @@ describe('FXPool', () => {
     /**
      * Scenario #1: Base (fxPHP) input
      */
-    const baseAmountsIn = ['1000', '2000', '10000', '100', '5000']
+    const baseAmountsIn = ['1000', '2000', '10000', '100', '5000', '100000', '500000', '1000000']
 
     for (var i = 0; i < baseAmountsIn.length; i++) {
       const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
@@ -133,7 +133,7 @@ describe('FXPool', () => {
       console.log(`Deposit [${i}] amounts in: `, amountIn0, amountIn1)
 
       // Backend estimation `viewDeposit()` of LPT amount to receive + actual token ins
-      const [estimatedLptAmount, estimatedAmountsIn] = await calculateLptOutAndTokensIn(
+      const [estimatedLptAmount, estimatedAmountsIn, adjustedAmountsIn] = await calculateLptOutAndTokensIn(
         [amountIn0, amountIn1],
         [fxPHPDecimals, usdcDecimals],
         sortedAddresses,
@@ -150,14 +150,21 @@ describe('FXPool', () => {
       // Actual deposit `joinPool()` request
       let sortedAmounts: BigNumber[] = sortTokenAddressesLikeVault(sortedAddresses, fxPHPAddress, {
         lptAmount: estimatedLptAmount,
-        deposits: estimatedAmountsIn,
+        deposits: adjustedAmountsIn,
       })
 
       const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [sortedAmounts, sortedAddresses])
+      console.log(`Deposit [${i}] joinPool payload: `, sortedAmounts.toString(), sortedAddresses)
+
+      const maxAmountsIn =
+        sortedAddresses[0] === fxPHPAddress
+          ? [parseUnits(amountIn0, fxPHPDecimals), parseUnits(amountIn1, usdcDecimals)]
+          : [parseUnits(amountIn1, usdcDecimals), parseUnits(amountIn0, fxPHPDecimals)]
+      console.log(`Deposit [${i}] joinPool maxAmountsIn: `, maxAmountsIn.toString())
 
       const joinPoolRequest = {
         assets: sortedAddresses,
-        maxAmountsIn: sortedAmounts,
+        maxAmountsIn,
         userData: payload,
         fromInternalBalance: false,
       }
@@ -181,7 +188,7 @@ describe('FXPool', () => {
     /**
      * Scenario #2: Quote (USDC) input
      */
-    const quoteAmountsIn = [`10`, `50`, `100`, `1000`, `500`]
+    const quoteAmountsIn = ['10', '50', '100', '1000', '500', '10000', '50000', '100000', '200000', '500000']
 
     for (var i = 0; i < quoteAmountsIn.length; i++) {
       const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
@@ -203,7 +210,7 @@ describe('FXPool', () => {
       console.log(`Deposit [${i}] amounts in: `, amountIn0, amountIn1)
 
       // Backend estimation `viewDeposit()` of LPT amount to receive + actual token ins
-      const [estimatedLptAmount, estimatedAmountsIn] = await calculateLptOutAndTokensIn(
+      const [estimatedLptAmount, estimatedAmountsIn, adjustedAmountsIn] = await calculateLptOutAndTokensIn(
         [amountIn0, amountIn1],
         [fxPHPDecimals, usdcDecimals],
         sortedAddresses,
@@ -220,14 +227,21 @@ describe('FXPool', () => {
       // Actual deposit `joinPool()` request
       let sortedAmounts: BigNumber[] = sortTokenAddressesLikeVault(sortedAddresses, fxPHPAddress, {
         lptAmount: estimatedLptAmount,
-        deposits: estimatedAmountsIn,
+        deposits: adjustedAmountsIn,
       })
 
       const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [sortedAmounts, sortedAddresses])
+      console.log(`Deposit [${i}] joinPool payload: `, sortedAmounts.toString(), sortedAddresses)
+
+      const maxAmountsIn =
+        sortedAddresses[0] === fxPHPAddress
+          ? [parseUnits(amountIn0, fxPHPDecimals), parseUnits(amountIn1, usdcDecimals)]
+          : [parseUnits(amountIn1, usdcDecimals), parseUnits(amountIn0, fxPHPDecimals)]
+      console.log(`Deposit [${i}] joinPool maxAmountsIn: `, maxAmountsIn.toString())
 
       const joinPoolRequest = {
         assets: sortedAddresses,
-        maxAmountsIn: sortedAmounts,
+        maxAmountsIn,
         userData: payload,
         fromInternalBalance: false,
       }

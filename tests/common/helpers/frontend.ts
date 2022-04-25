@@ -38,11 +38,13 @@ export const calculateLptOutAndTokensIn = async (
   tokenDecimals: number[],
   sortedAddresses: string[],
   baseTokenAddress: string,
-  fxPoolContract: FXPool
-): Promise<[BigNumber, BigNumber[]]> => {
+  fxPoolContract: FXPool,
+  alreadyAdjusted: boolean = false
+): Promise<[BigNumber, BigNumber[], BigNumber[]]> => {
+  const tokenAmountsBN = [parseUnits(tokenAmounts[0], tokenDecimals[0]), parseUnits(tokenAmounts[1], tokenDecimals[1])]
   const sortedAmounts = sortTokenAddressesLikeVault(sortedAddresses, baseTokenAddress, {
     lptAmount: BigNumber.from(0),
-    deposits: [parseUnits(tokenAmounts[0], tokenDecimals[0]), parseUnits(tokenAmounts[1], tokenDecimals[1])],
+    deposits: tokenAmountsBN,
   })
 
   const userData = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [sortedAmounts, sortedAddresses])
@@ -54,7 +56,7 @@ export const calculateLptOutAndTokensIn = async (
   const estimatedAmountIn0 = bigNumberToNumber(res[1][0], tokenDecimals[0])
   const estimatedAmountIn1 = bigNumberToNumber(res[1][1], tokenDecimals[1])
 
-  if (estimatedAmountIn0 > inputAmountIn0 || estimatedAmountIn1 > inputAmountIn1) {
+  if ((estimatedAmountIn0 > inputAmountIn0 || estimatedAmountIn1 > inputAmountIn1) && !alreadyAdjusted) {
     const adjustedAmountIn0 = inputAmountIn0 * (inputAmountIn0 / estimatedAmountIn0)
     const adjustedAmountIn1 = inputAmountIn1 * (inputAmountIn1 / estimatedAmountIn1)
     const adjustedAmountIn0Str = adjustedAmountIn0.toFixed(tokenDecimals[0])
@@ -68,9 +70,10 @@ export const calculateLptOutAndTokensIn = async (
       tokenDecimals,
       sortedAddresses,
       baseTokenAddress,
-      fxPoolContract
+      fxPoolContract,
+      true
     )
   } else {
-    return res
+    return [res[0], res[1], tokenAmountsBN]
   }
 }
