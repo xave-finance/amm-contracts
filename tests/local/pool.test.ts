@@ -9,7 +9,7 @@ import { mockToken } from '../constants/mockTokenList'
 import { getAssimilatorContract } from '../common/contractGetters'
 import { ViewDepositData } from '.././common/types/types'
 import { sortTokenAddressesLikeVault } from '../common/helpers/sorter'
-import { calculateOtherTokenIn } from '../common/helpers/frontend'
+import { calculateLptOutAndTokensIn, calculateOtherTokenIn } from '../common/helpers/frontend'
 
 describe('FXPool', () => {
   let testEnv: TestEnv
@@ -109,94 +109,142 @@ describe('FXPool', () => {
     let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
 
     /**
-     * Loop scenario:
-     * 0..4 fxPHP is the input token
-     * 5..9 usdc is the input token
-     **/
-    const amountsIn = [1000, 2000, 10000, 100, 5000, 10, 50, 100, 1000, 500]
+     * Scenario #1: Base (fxPHP) input
+     */
+    const baseAmountsIn = ['1000', '2000', '10000', '100', '5000']
 
-    for (var i = 0; i < loopCount; i++) {
+    for (var i = 0; i < baseAmountsIn.length; i++) {
       const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
       const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
       const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
-      const poolTokens = await testEnv.vault.getPoolTokens(poolId)
-      const amountIn = amountsIn[i]
-      const tokenInIndex = i < loopCount / 2 ? 0 : 1
+      const amountIn0 = baseAmountsIn[i]
 
-      const otherAmountIn = await calculateOtherTokenIn(
-        `${amountIn}`,
-        tokenInIndex,
+      // Frontend estimation of other token in amount
+      const poolTokens = await testEnv.vault.getPoolTokens(poolId)
+      const otherTokenIn = await calculateOtherTokenIn(
+        amountIn0,
+        0,
         [poolTokens.balances[0], poolTokens.balances[1]],
         [fxPHPDecimals, usdcDecimals],
         [fxPHPAssimilatorAddress, usdcAssimilatorAddress]
       )
+      const amountIn1 = formatUnits(otherTokenIn, usdcDecimals)
+      console.log(`Deposit [${i}] amounts in: `, amountIn0, amountIn1)
 
-      const sortedAmountsIn: BigNumber[] = []
-      if (sortedAddresses[0] === fxPHPAddress) {
-        console.log(`Deposit #${i} sorted addresses: fxPHP, USDC`)
-        sortedAmountsIn[0] = tokenInIndex === 0 ? parseUnits(`${amountIn}`, fxPHPDecimals) : otherAmountIn
-        sortedAmountsIn[1] = tokenInIndex === 0 ? otherAmountIn : parseUnits(`${amountIn}`, usdcDecimals)
-        console.log(
-          `viewDeposit #${i} sorted amounts in: `,
-          formatUnits(sortedAmountsIn[0], fxPHPDecimals),
-          formatUnits(sortedAmountsIn[1], usdcDecimals)
-        )
-      } else {
-        console.log(`Deposit #${i} sorted addresses: USDC, fxPHP`)
-        sortedAmountsIn[0] = tokenInIndex === 0 ? otherAmountIn : parseUnits(`${amountIn}`, usdcDecimals)
-        sortedAmountsIn[1] = tokenInIndex === 0 ? parseUnits(`${amountIn}`, fxPHPDecimals) : otherAmountIn
-        console.log(
-          `viewDeposit #${i} sorted amounts in: `,
-          formatUnits(sortedAmountsIn[0], usdcDecimals),
-          formatUnits(sortedAmountsIn[1], fxPHPDecimals)
-        )
-      }
-
-      const userData = ethers.utils.defaultAbiCoder.encode(
-        ['uint256[]', 'address[]'],
-        [sortedAmountsIn, sortedAddresses]
+      // Backend estimation `viewDeposit()` of LPT amount to receive + actual token ins
+      const [estimatedLptAmount, estimatedAmountsIn] = await calculateLptOutAndTokensIn(
+        [amountIn0, amountIn1],
+        [fxPHPDecimals, usdcDecimals],
+        sortedAddresses,
+        fxPHPAddress,
+        testEnv.fxPool
       )
-
-      // get estimated tokens
-      const viewDeposit = await testEnv.fxPool.viewDeposit(userData)
+      console.log(`Deposit [${i}] estimated lpt amount: `, estimatedLptAmount)
       console.log(
-        'viewDeposit amounts returned: ',
-        formatUnits(viewDeposit[1][0], fxPHPDecimals),
-        formatUnits(viewDeposit[1][1], usdcDecimals)
+        `Deposit [${i}] estimated amounts in: `,
+        formatUnits(estimatedAmountsIn[0], fxPHPDecimals),
+        formatUnits(estimatedAmountsIn[1], usdcDecimals)
       )
 
-      let liquidityToAdd: BigNumber[] = sortTokenAddressesLikeVault(sortedAddresses, fxPHPAddress, {
-        lptAmount: viewDeposit[0],
-        //deposits: viewDeposit[1],
-        deposits: sortedAmountsIn,
+      // Actual deposit `joinPool()` request
+      let sortedAmounts: BigNumber[] = sortTokenAddressesLikeVault(sortedAddresses, fxPHPAddress, {
+        lptAmount: estimatedLptAmount,
+        deposits: estimatedAmountsIn,
       })
 
-      const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [liquidityToAdd, sortedAddresses])
+      const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [sortedAmounts, sortedAddresses])
 
       const joinPoolRequest = {
         assets: sortedAddresses,
-        // https://dev.balancer.fi/resources/joins-and-exits/pool-joins#maxamountsin
-        //maxAmountsIn: [ethers.utils.parseUnits('10000000'), ethers.utils.parseUnits('10000000')],
-        //maxAmountsIn: [liquidityToAdd[0], liquidityToAdd[1]],
-        maxAmountsIn: sortedAmountsIn,
+        maxAmountsIn: sortedAmounts,
         userData: payload,
         fromInternalBalance: false,
       }
       await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest))
         .to.emit(testEnv.fxPool, 'OnJoinPool')
-        .withArgs(poolId, viewDeposit[0], [viewDeposit[1][0], viewDeposit[1][1]])
+        .withArgs(poolId, estimatedLptAmount, [estimatedAmountsIn[0], estimatedAmountsIn[1]])
 
       const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
       const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
       const afterVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
-      expect(afterLpBalance, 'Current LP Balance not expected').to.be.equals(beforeLpBalance.add(viewDeposit[0]))
+      expect(afterLpBalance, 'Current LP Balance not expected').to.be.equals(beforeLpBalance.add(estimatedLptAmount))
       expect(afterVaultfxPhpBalance, 'Current fxPHP Balance not expected').to.be.equals(
-        beforeVaultfxPhpBalance.add(viewDeposit[1][0])
+        beforeVaultfxPhpBalance.add(estimatedAmountsIn[0])
       )
       expect(afterVaultUsdcBalance, 'Current USDC Balance not expected').to.be.equals(
-        beforeVaultUsdcBalance.add(viewDeposit[1][1])
+        beforeVaultUsdcBalance.add(estimatedAmountsIn[1])
+      )
+    }
+
+    /**
+     * Scenario #2: Quote (USDC) input
+     */
+    const quoteAmountsIn = [`10`, `50`, `100`, `1000`, `500`]
+
+    for (var i = 0; i < quoteAmountsIn.length; i++) {
+      const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+      const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+      const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+      const amountIn1 = quoteAmountsIn[i]
+
+      // Frontend estimation of other token in amount
+      const poolTokens = await testEnv.vault.getPoolTokens(poolId)
+      const otherTokenIn = await calculateOtherTokenIn(
+        amountIn1,
+        1,
+        [poolTokens.balances[0], poolTokens.balances[1]],
+        [fxPHPDecimals, usdcDecimals],
+        [fxPHPAssimilatorAddress, usdcAssimilatorAddress]
+      )
+      const amountIn0 = formatUnits(otherTokenIn, fxPHPDecimals)
+      console.log(`Deposit [${i}] amounts in: `, amountIn0, amountIn1)
+
+      // Backend estimation `viewDeposit()` of LPT amount to receive + actual token ins
+      const [estimatedLptAmount, estimatedAmountsIn] = await calculateLptOutAndTokensIn(
+        [amountIn0, amountIn1],
+        [fxPHPDecimals, usdcDecimals],
+        sortedAddresses,
+        fxPHPAddress,
+        testEnv.fxPool
+      )
+      console.log(`Deposit [${i}] estimated lpt amount: `, estimatedLptAmount)
+      console.log(
+        `Deposit [${i}] estimated amounts in: `,
+        formatUnits(estimatedAmountsIn[0], fxPHPDecimals),
+        formatUnits(estimatedAmountsIn[1], usdcDecimals)
+      )
+
+      // Actual deposit `joinPool()` request
+      let sortedAmounts: BigNumber[] = sortTokenAddressesLikeVault(sortedAddresses, fxPHPAddress, {
+        lptAmount: estimatedLptAmount,
+        deposits: estimatedAmountsIn,
+      })
+
+      const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [sortedAmounts, sortedAddresses])
+
+      const joinPoolRequest = {
+        assets: sortedAddresses,
+        maxAmountsIn: sortedAmounts,
+        userData: payload,
+        fromInternalBalance: false,
+      }
+      await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest))
+        .to.emit(testEnv.fxPool, 'OnJoinPool')
+        .withArgs(poolId, estimatedLptAmount, [estimatedAmountsIn[0], estimatedAmountsIn[1]])
+
+      const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+      const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+      const afterVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+      expect(afterLpBalance, 'Current LP Balance not expected').to.be.equals(beforeLpBalance.add(estimatedLptAmount))
+      expect(afterVaultfxPhpBalance, 'Current fxPHP Balance not expected').to.be.equals(
+        beforeVaultfxPhpBalance.add(estimatedAmountsIn[0])
+      )
+      expect(afterVaultUsdcBalance, 'Current USDC Balance not expected').to.be.equals(
+        beforeVaultUsdcBalance.add(estimatedAmountsIn[1])
       )
     }
   })
