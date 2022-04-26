@@ -139,7 +139,7 @@ export default async (taskArgs: any) => {
     console.log('> ProportionalLiquidity deployed at:', proportionalLiquidity.address)
   } else {
     console.log(`> Reusing ProportionalLiquidity at `, proportionalLiquidityAddress)
-    proportionalLiquidity = AssimilatorFactoryFactory.attach(proportionalLiquidityAddress)
+    proportionalLiquidity = ProportionalLiquidityFactory.attach(proportionalLiquidityAddress)
   }
 
   const FXPoolFactory = await ethers.getContractFactory('FXPool', {
