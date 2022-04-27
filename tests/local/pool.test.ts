@@ -122,10 +122,14 @@ describe('FXPool', () => {
 
       // Frontend estimation of other token in amount
       const poolTokens = await testEnv.vault.getPoolTokens(poolId)
+      const balances =
+        poolTokens.tokens[0] === fxPHPAddress
+          ? [poolTokens.balances[0], poolTokens.balances[1]]
+          : [poolTokens.balances[1], poolTokens.balances[0]]
       const otherTokenIn = await calculateOtherTokenIn(
         amountIn0,
         0,
-        [poolTokens.balances[0], poolTokens.balances[1]],
+        balances,
         [fxPHPDecimals, usdcDecimals],
         [fxPHPAssimilatorAddress, usdcAssimilatorAddress]
       )
@@ -199,10 +203,14 @@ describe('FXPool', () => {
 
       // Frontend estimation of other token in amount
       const poolTokens = await testEnv.vault.getPoolTokens(poolId)
+      const balances =
+        poolTokens.tokens[0] === fxPHPAddress
+          ? [poolTokens.balances[0], poolTokens.balances[1]]
+          : [poolTokens.balances[1], poolTokens.balances[0]]
       const otherTokenIn = await calculateOtherTokenIn(
         amountIn1,
         1,
-        [poolTokens.balances[0], poolTokens.balances[1]],
+        balances,
         [fxPHPDecimals, usdcDecimals],
         [fxPHPAssimilatorAddress, usdcAssimilatorAddress]
       )
