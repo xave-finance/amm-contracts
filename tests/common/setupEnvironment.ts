@@ -18,9 +18,10 @@ import { MockToken } from '../../typechain/MockToken'
 import { AssimilatorFactory } from '../../typechain/AssimilatorFactory'
 import { MockABDK } from '../../typechain/MockABDK'
 import { MockWeightedPoolFactory } from '../../typechain/MockWeightedPoolFactory'
-import { getFutureTime, sortAddresses } from './helpers/utils'
+import { getFutureTime } from './helpers/utils'
 import { fxPHPUSDCFxPool } from '../constants/mockPoolList'
 import { FXPool } from '../../typechain/FXPool'
+import { sortAddresses } from '../../scripts/utils/sortAddresses'
 
 export interface TestEnv {
   WETH: MockWETH9

@@ -1,7 +1,7 @@
 import { ethers } from 'hardhat'
 import { BigNumber } from 'ethers'
 import { parseUnits } from 'ethers/lib/utils'
-import { sortTokenAddressesLikeVault } from './sorter'
+import { sortDataLikeVault } from './sorter'
 import { FXPool } from '../../../typechain/FXPool'
 import { bigNumberToNumber } from './numbers'
 
@@ -42,10 +42,7 @@ export const calculateLptOutAndTokensIn = async (
   alreadyAdjusted: boolean = false
 ): Promise<[BigNumber, BigNumber[], BigNumber[]]> => {
   const tokenAmountsBN = [parseUnits(tokenAmounts[0], tokenDecimals[0]), parseUnits(tokenAmounts[1], tokenDecimals[1])]
-  const sortedAmounts = sortTokenAddressesLikeVault(sortedAddresses, baseTokenAddress, {
-    lptAmount: BigNumber.from(0),
-    deposits: tokenAmountsBN,
-  })
+  const sortedAmounts = sortDataLikeVault(sortedAddresses, baseTokenAddress, tokenAmountsBN)
 
   const userData = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [sortedAmounts, sortedAddresses])
 

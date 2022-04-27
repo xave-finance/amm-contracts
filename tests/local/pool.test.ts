@@ -4,12 +4,10 @@ import { BigNumber, BytesLike, Signer } from 'ethers'
 import { setupEnvironment, TestEnv } from '../common/setupEnvironment'
 import { formatUnits, parseEther, parseUnits } from '@ethersproject/units'
 import { CONTRACT_REVERT } from '../constants'
-import { sortAddresses } from '../common/helpers/utils'
 import { mockToken } from '../constants/mockTokenList'
-import { getAssimilatorContract } from '../common/contractGetters'
-import { ViewDepositData } from '.././common/types/types'
-import { sortTokenAddressesLikeVault } from '../common/helpers/sorter'
+import { sortDataLikeVault, orderDataLikeFE } from '../common/helpers/sorter'
 import { calculateLptOutAndTokensIn, calculateOtherTokenIn } from '../common/helpers/frontend'
+import { sortAddresses } from '../../scripts/utils/sortAddresses'
 
 describe('FXPool', () => {
   let testEnv: TestEnv
@@ -122,10 +120,7 @@ describe('FXPool', () => {
 
       // Frontend estimation of other token in amount
       const poolTokens = await testEnv.vault.getPoolTokens(poolId)
-      const balances =
-        poolTokens.tokens[0] === fxPHPAddress
-          ? [poolTokens.balances[0], poolTokens.balances[1]]
-          : [poolTokens.balances[1], poolTokens.balances[0]]
+      const balances = orderDataLikeFE(poolTokens.tokens, fxPHPAddress, poolTokens.balances)
       const otherTokenIn = await calculateOtherTokenIn(
         amountIn0,
         0,
@@ -152,18 +147,17 @@ describe('FXPool', () => {
       )
 
       // Actual deposit `joinPool()` request
-      let sortedAmounts: BigNumber[] = sortTokenAddressesLikeVault(sortedAddresses, fxPHPAddress, {
-        lptAmount: estimatedLptAmount,
-        deposits: adjustedAmountsIn,
-      })
+      let sortedAmounts: BigNumber[] = sortDataLikeVault(sortedAddresses, fxPHPAddress, adjustedAmountsIn)
 
       const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [sortedAmounts, sortedAddresses])
       console.log(`Deposit [${i}] joinPool payload: `, sortedAmounts.toString(), sortedAddresses)
 
-      const maxAmountsIn =
-        sortedAddresses[0] === fxPHPAddress
-          ? [parseUnits(amountIn0, fxPHPDecimals), parseUnits(amountIn1, usdcDecimals)]
-          : [parseUnits(amountIn1, usdcDecimals), parseUnits(amountIn0, fxPHPDecimals)]
+      const sortedAmountsIn = sortDataLikeVault(sortedAddresses, fxPHPAddress, [amountIn0, amountIn1])
+      const sortedDecimals = sortDataLikeVault(sortedAddresses, fxPHPAddress, [fxPHPDecimals, usdcDecimals])
+      const maxAmountsIn = [
+        parseUnits(sortedAmountsIn[0], sortedDecimals[0]),
+        parseUnits(sortedAmountsIn[1], sortedDecimals[1]),
+      ]
       console.log(`Deposit [${i}] joinPool maxAmountsIn: `, maxAmountsIn.toString())
 
       const joinPoolRequest = {
@@ -203,10 +197,7 @@ describe('FXPool', () => {
 
       // Frontend estimation of other token in amount
       const poolTokens = await testEnv.vault.getPoolTokens(poolId)
-      const balances =
-        poolTokens.tokens[0] === fxPHPAddress
-          ? [poolTokens.balances[0], poolTokens.balances[1]]
-          : [poolTokens.balances[1], poolTokens.balances[0]]
+      const balances = orderDataLikeFE(poolTokens.tokens, fxPHPAddress, poolTokens.balances)
       const otherTokenIn = await calculateOtherTokenIn(
         amountIn1,
         1,
@@ -233,18 +224,17 @@ describe('FXPool', () => {
       )
 
       // Actual deposit `joinPool()` request
-      let sortedAmounts: BigNumber[] = sortTokenAddressesLikeVault(sortedAddresses, fxPHPAddress, {
-        lptAmount: estimatedLptAmount,
-        deposits: adjustedAmountsIn,
-      })
+      let sortedAmounts: BigNumber[] = sortDataLikeVault(sortedAddresses, fxPHPAddress, adjustedAmountsIn)
 
       const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [sortedAmounts, sortedAddresses])
       console.log(`Deposit [${i}] joinPool payload: `, sortedAmounts.toString(), sortedAddresses)
 
-      const maxAmountsIn =
-        sortedAddresses[0] === fxPHPAddress
-          ? [parseUnits(amountIn0, fxPHPDecimals), parseUnits(amountIn1, usdcDecimals)]
-          : [parseUnits(amountIn1, usdcDecimals), parseUnits(amountIn0, fxPHPDecimals)]
+      const sortedAmountsIn = sortDataLikeVault(sortedAddresses, fxPHPAddress, [amountIn0, amountIn1])
+      const sortedDecimals = sortDataLikeVault(sortedAddresses, fxPHPAddress, [fxPHPDecimals, usdcDecimals])
+      const maxAmountsIn = [
+        parseUnits(sortedAmountsIn[0], sortedDecimals[0]),
+        parseUnits(sortedAmountsIn[1], sortedDecimals[1]),
+      ]
       console.log(`Deposit [${i}] joinPool maxAmountsIn: `, maxAmountsIn.toString())
 
       const joinPoolRequest = {
