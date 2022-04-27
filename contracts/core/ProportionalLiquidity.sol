@@ -11,8 +11,6 @@ import './lib/ABDKMath64x64.sol';
 
 import './CurveMath.sol';
 
-import 'hardhat/console.sol';
-
 library ProportionalLiquidity {
     using ABDKMath64x64 for uint256;
     using ABDKMath64x64 for int128;
