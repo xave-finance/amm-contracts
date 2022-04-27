@@ -8,6 +8,8 @@ import { mockToken } from '../constants/mockTokenList'
 import { sortDataLikeVault, orderDataLikeFE } from '../common/helpers/sorter'
 import { calculateLptOutAndTokensIn, calculateOtherTokenIn } from '../common/helpers/frontend'
 import { sortAddresses } from '../../scripts/utils/sortAddresses'
+import * as swaps from '../common/helpers/swap'
+import { Contract } from 'ethers'
 
 describe('FXPool', () => {
   let testEnv: TestEnv
@@ -31,11 +33,9 @@ describe('FXPool', () => {
   const quoteWeight = parseUnits('0.5')
 
   const loopCount = 10
+  const log = true // do console logging
   const usdcDecimals = mockToken[0].decimal
   const fxPHPDecimals = mockToken[3].decimal
-
-  const fxPHPDecimals = 18
-  const usdcDecimals = 6
 
   let contract_vault: Contract
 
