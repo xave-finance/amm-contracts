@@ -27,8 +27,6 @@ import '../../interfaces/IVault.sol';
 
 import './AssetHelpers.sol';
 
-//import 'hardhat/console.sol';
-
 abstract contract AssetTransfersHandler is AssetHelpers {
     using SafeERC20 for IERC20;
     using Address for address payable;

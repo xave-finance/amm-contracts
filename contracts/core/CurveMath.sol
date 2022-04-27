@@ -20,8 +20,6 @@ import './Storage.sol';
 import './lib/UnsafeMath64x64.sol';
 import './lib/ABDKMath64x64.sol';
 
-import 'hardhat/console.sol';
-
 library CurveMath {
     int128 private constant ONE = 0x10000000000000000;
     int128 private constant MAX = 0x4000000000000000; // .25 in layman's terms
