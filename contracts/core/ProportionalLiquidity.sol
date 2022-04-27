@@ -215,6 +215,31 @@ library ProportionalLiquidity {
         return withdrawals_;
     }
 
+    /// @notice views the total amount of liquidity in the curve in numeraire value and format - 18 decimals
+    /// @return total_ the total value in the curve
+    /// @return individual_ the individual values in the curve
+    function viewLiquidity(Storage.Curve storage curve)
+        external
+        view
+        returns (uint256 total_, uint256[] memory individual_)
+    {
+        uint256 _length = curve.assets.length;
+
+        individual_ = new uint256[](_length);
+
+        for (uint256 i = 0; i < _length; i++) {
+            // uint256 _liquidity = Assimilators.viewNumeraireBalance(curve.assets[i].addr).mulu(1e18);
+            uint256 _liquidity = Assimilators
+                .viewNumeraireBalance(curve.assets[i].addr, address(curve.vault), curve.poolId)
+                .mulu(1e18);
+
+            total_ += _liquidity;
+            individual_[i] = _liquidity;
+        }
+
+        return (total_, individual_);
+    }
+
     function getGrossLiquidityAndBalancesForDeposit(Storage.Curve storage curve)
         internal
         view

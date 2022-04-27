@@ -8,6 +8,7 @@ import '@balancer-labs/v2-pool-utils/contracts/BalancerPoolToken.sol';
 
 import './core/Storage.sol';
 import './core/ProportionalLiquidity.sol';
+import './core/FXSwaps.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {Pausable} from '@openzeppelin/contracts/utils/Pausable.sol';
 import {ReentrancyGuard} from '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
@@ -25,14 +26,20 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     // The number of seconds in our timescalecons
     uint256 public immutable unitSeconds;
 
-    // The Balancer pool data
-    // Note we change style to match Balancer's custom getter
-    // IVault private immutable _vault;
-    // bytes32 private immutable _poolId;
-
     // The percent of each trade's implied yield to collect as LP fee
     uint256 public immutable percentFee;
     int128 private constant ONE_WEI = 0x12;
+
+    struct SwapData {
+        address originAddress;
+        uint256 originAmount;
+        uint256 maxOriginAmount;
+        address targetAddress;
+        uint256 targetAmount;
+        uint256 minTargetAmount;
+        uint256 deadline;
+        uint256 outputAmount;
+    }
 
     // EVENTS
     /// @notice This event allows the frontend to track the fees
@@ -58,6 +65,13 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
     event OnJoinPool(bytes32 poolId, uint256 lptAmountMinted, uint256[] amountsDeposited);
     event OnExitPool(bytes32 poolId, uint256 lptAmountBurned, uint256[] amountsWithdrawn);
+    event Trade(
+        address indexed trader,
+        address indexed origin,
+        address indexed target,
+        uint256 originAmount,
+        uint256 targetAmount
+    );
 
     modifier isEmergency() {
         require(emergency, 'FXPool/emergency-only-allowing-emergency-proportional-withdraw');
@@ -263,7 +277,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         emit AssimilatorIncluded(_derivative, _numeraire, _reserve, _assimilator);
     }
 
-    function viewCurve()
+    function viewParameters()
         external
         view
         returns (
@@ -289,22 +303,86 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     // @todo trade functionality
     /// @dev Called by the Vault on swaps to get a price quote
     /// @param swapRequest The request which contains the details of the swap
-    /// @param currentBalanceTokenIn The input token balance
-    /// @param currentBalanceTokenOut The output token balance
+    /// @param currentBalanceTokenIn The input token balance scaled to the base token decimals that the assimilators expect
+    /// @param currentBalanceTokenOut The output token balance scaled to the quote token decimals (6 for USDC) that the assimilators expect
     /// @return the amount of the output or input token amount of for swap
     function onSwap(
         SwapRequest memory swapRequest,
         uint256 currentBalanceTokenIn,
         uint256 currentBalanceTokenOut
     ) public override whenNotPaused returns (uint256) {
-        // just hacking this until we implement the invariant :)
+        // how to impl deadline? on this hook func or in Swaps lib?
+        require(msg.sender == address(curve.vault), 'Non Vault caller');
 
-        // console.log('TOKEN IN');
-        // console.log(currentBalanceTokenIn);
-        // console.log('TOKEN OUT');
-        // console.log(currentBalanceTokenOut);
+        bool isTargetSwap = swapRequest.kind == IVault.SwapKind.GIVEN_OUT;
 
-        return _calculateInvariant(currentBalanceTokenIn, 0, 1);
+        SwapData memory data;
+
+        if (isTargetSwap) {
+            console.log('onSwap: targetSwap');
+
+            // unpack swapRequest from external caller (FE or another contract)
+            data = SwapData(
+                address(swapRequest.tokenIn),
+                0, // cause we're in targetSwap not originSwap
+                0,
+                address(swapRequest.tokenOut),
+                swapRequest.amount,
+                0,
+                0,
+                0
+            );
+            console.log('onSwap: originAddress %s', data.originAddress);
+            console.log('onSwap: originAmount %s', data.originAmount);
+            console.log('onSwap: maxOriginAmount %s', data.maxOriginAmount);
+            console.log('onSwap: targetAddress %s', data.targetAddress);
+            console.log('onSwap: targetAmount %s', data.targetAmount);
+            console.log('onSwap: minTargetAmount %s', data.minTargetAmount);
+
+            data.outputAmount = FXSwaps.viewTargetSwap(
+                curve,
+                data.originAddress,
+                data.targetAddress,
+                data.targetAmount
+            );
+            console.log('onSwap: viewTargetSwap done. outputAmount %s', data.outputAmount);
+
+            require(data.originAmount <= data.maxOriginAmount, 'Curve/above-max-origin-amount');
+        } else {
+            console.log('onSwap: originSwap');
+
+            // unpack swapRequest from external caller (FE or another contract)
+            data = SwapData(
+                address(swapRequest.tokenIn),
+                swapRequest.amount,
+                0,
+                address(swapRequest.tokenOut),
+                0, // cause we're in originSwap not targetSwap
+                0,
+                0,
+                0
+            );
+            console.log('onSwap: originAddress %s', data.originAddress);
+            console.log('onSwap: originAmount %s', data.originAmount);
+            console.log('onSwap: maxOriginAmount %s', data.maxOriginAmount);
+            console.log('onSwap: targetAddress %s', data.targetAddress);
+            console.log('onSwap: targetAmount %s', data.targetAmount);
+            console.log('onSwap: minTargetAmount %s', data.minTargetAmount);
+
+            data.outputAmount = FXSwaps.viewOriginSwap(
+                curve,
+                data.originAddress,
+                data.targetAddress,
+                data.originAmount
+            );
+            console.log('onSwap: viewOriginSwap done. outputAmount %s', data.outputAmount);
+            require(data.targetAmount >= data.minTargetAmount, 'Curve/below-min-target-amount');
+        }
+
+        emit Trade(msg.sender, data.originAddress, data.targetAddress, data.originAmount, data.outputAmount);
+
+        console.log('onSwap: outputAmount %s', data.outputAmount);
+        return data.outputAmount;
     }
 
     /// @dev Hook for joining the pool that must be called from the vault.
@@ -443,6 +521,13 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         emit EmergencyAlarm(_emergency);
 
         emergency = _emergency;
+    }
+
+    /// @notice views the total amount of liquidity in the curve in numeraire value and format - 18 decimals
+    /// @return total_ the total value in the curve
+    /// @return individual_ the individual values in the curve
+    function liquidity() public view returns (uint256 total_, uint256[] memory individual_) {
+        return ProportionalLiquidity.viewLiquidity(curve);
     }
 
     // Curve math
