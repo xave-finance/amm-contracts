@@ -8,6 +8,8 @@ import { mockToken } from '../constants/mockTokenList'
 import { sortDataLikeVault, orderDataLikeFE } from '../common/helpers/sorter'
 import { calculateLptOutAndTokensIn, calculateOtherTokenIn } from '../common/helpers/frontend'
 import { sortAddresses } from '../../scripts/utils/sortAddresses'
+import * as swaps from '../common/helpers/swap'
+import { Contract } from 'ethers'
 
 describe('FXPool', () => {
   let testEnv: TestEnv
@@ -31,8 +33,11 @@ describe('FXPool', () => {
   const quoteWeight = parseUnits('0.5')
 
   const loopCount = 10
+  const log = true // do console logging
   const usdcDecimals = mockToken[0].decimal
   const fxPHPDecimals = mockToken[3].decimal
+
+  let contract_vault: Contract
 
   before('build test env', async () => {
     testEnv = await setupEnvironment()
@@ -57,6 +62,8 @@ describe('FXPool', () => {
       ethers.utils.getAddress(testEnv.fxPHP.address),
       ethers.utils.getAddress(testEnv.USDC.address),
     ])
+
+    contract_vault = await ethers.getContractAt('Vault', testEnv.vault.address)
   })
 
   it('FXPool is registered on the vault', async () => {
@@ -263,11 +270,12 @@ describe('FXPool', () => {
 
   it('Removes Liquidity from the FXPool via the Vault which triggers the onExit hook', async () => {
     // remove amount per iteration roughly 1,000 USD or ~25k PHP and ~500k USDC
-    const hlpTokenAmountInEther = '1000'
+    const hlptTokenAmountInNumber = 1000
+    const hlpTokenAmountInEther = hlptTokenAmountInNumber.toString()
     const hlpTokensToBurninWei = parseEther(hlpTokenAmountInEther)
 
-    for (var i = 0; i < loopCount; i++) {
-      console.log('Withdraw #', i, ' with total withdraw amount ', 2000 * i)
+    for (var i = 1; i < loopCount + 1; i++) {
+      console.log('Withdraw #', i, ' with total withdraw amount ', hlptTokenAmountInNumber * i)
       const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
       const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
       const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
@@ -303,38 +311,197 @@ describe('FXPool', () => {
     }
   })
 
-  it.skip('Swaps tokan a and token b  calling the vault and triggering onSwap hook', async () => {
-    /// VAULT INDEX: index 0: USDC, index 1: fxPHP
-    console.log('Before USDC: ', await testEnv.USDC.balanceOf(adminAddress))
-    console.log('Before fxPHP: ', await testEnv.fxPHP.balanceOf(adminAddress))
-    console.log('FX PHP Pool amount: ', await testEnv.fxPHP.balanceOf(testEnv.vault.address))
-    console.log('FX USDC Pool amount: ', await testEnv.USDC.balanceOf(testEnv.vault.address))
-    const swaps = [
-      {
-        poolId: poolId as BytesLike,
-        assetInIndex: BigNumber.from(0), // in USDC
-        assetOutIndex: BigNumber.from(1), // out fxPHP
-        amount: parseUnits('30', 6),
-        userData: '0x' as BytesLike,
-      },
-    ]
-    const swapAssets: string[] = sortedAddresses
-    const limits = [parseUnits('999999999', 6), parseUnits('999999999')]
-    const deadline = ethers.constants.MaxUint256
-
-    const funds = {
-      sender: ethers.utils.getAddress(adminAddress),
-      recipient: ethers.utils.getAddress(adminAddress),
-      fromInternalBalance: false,
-      toInternalBalance: false,
-    }
-
-    await testEnv.vault.batchSwap(0, swaps, swapAssets, funds, limits, deadline)
-    console.log('After USDC: ', await testEnv.USDC.balanceOf(adminAddress))
-    console.log('After fxPHP: ', await testEnv.fxPHP.balanceOf(adminAddress))
-    console.log('FX PHP Pool amount: ', await testEnv.fxPHP.balanceOf(testEnv.vault.address))
-    console.log('FX USDC Pool amount: ', await testEnv.USDC.balanceOf(testEnv.vault.address))
+  it('Checks liquidity in the FXPool', async () => {
+    // const THRESHOLD = BigNumber.from(0.5)
+    // expectedLiquidity = prior numeraire balance
+    // actualLiquidity = test.env.vault.liquidity()
+    const liquidity = (await testEnv.fxPool.liquidity())[0]
+    console.log('liquidity number', await ethers.utils.formatEther(liquidity))
+    console.log('liquidity BigNumber', liquidity.toString())
+    // await expect(liquidity, 'unexpected liquidity() result')
+    //   .to.be.greaterThan(BigNumber.from(10000))
+    //   .lessThan(BigNumber.from(10001))
   })
+
+  it('originSwap: User batch swaps token A (USDC) for token B (fxPHP) calling the vault and triggering the onSwap hook', async () => {
+    const usdcAmountToSwapInEther = 100
+    const usdcDecimals = 6
+
+    const fxPHPAddress = await testEnv.fxPHP.address
+    console.log('fxPHP Address: ', fxPHPAddress)
+    const usdcAddress = await testEnv.USDC.address
+    console.log('usdc Address: ', usdcAddress)
+
+    const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
+    const beforeTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
+    const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const beforeTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+    await swaps.buildExecute_BatchSwapGivenIn(
+      usdcAddress,
+      fxPHPAddress,
+      usdcAmountToSwapInEther,
+      usdcDecimals,
+      adminAddress,
+      adminAddress, // the account swapping should get the output tokens
+      testEnv,
+      log
+    )
+
+    const afterTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
+    const afterTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
+    const afterTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+    // initial asserts, to be improved
+    expect(beforeTradeUserfxPHPBalance, 'Unexpected fxPHP User Balance').to.be.lt(afterTradeUserfxPHPBalance)
+    expect(beforeTradeUserUsdcBalance, 'Unexpected USDC User Balance').to.be.gt(afterTradeUserUsdcBalance)
+    expect(beforeTradefxPHPPoolBalance, 'Unexpected fxPHP Vault Balance').to.be.gt(afterTradefxPHPPoolBalance)
+    expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.lt(afterTradeUSDCPoolBalance)
+  })
+  it('targetSwap: User batch swaps token A (USDC) for token B (fxPHP) calling the vault and triggering the onSwap hook', async () => {
+    const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
+    const beforeTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
+    const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const beforeTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+    const fxPHPAmountToSwapInEther = 5000
+
+    const fxPHPAddress = await testEnv.fxPHP.address
+    console.log('fxPHP Address: ', fxPHPAddress)
+    const usdcAddress = await testEnv.USDC.address
+    console.log('usdc Address: ', usdcAddress)
+
+    await swaps.buildExecute_BatchSwapGivenOut(
+      usdcAddress,
+      fxPHPAddress,
+      fxPHPAmountToSwapInEther,
+      fxPHPDecimals,
+      adminAddress,
+      adminAddress, // the account swapping should get the output tokens
+      testEnv,
+      log
+    )
+
+    const afterTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
+    const afterTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
+    const afterTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+    // initial asserts, to be improved
+    expect(beforeTradeUserfxPHPBalance, 'Unexpected fxPHP User Balance').to.be.lt(afterTradeUserfxPHPBalance)
+    expect(beforeTradeUserUsdcBalance, 'Unexpected USDC User Balance').to.be.gt(afterTradeUserUsdcBalance)
+    expect(beforeTradefxPHPPoolBalance, 'Unexpected fxPHP Vault Balance').to.be.gt(afterTradefxPHPPoolBalance)
+    expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.lt(afterTradeUSDCPoolBalance)
+  })
+
+  it('originSwap: User batch swaps token A (fxPHP) for token B (USDC) calling the vault and triggering the onSwap hook', async () => {
+    const fxPHPAmountToSwapInEther = 1000
+
+    const fxPHPAddress = await testEnv.fxPHP.address
+    console.log('fxPHP Address: ', fxPHPAddress)
+    const usdcAddress = await testEnv.USDC.address
+    console.log('usdc Address: ', usdcAddress)
+
+    const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
+    const beforeTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
+    const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const beforeTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+    await swaps.buildExecute_BatchSwapGivenIn(
+      fxPHPAddress,
+      usdcAddress,
+      fxPHPAmountToSwapInEther,
+      fxPHPDecimals,
+      adminAddress,
+      adminAddress, // the account swapping should get the output tokens
+      testEnv,
+      log
+    )
+
+    const afterTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
+    const afterTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
+    const afterTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+    // initial asserts, to be improved
+    expect(beforeTradeUserfxPHPBalance, 'Unexpected fxPHP User Balance').to.be.gt(afterTradeUserfxPHPBalance)
+    expect(beforeTradeUserUsdcBalance, 'Unexpected USDC User Balance').to.be.lt(afterTradeUserUsdcBalance)
+    expect(beforeTradefxPHPPoolBalance, 'Unexpected fxPHP Vault Balance').to.be.lt(afterTradefxPHPPoolBalance)
+    expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.gt(afterTradeUSDCPoolBalance)
+  })
+  it('originSwap: User single swaps token A (USDC) for token B (fxPHP) calling the vault and triggering onSwap hook', async () => {
+    const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
+    const beforeTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
+    const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const beforeTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+    const usdcAmountToSwapInEther = 1000
+
+    const fxPHPAddress = await testEnv.fxPHP.address
+    console.log('fxPHP Address: ', fxPHPAddress)
+    const usdcAddress = await testEnv.USDC.address
+    console.log('usdc Address: ', usdcAddress)
+
+    await swaps.buildExecute_SingleSwapGivenIn(
+      usdcAddress,
+      fxPHPAddress,
+      usdcAmountToSwapInEther,
+      usdcDecimals,
+      adminAddress,
+      adminAddress, // the account swapping should get the output tokens
+      testEnv,
+      log
+    )
+
+    const afterTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
+    const afterTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
+    const afterTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+    // initial asserts, to be improved
+    expect(beforeTradeUserfxPHPBalance, 'Unexpected fxPHP User Balance').to.be.lt(afterTradeUserfxPHPBalance)
+    expect(beforeTradeUserUsdcBalance, 'Unexpected USDC User Balance').to.be.gt(afterTradeUserUsdcBalance)
+    expect(beforeTradefxPHPPoolBalance, 'Unexpected fxPHP Vault Balance').to.be.gt(afterTradefxPHPPoolBalance)
+    expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.lt(afterTradeUSDCPoolBalance)
+  })
+  it.skip('originSwap: User single swaps token A (fxPHP) and token B (USDC) calling the vault and triggering onSwap hook', async () => {
+    const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
+    const beforeTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
+    const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const beforeTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+    const fxPHPAmountToSwapInEther = 1000
+    const fxPHPDecimals = 18
+
+    const fxPHPAddress = await testEnv.fxPHP.address
+    console.log('fxPHP Address: ', fxPHPAddress)
+    const usdcAddress = await testEnv.USDC.address
+    console.log('usdc Address: ', usdcAddress)
+
+    await swaps.buildExecute_SingleSwapGivenIn(
+      fxPHPAddress, // fxPHP = token in
+      usdcAddress, // USDC = token out
+      fxPHPAmountToSwapInEther,
+      fxPHPDecimals, // specify token in decimals
+      adminAddress,
+      adminAddress, // the account swapping should get the output tokens
+      testEnv,
+      log
+    )
+
+    const afterTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
+    const afterTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
+    const afterTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+    // initial asserts, to be improved
+    expect(beforeTradeUserfxPHPBalance, 'Unexpected fxPHP User Balance').to.be.gt(afterTradeUserfxPHPBalance)
+    expect(beforeTradeUserUsdcBalance, 'Unexpected USDC User Balance').to.be.lt(afterTradeUserUsdcBalance)
+    expect(beforeTradefxPHPPoolBalance, 'Unexpected fxPHP Vault Balance').to.be.lt(afterTradefxPHPPoolBalance)
+    expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.gt(afterTradeUSDCPoolBalance)
+  })
+
   // it('Previews swap caclculation from the onSwap hook', async () => {})
   // it('Previews swap caclculation when providing single sided liquidity from the onJoin and onExit hook', async () => {})
 

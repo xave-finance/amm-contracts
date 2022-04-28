@@ -20,6 +20,8 @@ import './Storage.sol';
 import './lib/UnsafeMath64x64.sol';
 import './lib/ABDKMath64x64.sol';
 
+import 'hardhat/console.sol';
+
 library CurveMath {
     int128 private constant ONE = 0x10000000000000000;
     int128 private constant MAX = 0x4000000000000000; // .25 in layman's terms
@@ -239,20 +241,30 @@ library CurveMath {
                 if (_nBals[i] > _nHalt) {
                     int128 _oHalt = _oGLiq.mul(_weights[i]).mul(_upperAlpha);
 
-                    if (_oBals[i] < _oHalt) revert('Curve/upper-halt');
-                    if (_nBals[i] - _nHalt > _oBals[i] - _oHalt) revert('Curve/upper-halt');
+                    if (_oBals[i] < _oHalt) {
+                        revert('Curve/upper-halt');
+                    }
+                    if (_nBals[i] - _nHalt > _oBals[i] - _oHalt) {
+                        revert('Curve/upper-halt');
+                    }
                 }
             } else {
                 int128 _lowerAlpha = ONE - _alpha;
 
                 int128 _nHalt = _nIdeal.mul(_lowerAlpha);
+                console.logInt(_nHalt);
 
                 if (_nBals[i] < _nHalt) {
                     int128 _oHalt = _oGLiq.mul(_weights[i]);
                     _oHalt = _oHalt.mul(_lowerAlpha);
+                    console.logInt(_oHalt);
 
-                    if (_oBals[i] > _oHalt) revert('Curve/lower-halt');
-                    if (_nHalt - _nBals[i] > _oHalt - _oBals[i]) revert('Curve/lower-halt');
+                    if (_oBals[i] > _oHalt) {
+                        revert('Curve/lower-halt');
+                    }
+                    if (_nHalt - _nBals[i] > _oHalt - _oBals[i]) {
+                        revert('Curve/lower-halt');
+                    }
                 }
             }
         }
