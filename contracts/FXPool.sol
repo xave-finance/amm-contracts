@@ -11,6 +11,7 @@ import './core/ProportionalLiquidity.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {Pausable} from '@openzeppelin/contracts/utils/Pausable.sol';
 import {ReentrancyGuard} from '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
+
 import 'hardhat/console.sol';
 
 // @todo check implmentation with BasePool at https://github.com/balancer-labs/balancer-v2-monorepo/tree/master/pkg/pool-utils/contracts
@@ -26,8 +27,8 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
     // The Balancer pool data
     // Note we change style to match Balancer's custom getter
-    IVault private immutable _vault;
-    bytes32 private immutable _poolId;
+    // IVault private immutable _vault;
+    // bytes32 private immutable _poolId;
 
     // The percent of each trade's implied yield to collect as LP fee
     uint256 public immutable percentFee;
@@ -55,9 +56,21 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
     event EmergencyAlarm(bool isEmergency);
 
+    event OnJoinPool(bytes32 poolId, uint256 lptAmountMinted, uint256[] amountsDeposited);
+    event OnExitPool(bytes32 poolId, uint256 lptAmountBurned, uint256[] amountsWithdrawn);
+
+    modifier isEmergency() {
+        require(emergency, 'FXPool/emergency-only-allowing-emergency-proportional-withdraw');
+        _;
+    }
+
+    modifier deadline(uint256 _deadline) {
+        require(block.timestamp < _deadline, 'FXPool/tx-deadline-passed');
+        _;
+    }
+
     constructor(
-        address[] memory _assets,
-        // uint256[] memory _assetWeights,
+        address[] memory _assetsToRegister,
         uint256 _expiration,
         uint256 _unitSeconds,
         IVault vault,
@@ -70,44 +83,75 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         // Sanity Check
         // not sure if this needed
         require(_expiration - block.timestamp < _unitSeconds, 'FXPool/Expired');
-
         // Initialization on the vault
         bytes32 poolId = vault.registerPool(IVault.PoolSpecialization.TWO_TOKEN);
 
-        IERC20[] memory tokens = new IERC20[](2);
-        tokens[0] = IERC20(_assets[0]);
-        tokens[1] = IERC20(_assets[1]);
-
         // Pass in zero addresses for Asset Managers
         // Note - functions below assume this token order
+        IERC20[] memory tokens = new IERC20[](2);
+        tokens[0] = IERC20(_assetsToRegister[0]);
+        tokens[1] = IERC20(_assetsToRegister[1]);
+
         vault.registerTokens(poolId, tokens, new address[](2));
 
-        // Set immutable state variables
-        _vault = vault;
-        _poolId = poolId;
+        curve.vault = vault;
+        curve.poolId = poolId;
+
         percentFee = _percentFee;
         expiration = _expiration; // use as deadline for swaps and liquidity functions?
         unitSeconds = _unitSeconds;
     }
 
-    modifier isEmergency() {
-        require(emergency, 'FXPool/emergency-only-allowing-emergency-proportional-withdraw');
-        _;
-    }
+    function initialize(address[] memory _assets, uint256[] memory _assetWeights) external onlyOwner {
+        require(_assetWeights.length == 2, 'Curve/assetWeights-must-be-length-two');
+        require(_assets.length % 5 == 0, 'Curve/assets-must-be-divisible-by-five');
 
-    modifier deadline(uint256 _deadline) {
-        require(block.timestamp < _deadline, 'FXPool/tx-deadline-passed');
-        _;
+        for (uint256 i = 0; i < _assetWeights.length; i++) {
+            uint256 ix = i * 5;
+
+            numeraires.push(_assets[ix]);
+            derivatives.push(_assets[ix]);
+
+            reserves.push(_assets[2 + ix]);
+            if (_assets[ix] != _assets[2 + ix]) derivatives.push(_assets[2 + ix]);
+
+            includeAsset(
+                //   curve,
+                _assets[ix], // numeraire
+                _assets[1 + ix], // numeraire assimilator
+                _assets[2 + ix], // reserve
+                _assets[3 + ix], // reserve assimilator
+                // _assets[4 + ix], // reserve approve to
+                _assetWeights[i]
+            );
+        }
     }
 
     /// @dev Returns the vault for this pool
     /// @return The vault for this pool
     function getVault() external view returns (IVault) {
-        return _vault;
+        return curve.vault;
     }
 
     function getPoolId() external view override returns (bytes32) {
-        return _poolId;
+        return curve.poolId;
+    }
+
+    function getFee() private view returns (int128 fee_) {
+        int128 _gLiq;
+
+        // Always pairs
+        int128[] memory _bals = new int128[](2);
+
+        for (uint256 i = 0; i < _bals.length; i++) {
+            int128 _bal = Assimilators.viewNumeraireBalance(curve.assets[i].addr, address(curve.vault), curve.poolId);
+
+            _bals[i] = _bal;
+
+            _gLiq += _bal;
+        }
+
+        fee_ = CurveMath.calculateFee(_gLiq, _bals, curve.beta, curve.delta, curve.weights);
     }
 
     function setParams(
@@ -144,55 +188,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         require(_omega >= _psi, 'Curve/parameters-increase-fee');
 
         emit ParametersSet(_alpha, _beta, curve.delta.mulu(1e18), _epsilon, _lambda);
-    }
-
-    function getFee() private view returns (int128 fee_) {
-        int128 _gLiq;
-
-        // Always pairs
-        int128[] memory _bals = new int128[](2);
-
-        for (uint256 i = 0; i < _bals.length; i++) {
-            int128 _bal = Assimilators.viewNumeraireBalance(curve.assets[i].addr);
-
-            _bals[i] = _bal;
-
-            _gLiq += _bal;
-        }
-
-        fee_ = CurveMath.calculateFee(_gLiq, _bals, curve.beta, curve.delta, curve.weights);
-    }
-
-    function initialize(
-        // Storage.Curve storage curve,
-        //  address[] storage numeraires, in storage contract
-        //  address[] storage reserves, in storage contract
-        // address[] storage derivatives, in storage contract
-        address[] calldata _assets,
-        uint256[] calldata _assetWeights
-    ) external onlyOwner {
-        require(_assetWeights.length == 2, 'Curve/assetWeights-must-be-length-two');
-        require(_assets.length % 5 == 0, 'Curve/assets-must-be-divisible-by-five');
-
-        for (uint256 i = 0; i < _assetWeights.length; i++) {
-            uint256 ix = i * 5;
-
-            numeraires.push(_assets[ix]);
-            derivatives.push(_assets[ix]);
-
-            reserves.push(_assets[2 + ix]);
-            if (_assets[ix] != _assets[2 + ix]) derivatives.push(_assets[2 + ix]);
-
-            includeAsset(
-                //   curve,
-                _assets[ix], // numeraire
-                _assets[1 + ix], // numeraire assimilator
-                _assets[2 + ix], // reserve
-                _assets[3 + ix], // reserve assimilator
-                // _assets[4 + ix], // reserve approve to
-                _assetWeights[i]
-            );
-        }
     }
 
     function includeAsset(
@@ -261,7 +256,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
         // @todo double check implementation
         //IERC20(_numeraire).safeApprove(_derivativeApproveTo, uint256(-1));
-
         Storage.Assimilator storage _numeraireAssim = curve.assimilators[_numeraire];
 
         curve.assimilators[_derivative] = Storage.Assimilator(_assimilator, _numeraireAssim.ix);
@@ -298,12 +292,20 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     /// @param currentBalanceTokenIn The input token balance
     /// @param currentBalanceTokenOut The output token balance
     /// @return the amount of the output or input token amount of for swap
-
     function onSwap(
         SwapRequest memory swapRequest,
         uint256 currentBalanceTokenIn,
         uint256 currentBalanceTokenOut
-    ) public override whenNotPaused returns (uint256) {}
+    ) public override whenNotPaused returns (uint256) {
+        // just hacking this until we implement the invariant :)
+
+        // console.log('TOKEN IN');
+        // console.log(currentBalanceTokenIn);
+        // console.log('TOKEN OUT');
+        // console.log(currentBalanceTokenOut);
+
+        return _calculateInvariant(currentBalanceTokenIn, 0, 1);
+    }
 
     /// @dev Hook for joining the pool that must be called from the vault.
     ///      It mints a proportional number of tokens compared to current LP pool,
@@ -318,18 +320,43 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     ///                 address low to high
     /// @return amountsIn The actual amounts of token the vault should move to this pool
     /// @return dueProtocolFeeAmounts The amounts of each token to pay as protocol fees
-
-    // @todo deposit/onJoin, check on how to return BPT tokens minted
-
     function onJoinPool(
         bytes32 poolId,
         address, // sender
         address recipient,
-        uint256[] memory currentBalances,
+        uint256[] memory currentBalances, // @todo for vault transfers
         uint256,
         uint256 protocolSwapFee,
         bytes calldata userData
-    ) external override whenNotPaused returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts) {}
+    ) external override whenNotPaused returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts) {
+        (uint256[] memory tokensIn, address[] memory assetAddresses) = abi.decode(userData, (uint256[], address[]));
+
+        uint256 totalDepositNumeraire = (_convertToNumeraire(tokensIn[0], _getAssetIndex(assetAddresses[0])) +
+            _convertToNumeraire(tokensIn[1], _getAssetIndex(assetAddresses[1]))) * 1e18;
+
+        (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.proportionalDeposit(
+            curve,
+            totalDepositNumeraire
+        );
+        {
+            amountsIn = new uint256[](2);
+            amountsIn[0] = amountToDeposit[_getAssetIndex(assetAddresses[0])];
+            amountsIn[1] = amountToDeposit[_getAssetIndex(assetAddresses[1])];
+        }
+        // @todo check reentrancy attack, call from BalancerToken.supply or change the library?
+        curve.totalSupply = curve.totalSupply += lpTokens;
+
+        BalancerPoolToken._mintPoolTokens(recipient, lpTokens);
+        // @todo mintLPFee() ?
+        // @todo check fee calculation
+        {
+            dueProtocolFeeAmounts = new uint256[](2);
+            dueProtocolFeeAmounts[0] = 0;
+            dueProtocolFeeAmounts[1] = 0;
+        }
+
+        emit OnJoinPool(poolId, lpTokens, amountToDeposit);
+    }
 
     /// @dev Hook for leaving the pool that must be called from the vault.
     ///      It burns a proportional number of tokens compared to current LP pool,
@@ -344,17 +371,37 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     ///                 withdraw
     /// @return amountsOut The number of each token to send to the caller
     /// @return dueProtocolFeeAmounts The amounts of each token to pay as protocol fees
-
-    // @todo check on how to return BPT tokens minted
     function onExitPool(
         bytes32 poolId,
         address sender,
         address,
-        uint256[] memory currentBalances,
+        uint256[] memory currentBalances, // @todo for vault transfers
         uint256,
         uint256 protocolSwapFee,
         bytes calldata userData
-    ) external override returns (uint256[] memory amountsOut, uint256[] memory dueProtocolFeeAmounts) {}
+    ) external override returns (uint256[] memory amountsOut, uint256[] memory dueProtocolFeeAmounts) {
+        (uint256 tokensToBurn, address[] memory assetAddresses) = abi.decode(userData, (uint256, address[]));
+
+        uint256[] memory amountToWithdraw = ProportionalLiquidity.proportionalWithdraw(curve, tokensToBurn);
+
+        {
+            amountsOut = new uint256[](2);
+            amountsOut[0] = amountToWithdraw[_getAssetIndex(assetAddresses[0])];
+            amountsOut[1] = amountToWithdraw[_getAssetIndex(assetAddresses[1])];
+        }
+        // @todo check reentrancy attack, call from BalancerToken.supply or change the library?
+        curve.totalSupply = curve.totalSupply -= tokensToBurn;
+        BalancerPoolToken._burnPoolTokens(sender, tokensToBurn);
+
+        // @todo check fee calculation
+        {
+            dueProtocolFeeAmounts = new uint256[](2);
+            dueProtocolFeeAmounts[0] = 0;
+            dueProtocolFeeAmounts[1] = 0;
+        }
+
+        emit OnExitPool(poolId, tokensToBurn, amountToWithdraw);
+    }
 
     // ADMIN AND ACCESS CONTROL FUNCTIONS
 
@@ -376,6 +423,9 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         curve.cap = _cap;
     }
 
+    /*
+
+    @todo implement or vault?
     function emergencyWithdraw(uint256 _curvesToBurn, uint256 _deadline)
         external
         isEmergency
@@ -383,8 +433,11 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         nonReentrant
         returns (uint256[] memory withdrawals_)
     {
-        return ProportionalLiquidity.emergencyProportionalWithdraw(curve, _curvesToBurn);
+        //return ProportionalLiquidity.emergencyProportionalWithdraw(curve, _curvesToBurn);
+
+        return;
     }
+    */
 
     function setEmergency(bool _emergency) external onlyOwner {
         emit EmergencyAlarm(_emergency);
@@ -392,13 +445,72 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         emergency = _emergency;
     }
 
+    // Curve math
+    // @todo add curve modifiers
+    function viewDeposit(bytes calldata userData) external view returns (uint256, uint256[] memory) {
+        (uint256[] memory tokensIn, address[] memory assetAddresses) = abi.decode(userData, (uint256[], address[]));
+
+        uint256 totalDepositNumeraire = (_convertToNumeraire(tokensIn[0], _getAssetIndex(assetAddresses[0])) +
+            _convertToNumeraire(tokensIn[1], _getAssetIndex(assetAddresses[1]))) * 1e18;
+
+        return ProportionalLiquidity.viewProportionalDeposit(curve, totalDepositNumeraire);
+    }
+
+    function viewWithdraw(uint256 _curvesToBurn) external view returns (uint256[] memory) {
+        return ProportionalLiquidity.viewProportionalWithdraw(curve, _curvesToBurn, address(curve.vault), curve.poolId);
+    }
+
+    function _withinThreshold(uint256 a, uint256 b) internal pure returns (bool) {
+        if (a == b) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     /// @dev Mints the maximum possible LP given a set of max inputs
-    function _mintLP() internal returns (uint256[] memory amountsIn) {
+    function _mintLP(uint256 _tokensToMint) internal {
         // @todo add mint function from curve
     }
 
     /// @dev Burns a number of LP tokens and returns the amount of the pool which they own.
     function _burnLP() internal returns (uint256[] memory amountsReleased) {
         // @todo add burn function from curve
+    }
+
+    function _calculateInvariant(
+        uint256 tokenAmount,
+        uint256 baseTokenPosition,
+        uint256 usdcPosition
+    ) internal view returns (uint256) {
+        // just hacking this until we implement the invariant :)
+        int128 numeraireAmount = Assimilators.viewNumeraireAmount(curve.assets[usdcPosition].addr, tokenAmount);
+
+        return Assimilators.viewRawAmount(curve.assets[baseTokenPosition].addr, numeraireAmount);
+    }
+
+    function _convertToNumeraire(uint256 tokenAmount, uint256 tokenPosition) internal view returns (uint256) {
+        int128 numeraireAmount = Assimilators.viewNumeraireAmount(curve.assets[tokenPosition].addr, tokenAmount);
+
+        return ABDKMath64x64.toUInt(numeraireAmount);
+    }
+
+    function _getAssetIndex(address _assetAddress) internal view returns (uint256) {
+        require(
+            _assetAddress == derivatives[0] || _assetAddress == derivatives[1],
+            'FXPool: Address is not a derivative'
+        );
+
+        if (_assetAddress == derivatives[0]) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+
+    /// @notice view the assimilator address for a derivative
+    /// @return assimilator_ the assimilator address
+    function assimilator(address _derivative) public view returns (address assimilator_) {
+        assimilator_ = curve.assimilators[_derivative].addr;
     }
 }

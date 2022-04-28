@@ -17,6 +17,7 @@ pragma solidity ^0.7.3;
 
 import './interfaces/IOracle.sol';
 import './Assimilators.sol';
+import '@balancer-labs/v2-vault/contracts/interfaces/IVault.sol';
 
 contract Storage {
     struct Curve {
@@ -37,8 +38,11 @@ contract Storage {
         mapping(address => IOracle) oracles;
         // ERC20 Interface
         uint256 totalSupply;
-        mapping(address => uint256) balances;
+        //   mapping(address => uint256) balances;
         mapping(address => mapping(address => uint256)) allowances;
+        // Vault reference
+        IVault vault;
+        bytes32 poolId;
     }
 
     struct Assimilator {

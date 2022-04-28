@@ -2,13 +2,16 @@
 
 pragma solidity ^0.7.3;
 
-import './Assimilators.sol';
-import './Storage.sol';
+//import './Assimilators.sol';
+//import './Storage.sol';
 import './CurveMath.sol';
-import './lib/UnsafeMath64x64.sol';
-import './lib/ABDKMath64x64.sol';
+
+//import './lib/UnsafeMath64x64.sol';
+//import './lib/ABDKMath64x64.sol';
 
 import '@openzeppelin/contracts/math/SafeMath.sol';
+
+//import {SafeMath} from '@balancer-labs/v2-solidity-utils/contracts/openzeppelin/SafeMath.sol';
 
 library Swaps {
     using ABDKMath64x64 for int128;
@@ -25,6 +28,8 @@ library Swaps {
     );
 
     int128 public constant ONE = 0x10000000000000000;
+
+    /*
 
     function getOriginAndTarget(
         Storage.Curve storage curve,
@@ -360,4 +365,5 @@ library Swaps {
 
         return (amt_, oGLiq_, nGLiq_, nBals_, oBals_);
     }
+    */
 }

@@ -18,9 +18,10 @@ import { MockToken } from '../../typechain/MockToken'
 import { AssimilatorFactory } from '../../typechain/AssimilatorFactory'
 import { MockABDK } from '../../typechain/MockABDK'
 import { MockWeightedPoolFactory } from '../../typechain/MockWeightedPoolFactory'
-import { FXPool } from '../../typechain/FXPool'
-import { getFutureTime, sortAddresses } from './helpers/utils'
+import { getFutureTime } from './helpers/utils'
 import { fxPHPUSDCFxPool } from '../constants/mockPoolList'
+import { FXPool } from '../../typechain/FXPool'
+import { sortAddresses } from '../../scripts/utils/sortAddresses'
 
 export interface TestEnv {
   WETH: MockWETH9
@@ -64,11 +65,10 @@ export const setupEnvironment = async (): Promise<TestEnv> => {
   const EURSOracle = mockTokenArray[2].oracleInstance
   const fxPHPOracle = mockTokenArray[3].oracleInstance
 
-  const assimilatorFactory = await deployAssimilatorFactory(USDCOracle.address, USDC.address)
-  console.log(USDC.address)
-  console.log(fxPHP.address)
-  console.log(vault.address)
+  console.log('USDC address:', USDC.address)
+  console.log('fxPHP address:', fxPHP.address)
 
+  const assimilatorFactory = await deployAssimilatorFactory(USDCOracle.address, USDC.address)
   const fxPool = await deployFXPool(
     sortAddresses([fxPHP.address, USDC.address]),
     // ['0.5', '0.5'],

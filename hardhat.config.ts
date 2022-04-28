@@ -9,7 +9,7 @@ import 'hardhat-gas-reporter'
 import 'hardhat-tracer'
 //import '@tenderly/hardhat-tenderly'
 
-import initializePoolTasks from './scripts//pool-actions/'
+import initializePoolTasks from './scripts/pool-actions/'
 import initializeSwapTasks from './scripts/swaps/'
 import initializeRelayerTasks from './scripts/relayers/'
 
@@ -20,7 +20,7 @@ const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY || ''
 const TENDERLY_USERNAME = process.env.TENDERLY_USERNAME || ''
 const TENDERLY_PROJECT = process.env.TENDERLY_PROJECT || ''
 
-//initializePoolTasks()
+initializePoolTasks()
 //initializeSwapTasks()
 //initializeRelayerTasks()
 
@@ -31,15 +31,15 @@ const TENDERLY_PROJECT = process.env.TENDERLY_PROJECT || ''
 export default {
   solidity: {
     compilers: [
-      {
-        version: '0.7.1',
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 10000,
-          },
-        },
-      },
+      // {
+      //   version: '0.7.1',
+      //   settings: {
+      //     optimizer: {
+      //       enabled: true,
+      //       runs: 10000,
+      //     },
+      //   },
+      // },
       {
         version: '0.7.3',
         settings: {
@@ -49,15 +49,15 @@ export default {
           },
         },
       },
-      {
-        version: '0.8.0',
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 7500,
-          },
-        },
-      },
+      // {
+      //   version: '0.8.0',
+      //   settings: {
+      //     optimizer: {
+      //       enabled: true,
+      //       runs: 7500,
+      //     },
+      //   },
+      // },
     ],
     overrides: {
       'contracts/balancer-core-v2/vault/Vault.sol': {
@@ -112,6 +112,21 @@ export default {
         mnemonic: MNEMONIC_SEED,
       },
       blockGasLimit: 20000000,
+    },
+    rinkeby: {
+      url: `https://rinkeby.infura.io/v3/${INFURA_PROJECT_ID}`,
+      accounts: {
+        mnemonic: MNEMONIC_SEED,
+      },
+      blockGasLimit: 20000000,
+    },
+    matic: {
+      chainId: 137,
+      url: `https://polygon-mainnet.infura.io/v3/${INFURA_PROJECT_ID}`,
+      accounts: {
+        mnemonic: MNEMONIC_SEED,
+      },
+      gasPrice: 8000000000,
     },
     localhost: {
       chainId: 1337,

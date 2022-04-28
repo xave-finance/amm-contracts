@@ -1,0 +1,32 @@
+{
+    "kovan": {
+        "BASE_TOKEN": "0x008486BF13E7eaf140A0168b7f7cb724a01B2092",
+        "QUOTE_TOKEN": "0x7c4e10f2A9e8e23882675e48e8979708349341Ee",
+        "BASE_ASSIMILATOR": "0x9e7A854E962aA8BB0E010Dad13FBB22C94935867",
+        "QUOTE_ASSIMILATOR": "0xa44f1922A3b2Effc53D3d8AcbAd02d4ABc744384",
+        "ASSIMILATORS": "0xffF2b269101a4922Af9DD83206685c01Fb216edf",
+        "CURVE_MATH": "0x3e001792E244F945767177FA9C9863AE037B83ea",
+        "PROPORTIONAL_LIQUIDITY": "0x4AC4BD4504f12bcf3506Cfceb878f1C2883909EB",
+        "SWAPS": "0x7D008Aa791BF0A7275134CADfF4bcE6360445Cc1"
+    },
+    "hardhat": {
+        "BASE_TOKEN": "",
+        "QUOTE_TOKEN": "",
+        "BASE_ASSIMILATOR": "",
+        "QUOTE_ASSIMILATOR": "",
+        "ASSIMILATORS": "",
+        "CURVE_MATH": "",
+        "PROPORTIONAL_LIQUIDITY": "",
+        "SWAPS": ""
+    },
+    "mainnet": {
+        "BASE_TOKEN": "",
+        "QUOTE_TOKEN": "",
+        "BASE_ASSIMILATOR": "",
+        "QUOTE_ASSIMILATOR": "",
+        "ASSIMILATORS": "",
+        "CURVE_MATH": "",
+        "PROPORTIONAL_LIQUIDITY": "",
+        "SWAPS": ""
+    }
+}

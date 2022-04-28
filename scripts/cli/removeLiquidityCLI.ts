@@ -1,64 +1,71 @@
+import { getEnabledPools } from '../utils/addresses'
 const inquirer = require('inquirer')
 const childProcess = require('child_process')
 
-
 const runNpmCommand = (command: string) => childProcess.execSync(command, { stdio: [0, 1, 2] })
 
-import editJson from 'edit-json-file'
-const TOKENS_FILE = editJson(`${__dirname}/../constants/TOKENS.json`)
+inquirer
+  .prompt([
+    {
+      type: 'list',
+      name: 'network',
+      message: 'Which network to test',
+      choices: ['kovan', 'matic'],
+    },
+    {
+      type: 'input',
+      name: 'poolId',
+      message: 'Specify Pool ID',
+    },
+    {
+      type: 'input',
+      name: 'lptAmount',
+      message: 'LPT Amount in (ETH units)',
+    },
+    {
+      type: 'confirm',
+      name: 'toInternalBalance',
+      message: 'Send to Vault internal balance?',
+    },
+  ])
+  .then(async (answers: any) => {
+    const network = answers.network
+    const poolId = answers.poolId
+    const lptAmount = answers.lptAmount
+    const tointernalbalance = answers.toInternalBalance
 
-const POOLS_FILE = editJson(`${__dirname}/../constants/POOLS.json`)
-const listOfPools = POOLS_FILE.get('POOLS_LIST')
+    const pools = await getEnabledPools(network)
+    const pool = pools ? pools.find((p) => p.poolId === poolId) : undefined
+    if (!pool) {
+      console.error(`poolId[${poolId}] not available on ${network}!`)
+      return
+    }
 
-inquirer.prompt([
-  {
-    type: 'list',
-    name: 'network',
-    message: 'Which network to test',
-    choices: [
-      'kovan',
-      'matic',
-    ],
-  },
-  {
-    type: 'list',
-    name: 'pool',
-    message: 'Specify Pool',
-    choices: listOfPools,
-  },
-  {
-    type: 'input',
-    name: 'baseAmount',
-    message: 'Base Token Amount in (ETH units)',
-  },
-  {
-    type: 'input',
-    name: 'quoteAmount',
-    message: 'Quote Token Amount in (ETH units)',
-  },
-  {
-    type: 'confirm',
-    name: 'toInternalBalance',
-    message: 'Send to Vault internal balance?',
-  },
-])
-.then(async (answers: any) => {
-  const network = answers.network
-  const pool = answers.pool
+    const poolAddress = pool.address
+    const baseTokenAddress = pool.assets[0]
+    const quoteTokenAddress = pool.assets[1]
 
-  const baseAmount = answers.baseAmount
-  const quoteAmount = answers.quoteAmount
-  const tointernalbalance = answers.toInternalBalance
+    console.log(
+      `npx hardhat remove-liquidity ` +
+        `--to ${network} ` +
+        `--pooladdress ${poolAddress} ` +
+        `--poolid ${poolId} ` +
+        `--basetoken ${baseTokenAddress} ` +
+        `--quotetoken ${quoteTokenAddress} ` +
+        `--lptamount ${lptAmount} ` +
+        `--tointernalbalance ${tointernalbalance} ` +
+        `--network ${network}`
+    )
 
-  const baseToken = `${pool.split('-')[0]}`
-  const quoteToken = `${pool.split('-')[1]}`
-
-  const baseTokenAddress = await TOKENS_FILE.get(`${baseToken}.${network}`)
-  const quoteTokenAddress = await TOKENS_FILE.get(`${quoteToken}.${network}`)
-
-  console.log(`npx hardhat remove-liquidity --to ${network} --pool ${pool} --basetoken ${baseTokenAddress} --quotetoken ${quoteTokenAddress}\
-  --baseamount ${baseAmount} --quoteamount ${quoteAmount} --tointernalbalance ${tointernalbalance} --network ${network}`)
-
-  runNpmCommand(`npx hardhat remove-liquidity --to ${network} --pool ${pool} --basetoken ${baseTokenAddress} --quotetoken ${quoteTokenAddress}\
-  --baseamount ${baseAmount} --quoteamount ${quoteAmount} --tointernalbalance ${tointernalbalance} --network ${network}`)
-})
+    runNpmCommand(
+      `npx hardhat remove-liquidity ` +
+        `--to ${network} ` +
+        `--pooladdress ${poolAddress} ` +
+        `--poolid ${poolId} ` +
+        `--basetoken ${baseTokenAddress} ` +
+        `--quotetoken ${quoteTokenAddress} ` +
+        `--lptamount ${lptAmount} ` +
+        `--tointernalbalance ${tointernalbalance} ` +
+        `--network ${network}`
+    )
+  })

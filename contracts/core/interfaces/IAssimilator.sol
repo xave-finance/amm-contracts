@@ -42,8 +42,10 @@ interface IAssimilator {
     function viewRawAmountLPRatio(
         uint256,
         uint256,
+        // address,
+        int128,
         address,
-        int128
+        bytes32
     ) external view returns (uint256);
 
     function viewNumeraireAmount(uint256) external view returns (int128);
@@ -51,10 +53,16 @@ interface IAssimilator {
     function viewNumeraireBalanceLPRatio(
         uint256,
         uint256,
-        address
+        // address,
+        address,
+        bytes32
     ) external view returns (int128);
 
-    function viewNumeraireBalance(address) external view returns (int128);
+    function viewNumeraireBalance(address, bytes32) external view returns (int128);
 
-    function viewNumeraireAmountAndBalance(address, uint256) external view returns (int128, int128);
+    function viewNumeraireAmountAndBalance(
+        uint256,
+        address,
+        bytes32
+    ) external view returns (int128, int128);
 }

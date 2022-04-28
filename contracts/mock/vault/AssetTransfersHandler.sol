@@ -109,6 +109,7 @@ abstract contract AssetTransfersHandler is AssetHelpers {
             recipient.sendValue(amount);
         } else {
             IERC20 token = _asIERC20(asset);
+
             if (toInternalBalance) {
                 _increaseInternalBalance(recipient, token, amount);
             } else {

@@ -17,10 +17,11 @@ pragma solidity ^0.7.3;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
-
 import '../core/lib/ABDKMath64x64.sol';
 import '../core/interfaces/IAssimilator.sol';
 import '../core/interfaces/IOracle.sol';
+
+import '../interfaces/IVaultPoolBalances.sol';
 
 contract BaseToUsdAssimilator is IAssimilator {
     using ABDKMath64x64 for int128;
@@ -166,24 +167,40 @@ contract BaseToUsdAssimilator is IAssimilator {
         amount_ = (_amount.mulu(baseDecimals) * 1e8) / _rate;
     }
 
+    function _getBalancesFromVault(
+        address vault,
+        bytes32 poolId,
+        address quoteTokenAddressToCompare
+    ) internal view returns (uint256 baseTokenBal, uint256 quoteTokenBal) {
+        (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
+
+        if (address(tokens[0]) == quoteTokenAddressToCompare) {
+            baseTokenBal = balances[1];
+            quoteTokenBal = balances[0];
+        } else if (address(tokens[1]) == quoteTokenAddressToCompare) {
+            baseTokenBal = balances[0];
+            quoteTokenBal = balances[1];
+        } else {
+            revert('_getBalancesFromVault: usdc is not present in token array returned by Vault.getPoolTokens method');
+        }
+    }
+
     function viewRawAmountLPRatio(
         uint256 _baseWeight,
         uint256 _quoteWeight,
-        address _addr,
-        int128 _amount
+        int128 _amount,
+        address vault,
+        bytes32 poolId
     ) external view override returns (uint256 amount_) {
-        uint256 _baseTokenBal = baseToken.balanceOf(_addr);
+        (uint256 baseTokenBal, uint256 usdcBal) = _getBalancesFromVault(vault, poolId, address(usdc));
 
-        if (_baseTokenBal <= 0) return 0;
+        if (baseTokenBal <= 0) return 0;
 
         // base decimals
-        _baseTokenBal = _baseTokenBal.mul(1e18).div(_baseWeight);
+        baseTokenBal = baseTokenBal.mul(1e18).div(_baseWeight);
 
-        // 1e6
-        uint256 _usdcBal = usdc.balanceOf(_addr).mul(1e18).div(_quoteWeight);
-
-        // Rate is in 1e6
-        uint256 _rate = _usdcBal.mul(baseDecimals).div(_baseTokenBal);
+        usdcBal = usdcBal.mul(1e18).div(_quoteWeight);
+        uint256 _rate = usdcBal.mul(baseDecimals).div(baseTokenBal);
 
         amount_ = (_amount.mulu(baseDecimals) * 1e6) / _rate;
     }
@@ -191,35 +208,34 @@ contract BaseToUsdAssimilator is IAssimilator {
     // takes a raw amount and returns the numeraire amount
     function viewNumeraireAmount(uint256 _amount) external view override returns (int128 amount_) {
         uint256 _rate = getRate();
-
         amount_ = ((_amount * _rate) / 1e8).divu(baseDecimals);
     }
 
     // views the numeraire value of the current balance of the reserve, in this case baseToken
-    function viewNumeraireBalance(address _addr) external view override returns (int128 balance_) {
+    function viewNumeraireBalance(address vault, bytes32 poolId) external view override returns (int128 balance_) {
         uint256 _rate = getRate();
 
-        uint256 _balance = baseToken.balanceOf(_addr);
+        (uint256 baseTokenBal, ) = _getBalancesFromVault(vault, poolId, address(usdc));
 
-        if (_balance <= 0) return ABDKMath64x64.fromUInt(0);
+        if (baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
 
-        balance_ = ((_balance * _rate) / 1e8).divu(baseDecimals);
+        balance_ = ((baseTokenBal * _rate) / 1e8).divu(baseDecimals);
     }
 
     // views the numeraire value of the current balance of the reserve, in this case baseToken
-    function viewNumeraireAmountAndBalance(address _addr, uint256 _amount)
-        external
-        view
-        override
-        returns (int128 amount_, int128 balance_)
-    {
+    // called for swaps
+    function viewNumeraireAmountAndBalance(
+        uint256 _amount,
+        address vault,
+        bytes32 poolId
+    ) external view override returns (int128 amount_, int128 balance_) {
         uint256 _rate = getRate();
 
         amount_ = ((_amount * _rate) / 1e8).divu(baseDecimals);
 
-        uint256 _balance = baseToken.balanceOf(_addr);
+        (uint256 baseTokenBal, ) = _getBalancesFromVault(vault, poolId, address(usdc));
 
-        balance_ = ((_balance * _rate) / 1e8).divu(baseDecimals);
+        balance_ = ((baseTokenBal * _rate) / 1e8).divu(baseDecimals);
     }
 
     // views the numeraire value of the current balance of the reserve, in this case baseToken
@@ -228,17 +244,17 @@ contract BaseToUsdAssimilator is IAssimilator {
     function viewNumeraireBalanceLPRatio(
         uint256 _baseWeight,
         uint256 _quoteWeight,
-        address _addr
+        // address _addr,
+        address vault,
+        bytes32 poolId
     ) external view override returns (int128 balance_) {
-        uint256 _baseTokenBal = baseToken.balanceOf(_addr);
+        (uint256 baseTokenBal, uint256 usdcBal) = _getBalancesFromVault(vault, poolId, address(usdc));
 
-        if (_baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
+        if (baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
 
-        uint256 _usdcBal = usdc.balanceOf(_addr).mul(1e18).div(_quoteWeight);
+        usdcBal = usdcBal.mul(1e18).div(_quoteWeight);
+        uint256 _rate = usdcBal.mul(1e18).div(baseTokenBal.mul(1e18).div(_baseWeight));
 
-        // Rate is in 1e6
-        uint256 _rate = _usdcBal.mul(1e18).div(_baseTokenBal.mul(1e18).div(_baseWeight));
-
-        balance_ = ((_baseTokenBal * _rate) / 1e6).divu(1e18);
+        balance_ = ((baseTokenBal * _rate) / 1e6).divu(1e18);
     }
 }
