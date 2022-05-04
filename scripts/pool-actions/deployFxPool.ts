@@ -4,7 +4,7 @@ import {
   getAssimilatorFactoryAddress,
   getVaultAddress,
   getProportionalLiquidityAddress,
-  // getSwapLibraryAddress,
+  getSwapLibAddress,
 } from '../utils/addresses'
 import { AssimilatorFactory } from '../../typechain/AssimilatorFactory'
 import { FXPool } from '../../typechain/FXPool'
@@ -68,6 +68,7 @@ export default async (taskArgs: any) => {
   /** Step# - get ProportionalLiquidity, Swap Library, AssimilatorFactory address */
   let assimilatorFactoryAddress: string | undefined
   let proportionalLiquidityAddress: string | undefined
+  let swapLibAddress: string | undefined
   if (!freshDeploy) {
     assimilatorFactoryAddress = getAssimilatorFactoryAddress(network)
     if (!assimilatorFactoryAddress) {
@@ -79,11 +80,11 @@ export default async (taskArgs: any) => {
       console.error(`Address for ProportionalLiquidity not available on ${network}!`)
       return
     }
-    // swapLibAddress = getSwapLibraryAddress(network)
-    // if (!swapLibAddress) {
-    //   console.error(`Address for Swap Library not available on ${network}!`)
-    //   return
-    // }
+    swapLibAddress = getSwapLibAddress(network)
+    if (!swapLibAddress) {
+      console.error(`Address for Swap Library not available on ${network}!`)
+      return
+    }
   }
 
   /**
@@ -153,11 +154,11 @@ export default async (taskArgs: any) => {
     console.log('> Swap Library deployed at:', swapContract.address)
   } else {
     console.log(`> Reusing ProportionalLiquidity at `, proportionalLiquidityAddress)
-    proportionalLiquidity = AssimilatorFactoryFactory.attach(proportionalLiquidityAddress)
+    proportionalLiquidity = ProportionalLiquidityFactory.attach(proportionalLiquidityAddress)
 
     console.log('Need to add Swap Library to halodao-contract-addresses')
-    // console.log(`> Reusing Swap Library at `, swapLibAddress)
-    // swapContract = swapContractFactory.attach(swapLibAddress)
+    console.log(`> Reusing Swap Library at `, swapLibAddress)
+    swapContract = swapContractFactory.attach(swapLibAddress)
   }
 
   const FXPoolFactory = await ethers.getContractFactory('FXPool', {
@@ -173,11 +174,11 @@ export default async (taskArgs: any) => {
   console.table({
     assets: sortedAssets.join(', '),
     expiration: deadline,
-    unitSeconds: fxPHPUSDCFxPool.unitSeconds,
+    unitSeconds: ethers.utils.parseUnits('100'),
     vault: vaultAddress,
-    percentFee: fxPHPUSDCFxPool.percentFee,
-    name: fxPHPUSDCFxPool.name,
-    symbol: fxPHPUSDCFxPool.symbol,
+    percentFee: ethers.utils.parseUnits('0.01'),
+    name: `HALO ${baseToken}USDC FXPool`,
+    symbol: `HFX-${baseToken}USDC`,
   })
   const fxPool: FXPool = await FXPoolFactory.deploy(
     sortedAssets,

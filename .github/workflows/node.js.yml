@@ -23,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: yarn install
       - name: Compile and generate typechain
-        run: yarn compile
+        run: yarn compile-fix
       - name: Run local tests
         run: yarn test-local
         env:

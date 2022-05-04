@@ -12,6 +12,8 @@ import './lib/ABDKMath64x64.sol';
 // importing copy paste OZ SafeMath here to avoid circular dependency + balancer version has missing funcs
 import './lib/OZSafeMath.sol';
 
+import 'hardhat/console.sol';
+
 library FXSwaps {
     using ABDKMath64x64 for int128;
     using UnsafeMath64x64 for int128;

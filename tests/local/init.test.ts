@@ -6,7 +6,7 @@ import { parseEther, parseUnits } from 'ethers/lib/utils'
 import { approveMockToken } from '../common/helpers/mockTokenHelpers'
 import { INTIAL_MINT } from '../constants'
 import { setupEnvironment, TestEnv } from '../common/setupEnvironment'
-import { sortAddresses } from '../common/helpers/utils'
+import { sortAddresses } from '../../scripts/utils/sortAddresses'
 
 /**
  * Mocked Entities
