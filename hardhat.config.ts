@@ -131,6 +131,10 @@ export default {
     localhost: {
       chainId: 1337,
       url: 'http://127.0.0.1:8545/',
+      accounts: {
+        mnemonic: MNEMONIC_SEED,
+        accountsBalance: '100000000000000000000000',
+      },
     },
   },
   etherscan: {
