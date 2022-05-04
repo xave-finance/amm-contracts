@@ -1,5 +1,9 @@
 import { ethers } from 'ethers'
 import { setupEnvironment } from '../../tests/common/setupEnvironment'
+const childProcess = require('child_process')
+import hre from 'hardhat'
+
+const runNpmCommand = (command: string) => childProcess.execSync(command, { stdio: [0, 1, 2] })
 
 const deploy = async () => {
   /**
@@ -55,6 +59,25 @@ const deploy = async () => {
     'fxPHP:USDC pool': env.fxPool.address,
     'fxPHP:USDC pool id': poolId,
   })
+
+  /**
+   * Add initial liquidity
+   */
+  const network = hre.network.name
+  const baseAmount = '52000'
+  const quoteAmount = '1000'
+  runNpmCommand(
+    `npx hardhat add-liquidity ` +
+      `--to ${network} ` +
+      `--vault ${env.vault.address} ` +
+      `--poolid ${poolId} ` +
+      `--basetoken ${env.fxPHP.address} ` +
+      `--quotetoken ${env.USDC.address} ` +
+      `--baseamount ${baseAmount} ` +
+      `--quoteamount ${quoteAmount} ` +
+      `--frominternalbalance false ` +
+      `--network ${network}`
+  )
 }
 
 deploy().then(() => process.exit(0))
