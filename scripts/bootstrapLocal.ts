@@ -1,11 +1,11 @@
-import { ethers } from 'ethers'
-import { setupEnvironment } from '../../tests/common/setupEnvironment'
+import { ethers } from 'hardhat'
+import { setupEnvironment } from '../tests/common/setupEnvironment'
 const childProcess = require('child_process')
 import hre from 'hardhat'
 
 const runNpmCommand = (command: string) => childProcess.execSync(command, { stdio: [0, 1, 2] })
 
-const deploy = async () => {
+const bootstrap = async () => {
   /**
    * Reuse test setup script to reploy (almost) everything
    */
@@ -49,6 +49,11 @@ const deploy = async () => {
   ]
   await env.fxPool.initialize(assets, assetsWeights)
 
+  // Deploy Multicall contract (required by FE)
+  const MockMulticallFactory = await ethers.getContractFactory('MockMulticall')
+  const MockMulticall = await MockMulticallFactory.deploy()
+  await MockMulticall.deployed()
+
   /**
    * Print out addresses for easy copy/paste
    */
@@ -58,6 +63,8 @@ const deploy = async () => {
     'Mock fxPHP': env.fxPHP.address,
     'fxPHP:USDC pool': env.fxPool.address,
     'fxPHP:USDC pool id': poolId,
+    'Muticall address': MockMulticall.address,
+    'WETH address': env.WETH.address,
   })
 
   /**
@@ -80,4 +87,4 @@ const deploy = async () => {
   )
 }
 
-deploy().then(() => process.exit(0))
+bootstrap().then(() => process.exit(0))

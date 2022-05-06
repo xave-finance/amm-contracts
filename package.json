@@ -26,7 +26,7 @@
     "recompile": "rm -rf artifacts && rm -rf cache && yarn compile-fix",
     "load-balancer-contracts": "sh scripts/shell/load-balancer-contracts.sh",
     "compile-fix": "TS_NODE_TRANSPILE_ONLY=1 npx hardhat compile",
-    "bootstrap-local": "yarn hardhat run scripts/pool-actions/deployFxPoolAndDeposit.ts --network localhost"
+    "bootstrap-local": "yarn hardhat run scripts/bootstrapLocal.ts --network localhost"
   },
   "devDependencies": {
     "@balancer-labs/v2-deployments": "^1.1.1",
