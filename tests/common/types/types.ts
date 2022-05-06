@@ -19,7 +19,7 @@ export type BatchSwapDataForVault = {
   poolId: BytesLike
   assetInIndex: BigNumber
   assetOutIndex: BigNumber
-  amount: number
+  amount: BigNumberish
   userData: BytesLike
 }
 
