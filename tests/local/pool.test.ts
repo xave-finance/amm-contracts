@@ -324,7 +324,7 @@ describe('FXPool', () => {
   })
 
   it('originSwap: User batch swaps token A (USDC) for token B (fxPHP) calling the vault and triggering the onSwap hook', async () => {
-    const usdcAmountToSwapInEther = 100
+    const usdcAmountToSwapInEther = 1000
     const usdcDecimals = 6
 
     const fxPHPAddress = await testEnv.fxPHP.address
@@ -465,7 +465,7 @@ describe('FXPool', () => {
     expect(beforeTradefxPHPPoolBalance, 'Unexpected fxPHP Vault Balance').to.be.gt(afterTradefxPHPPoolBalance)
     expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.lt(afterTradeUSDCPoolBalance)
   })
-  it.skip('originSwap: User single swaps token A (fxPHP) and token B (USDC) calling the vault and triggering onSwap hook', async () => {
+  it('originSwap: User single swaps token A (fxPHP) and token B (USDC) calling the vault and triggering onSwap hook', async () => {
     const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
     const beforeTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
     const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)

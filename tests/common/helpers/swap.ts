@@ -68,7 +68,7 @@ export const buildExecute_BatchSwapGivenIn = async (
       poolId: (await testEnv.fxPool.getPoolId()) as BytesLike,
       assetInIndex: BigNumber.from(ASSET_IN_INDEX), // assetInIndex must match swapAssets ordering, in this case usdc is origin
       assetOutIndex: BigNumber.from(ASSET_OUT_INDEX), // assetOutIndex must match swapAssets ordering, in this case fxPHP is target
-      amount: amountToSwap,
+      amount: parseUnits(amountToSwap.toString(), asset_in_decimals),
       userData: '0x' as BytesLike,
     },
   ]
@@ -77,7 +77,7 @@ export const buildExecute_BatchSwapGivenIn = async (
   // the ordering of this array must match the SwapDataForVault.assetInIndex and SwapDataForVault.assetOutIndex
   const swapAssets: string[] = [asset_in_address, asset_out_address]
   if (log) console.log('swapAssets: ', swapAssets)
-  const limits = [parseUnits('999999999', asset_in_decimals), parseUnits('999999999')]
+  const limits = [parseUnits('999999999'), parseUnits('999999999', asset_in_decimals)]
   const deadline = ethers.constants.MaxUint256
 
   //dev.balancer.fi/guides/swaps/batch-swaps
@@ -132,8 +132,8 @@ export const buildExecute_BatchSwapGivenOut = async (
   const SWAP_KIND = 1
 
   // swap these values if you want to reverse the order of tokens, ie swap USDC for fxPHP instead of the current fxPHP for USDC
-  const ASSET_IN_INDEX = 0
-  const ASSET_OUT_INDEX = 1
+  const ASSET_IN_INDEX = '0'
+  const ASSET_OUT_INDEX = '1'
 
   const fund_settings = {
     sender: ethers.utils.getAddress(sender_address),
@@ -155,7 +155,7 @@ export const buildExecute_BatchSwapGivenOut = async (
       poolId: (await testEnv.fxPool.getPoolId()) as BytesLike,
       assetInIndex: BigNumber.from(ASSET_IN_INDEX), // assetInIndex must match swapAssets ordering, in this case usdc is origin
       assetOutIndex: BigNumber.from(ASSET_OUT_INDEX), // assetOutIndex must match swapAssets ordering, in this case fxPHP is target
-      amount: amountToSwap,
+      amount: parseUnits(amountToSwap.toString(), asset_out_decimals),
       userData: '0x' as BytesLike,
     },
   ]
