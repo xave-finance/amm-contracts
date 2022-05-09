@@ -77,7 +77,7 @@ export const buildExecute_BatchSwapGivenIn = async (
   // the ordering of this array must match the SwapDataForVault.assetInIndex and SwapDataForVault.assetOutIndex
   const swapAssets: string[] = [asset_in_address, asset_out_address]
   if (log) console.log('swapAssets: ', swapAssets)
-  const limits = [parseUnits('999999999'), parseUnits('999999999', asset_in_decimals)]
+  const limits = [parseUnits('999999999', asset_in_decimals), parseUnits('999999999')]
   const deadline = ethers.constants.MaxUint256
 
   //dev.balancer.fi/guides/swaps/batch-swaps
@@ -241,13 +241,13 @@ export const buildExecute_SingleSwapGivenIn = async (
       kind: BigNumber.from(SWAP_KIND),
       assetIn: asset_in_address, // assetIn must match swap assets ordering, in this case usdc is origin
       assetOut: asset_out_address, // assetOut must match swap assets ordering, in this case fxPHP is target
-      amount: amountToSwap,
+      amount: parseUnits(amountToSwap.toString(), asset_in_decimals),
       userData: '0x' as BytesLike,
     },
   ]
   if (log) console.log('singleSwap: ', singleSwap)
 
-  const limit = parseUnits('999999999', asset_in_decimals)
+  const limit = '0' // max limit to receive
   await testEnv.vault.swap(singleSwap[0], fund_struct, limit, deadline)
 
   if (log) {

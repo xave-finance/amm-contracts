@@ -311,7 +311,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
         if (isTargetSwap) {
             // unpack swapRequest from external caller (FE or another contract)
-
             data = SwapData(
                 address(swapRequest.tokenIn),
                 0, // cause we're in targetSwap not originSwap
