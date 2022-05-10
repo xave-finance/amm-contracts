@@ -50,7 +50,8 @@ inquirer
     // const baseTokenAddress = pool.assets[0]
     // const quoteTokenAddress = pool.assets[1]
 
-    const poolId = '0x15b5dc18ba31a99afdd8b291a9787430ea93b3c300020000000000000000085a'
+    const vaultAddress = '0xBA12222222228d8Ba445958a75a0704d566BF2C8'
+    const poolId = '0x2dfd26c65b7593e0304422f28f0c841d15535b540002000000000000000008a9'
     const baseTokenAddress = '0x07bAB1e2D6DCb965d250F376B811ab8c2373AAE0'
     const quoteTokenAddress = '0x7e6F38922B59545bB5A6dc3A71039b85dFB1B7cE'
     const frominternalbalance = false
@@ -58,6 +59,7 @@ inquirer
     console.log(
       `npx hardhat add-liquidity ` +
         `--to ${network} ` +
+        `--vault ${vaultAddress} ` +
         `--poolid ${poolId} ` +
         `--basetoken ${baseTokenAddress} ` +
         `--quotetoken ${quoteTokenAddress} ` +

@@ -27,6 +27,7 @@ export default () => {
 
   task('add-liquidity', 'Add liquidity to custom balancer pool')
     .addParam('to', 'Network to deploy Pool')
+    .addParam('vault', 'Vault address')
     .addParam('poolid', 'Pool to add liquidity')
     .addParam('basetoken', 'Base Token of Pool')
     .addParam('quotetoken', 'Quote token of Pool')
