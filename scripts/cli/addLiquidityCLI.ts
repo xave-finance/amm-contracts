@@ -51,7 +51,7 @@ inquirer
     // const quoteTokenAddress = pool.assets[1]
 
     const vaultAddress = '0xBA12222222228d8Ba445958a75a0704d566BF2C8'
-    const poolId = '0x2dfd26c65b7593e0304422f28f0c841d15535b540002000000000000000008a9'
+    const poolId = '0x5d5aabcac8aa7288895912588a7b8787ab1fba220002000000000000000008ee'
     const baseTokenAddress = '0x07bAB1e2D6DCb965d250F376B811ab8c2373AAE0'
     const quoteTokenAddress = '0x7e6F38922B59545bB5A6dc3A71039b85dFB1B7cE'
     const frominternalbalance = false

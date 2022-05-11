@@ -32,14 +32,14 @@ export const getTokenOracleAddress = (network: string, baseToken: string) => {
 }
 
 export const getAssimilatorFactoryAddress = (network: string) => {
-  return '0x716f4B41d73447c5e2576AaC27Fb55587B5D5337'
+  return '0xc3FF5bd24e1E19821bD77D5C537E7Fa1509334E6'
   // const haloAddresses = getHaloAddresses(network)
   // if (!haloAddresses) return undefined
   // return haloAddresses.ammV2.assimilatorFactory
 }
 
 export const getProportionalLiquidityAddress = (network: string) => {
-  return '0x72a42b82cC68f5d4eC5767C653303aCD2863B71d'
+  return '0xEBca7E6bcE044df0B9873f854336a740C67890eE'
   // const haloAddresses = getHaloAddresses(network)
   // if (!haloAddresses) return undefined
   // return haloAddresses.ammV2.proportionalLiquidity
@@ -47,7 +47,7 @@ export const getProportionalLiquidityAddress = (network: string) => {
 
 // need to add haloAddresses.ammV2.swapLib to @halodao/halodao-contract-addresses package
 export const getSwapLibAddress = (network: string) => {
-  return '0x49d71B23C57afA2365200A2c1f344d14e93164DE'
+  return '0xc377d1f8Cf42758cfAA05563e9F123Da8A8bfA0D'
   // const haloAddresses = getHaloAddresses(network)
   // if (!haloAddresses) return undefined
   // return haloAddresses.ammV2.swapLib
@@ -63,4 +63,16 @@ export const getEnabledPools = (network: string) => {
   const haloAddresses = getHaloAddresses(network)
   if (!haloAddresses) return undefined
   return haloAddresses.ammV2.pools.enabled
+}
+
+export const getAllTokenAddresses = (network: string) => {
+  const haloAddresses = getHaloAddresses(network)
+  if (!haloAddresses) return undefined
+  return haloAddresses.tokens
+}
+
+export const getVaultAddresses = (network: string) => {
+  const haloAddresses = getHaloAddresses(network)
+  if (!haloAddresses) return undefined
+  return haloAddresses.ammV2.vault
 }

@@ -2,6 +2,7 @@ import DeployPool from './deployPool'
 import DeployFxPool from './deployFxPool'
 import AddLiquidity from './addLiquidity'
 import RemoveLiquidity from './removeLiquidity'
+import batchSwap from './batchSwap'
 
 declare const task: any
 
@@ -45,4 +46,12 @@ export default () => {
     .addParam('lptamount', 'Amount of LPT to withdraw')
     .addParam('tointernalbalance', 'Remove liquidity send to vault internal balance')
     .setAction(RemoveLiquidity)
+
+  task('batch-swap', 'Swap between 2 tokens')
+    .addParam('to', 'Network to deploy Pool')
+    .addParam('vault', 'Vault address')
+    .addParam('tokenin', 'Token in')
+    .addParam('tokenout', 'Token out')
+    .addParam('amount', 'Amount of "token in" to swap')
+    .setAction(batchSwap)
 }

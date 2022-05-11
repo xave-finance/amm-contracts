@@ -14,6 +14,7 @@
     "deploy:relayer": "ts-node scripts/cli/deployRelayerCLI.ts",
     "pool:add-liquidity": "ts-node scripts/cli/addLiquidityCLI.ts",
     "pool:remove-liquidity": "ts-node scripts/cli/removeLiquidityCLI.ts",
+    "pool:swap": "ts-node scripts/cli/batchSwapCLI.ts",
     "swap:single": "ts-node scripts/cli/singleSwapCLI.ts",
     "verify": "npx hardhat run scripts/verifyContract.ts --network kovan",
     "verify2": "npx hardhat run scripts/verifyTwo.ts --network kovan",
