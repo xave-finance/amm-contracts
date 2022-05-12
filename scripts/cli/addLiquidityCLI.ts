@@ -51,8 +51,15 @@ inquirer
     // const quoteTokenAddress = pool.assets[1]
 
     const vaultAddress = '0xBA12222222228d8Ba445958a75a0704d566BF2C8'
+
+    // fxPHP:USDC
     const poolId = '0x5d5aabcac8aa7288895912588a7b8787ab1fba220002000000000000000008ee'
     const baseTokenAddress = '0x07bAB1e2D6DCb965d250F376B811ab8c2373AAE0'
+
+    // EURS:USDC
+    // const poolId = '0x4b7315e3336153d54392dcb3f49800594362597b0002000000000000000008f0'
+    // const baseTokenAddress = '0xaA64D57E3c781bcFB2e8B1e1C9936C302Db84bCE'
+
     const quoteTokenAddress = '0x7e6F38922B59545bB5A6dc3A71039b85dFB1B7cE'
     const frominternalbalance = false
 
@@ -72,6 +79,7 @@ inquirer
     runNpmCommand(
       `npx hardhat add-liquidity ` +
         `--to ${network} ` +
+        `--vault ${vaultAddress} ` +
         `--poolid ${poolId} ` +
         `--basetoken ${baseTokenAddress} ` +
         `--quotetoken ${quoteTokenAddress} ` +
