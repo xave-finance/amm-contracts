@@ -116,7 +116,42 @@ describe('FXPool', () => {
     /**
      * Scenario #1: Base (fxPHP) input
      */
-    const baseAmountsIn = ['1000', '2000', '10000', '100', '5000', '100000', '500000', '1000000']
+    const baseAmountsIn = [
+      '1000',
+      '2000',
+      '10000',
+      '100',
+      '5000',
+      '100000',
+      '500000',
+      '1000000',
+      '1000',
+      '2000',
+      '10000',
+      '100',
+      '5000',
+      '100000',
+      '500000',
+      '1000000',
+      '1000',
+      '2000',
+      '10000',
+      '100',
+      '5000',
+      '100000',
+      '500000',
+      '1000000',
+      '1000',
+      '900',
+      '800',
+      '700',
+      '600',
+      '500',
+      '400',
+      '300',
+      '200',
+      '100',
+    ]
 
     for (var i = 0; i < baseAmountsIn.length; i++) {
       const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
@@ -502,7 +537,7 @@ describe('FXPool', () => {
     expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.gt(afterTradeUSDCPoolBalance)
   })
 
-  // it('Previews swap caclculation from the onSwap hook', async () => {})
+  // it('Previews swap caclculation from the onSwap hook using queryBatchSwap() ', async () => {})
   // it('Previews swap caclculation when providing single sided liquidity from the onJoin and onExit hook', async () => {})
 
   it('can pause pool', async () => {

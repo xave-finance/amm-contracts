@@ -111,8 +111,8 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     }
 
     function initialize(address[] memory _assets, uint256[] memory _assetWeights) external onlyOwner {
-        require(_assetWeights.length == 2, 'Curve/assetWeights-must-be-length-two');
-        require(_assets.length % 5 == 0, 'Curve/assets-must-be-divisible-by-five');
+        require(_assetWeights.length == 2, 'FXPool/assetWeights-must-be-length-two');
+        require(_assets.length % 5 == 0, 'FXPool/assets-must-be-divisible-by-five');
 
         for (uint256 i = 0; i < _assetWeights.length; i++) {
             uint256 ix = i * 5;
@@ -169,15 +169,15 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256 _epsilon,
         uint256 _lambda
     ) external {
-        require(0 < _alpha && _alpha < 1e18, 'Curve/parameter-invalid-alpha');
+        require(0 < _alpha && _alpha < 1e18, 'FXPool/parameter-invalid-alpha');
 
-        require(_beta < _alpha, 'Curve/parameter-invalid-beta');
+        require(_beta < _alpha, 'FXPool/parameter-invalid-beta');
 
-        require(_feeAtHalt <= 5e17, 'Curve/parameter-invalid-max');
+        require(_feeAtHalt <= 5e17, 'FXPool/parameter-invalid-max');
 
-        require(_epsilon <= 1e16, 'Curve/parameter-invalid-epsilon');
+        require(_epsilon <= 1e16, 'FXPool/parameter-invalid-epsilon');
 
-        require(_lambda <= 1e18, 'Curve/parameter-invalid-lambda');
+        require(_lambda <= 1e18, 'FXPool/parameter-invalid-lambda');
 
         int128 _omega = getFee();
 
@@ -193,7 +193,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
         int128 _psi = getFee();
 
-        require(_omega >= _psi, 'Curve/parameters-increase-fee');
+        require(_omega >= _psi, 'FXPool/parameters-increase-fee');
 
         emit ParametersSet(_alpha, _beta, curve.delta.mulu(1e18), _epsilon, _lambda);
     }
@@ -207,15 +207,15 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         //   address _reserveApproveTo,
         uint256 _weight
     ) private {
-        require(_numeraire != address(0), 'Curve/numeraire-cannot-be-zeroth-address');
+        require(_numeraire != address(0), 'FXPool/numeraire-cannot-be-zeroth-address');
 
-        require(_numeraireAssim != address(0), 'Curve/numeraire-assimilator-cannot-be-zeroth-address');
+        require(_numeraireAssim != address(0), 'FXPool/numeraire-assimilator-cannot-be-zeroth-address');
 
-        require(_reserve != address(0), 'Curve/reserve-cannot-be-zeroth-address');
+        require(_reserve != address(0), 'FXPool/reserve-cannot-be-zeroth-address');
 
-        require(_reserveAssim != address(0), 'Curve/reserve-assimilator-cannot-be-zeroth-address');
+        require(_reserveAssim != address(0), 'FXPool/reserve-assimilator-cannot-be-zeroth-address');
 
-        require(_weight < 1e18, 'Curve/weight-must-be-less-than-one');
+        require(_weight < 1e18, 'FXPool/weight-must-be-less-than-one');
 
         // if (_numeraire != _reserve) IERC20(_numeraire).safeApprove(_reserveApproveTo, uint256(-1));
 
@@ -254,13 +254,13 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         address _assimilator,
         address _derivativeApproveTo
     ) private {
-        require(_derivative != address(0), 'Curve/derivative-cannot-be-zeroth-address');
+        require(_derivative != address(0), 'FXPool/derivative-cannot-be-zeroth-address');
 
-        require(_numeraire != address(0), 'Curve/numeraire-cannot-be-zeroth-address');
+        require(_numeraire != address(0), 'FXPool/numeraire-cannot-be-zeroth-address');
 
-        require(_reserve != address(0), 'Curve/numeraire-cannot-be-zeroth-address');
+        require(_reserve != address(0), 'FXPool/numeraire-cannot-be-zeroth-address');
 
-        require(_assimilator != address(0), 'Curve/assimilator-cannot-be-zeroth-address');
+        require(_assimilator != address(0), 'FXPool/assimilator-cannot-be-zeroth-address');
 
         // @todo double check implementation
         //IERC20(_numeraire).safeApprove(_derivativeApproveTo, uint256(-1));
