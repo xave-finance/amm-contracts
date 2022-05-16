@@ -6,7 +6,7 @@ import { BigNumber } from 'ethers'
 
 declare const ethers: any
 
-export default async (taskArgs: any) => {
+export default async (taskArgs: any, hre: any) => {
   const [deployer] = await ethers.getSigners()
   console.log('Liquidity Provider Address:', deployer.address)
   console.log('LP Provider balance:', ethers.utils.formatEther(await deployer.getBalance()))
@@ -17,6 +17,7 @@ export default async (taskArgs: any) => {
   const quoteToken = taskArgs.quotetoken
   const baseAmount = taskArgs.baseamount
   const quoteAmount = taskArgs.quoteamount
+  const vaultAddress = taskArgs.vault
   const fromInternalBalance = taskArgs.frominternalbalance === 'true'
 
   const sortedAddresses = sortAddresses([baseToken, quoteToken])
@@ -25,6 +26,10 @@ export default async (taskArgs: any) => {
   const ERC20 = await ethers.getContractFactory('MockToken')
   const baseTokenDecimals = await ERC20.attach(baseToken).decimals()
   const quoteTokenDecimals = await ERC20.attach(quoteToken).decimals()
+
+  // Allow unlimited
+  await ERC20.attach(baseToken).approve(vaultAddress, ethers.constants.MaxUint256)
+  await ERC20.attach(quoteToken).approve(vaultAddress, ethers.constants.MaxUint256)
 
   let liquidityToAdd: BigNumber[]
   if (sortedAddresses[0] === baseToken) {
@@ -44,12 +49,12 @@ export default async (taskArgs: any) => {
 
   const joinPoolRequest = {
     assets: sortedAddresses,
-    maxAmountsIn: liquidityToAdd,
+    maxAmountsIn: [ethers.constants.MaxUint256, ethers.constants.MaxUint256],
     userData: payload,
     fromInternalBalance,
   }
 
-  const vault = await ethers.getContractAt(Vault.abi, Vault.address)
+  const vault = await ethers.getContractAt(Vault.abi, vaultAddress)
   const connectedVault = await vault.connect(deployer)
   const encodedJoinTx = await connectedVault.populateTransaction.joinPool(
     poolId,
@@ -59,21 +64,29 @@ export default async (taskArgs: any) => {
   )
 
   const txPayload = {
-    chainId: 42,
+    chainId: hre.network.config.chainId,
     data: encodedJoinTx.data as any,
     nonce: await ethers.provider.getTransactionCount(deployer.address),
     value: ethers.utils.parseEther('0'),
     gasLimit: ethers.utils.parseUnits('0.01', 'gwei'),
-    to: Vault.address,
+    to: vaultAddress,
   }
 
   let singleSwapTxReceipt
   try {
     singleSwapTxReceipt = await deployer.sendTransaction(txPayload as any)
     await singleSwapTxReceipt.wait()
+    console.log('Deposit successful!')
   } catch (Error) {
     console.error(Error)
   }
 
-  await open(`https://dashboard.tenderly.co/tx/${network}/${singleSwapTxReceipt?.hash}`)
+  if (network === 'localhost') {
+    console.log('Transaction hash:', singleSwapTxReceipt.hash)
+  } else {
+    await open(`https://dashboard.tenderly.co/tx/${network}/${singleSwapTxReceipt?.hash}`)
+  }
+
+  const poolTokens = await connectedVault.getPoolTokens(poolId)
+  console.log('Vault pool tokens:', poolTokens)
 }

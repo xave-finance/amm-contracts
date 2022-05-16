@@ -128,12 +128,18 @@ export default {
       },
       gasPrice: 8000000000,
     },
+    arb: {
+      chainId: 42161,
+      url: `https://arbitrum-mainnet.infura.io/v3/${INFURA_PROJECT_ID}`,
+      accounts: {
+        mnemonic: MNEMONIC_SEED,
+      },
+    },
     localhost: {
       chainId: 1337,
       url: 'http://127.0.0.1:8545/',
       accounts: {
         mnemonic: MNEMONIC_SEED,
-        accountsBalance: '100000000000000000000000',
       },
     },
   },
