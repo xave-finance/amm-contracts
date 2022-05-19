@@ -19,6 +19,7 @@ import './Storage.sol';
 
 import './lib/UnsafeMath64x64.sol';
 import './lib/ABDKMath64x64.sol';
+import 'hardhat/console.sol';
 
 library CurveMath {
     int128 private constant ONE = 0x10000000000000000;
@@ -103,15 +104,31 @@ library CurveMath {
         uint256 _outputIndex
     ) internal view returns (int128 outputAmt_) {
         outputAmt_ = -_inputAmt;
+        console.log('Calculate Trade _oGLiq: ');
+        console.logInt(_oGLiq);
+        console.log('Calculate Trade _nGLiq: ');
+        console.logInt(_nGLiq);
+        console.log('Calculate Trade _oBals[0]: ');
+        console.logInt(_oBals[0]);
+        console.log('Calculate Trade _oBals[1]: ');
+        console.logInt(_oBals[1]);
+        console.log('Calculate Trade _nBals[0]: ');
+        console.logInt(_nBals[0]);
+        console.log('Calculate Trade _nBals[1]: ');
+        console.logInt(_nBals[1]);
 
         int128 _lambda = curve.lambda;
         int128[] memory _weights = curve.weights;
 
         int128 _omega = calculateFee(_oGLiq, _oBals, curve, _weights);
+        console.log('omega: ');
+        console.logInt(_omega);
         int128 _psi;
 
         for (uint256 i = 0; i < 32; i++) {
             _psi = calculateFee(_nGLiq, _nBals, curve, _weights);
+            console.log('psi: ');
+            console.logInt(_psi);
 
             int128 prevAmount;
             {

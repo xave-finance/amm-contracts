@@ -1,13 +1,13 @@
 import { TestEnv } from '../..//common/setupEnvironment'
 import { ethers } from 'hardhat'
 import * as types from '../..//common/types/types'
-import { BigNumber, BytesLike, Signer } from 'ethers'
+import { BigNumber, BigNumberish, BytesLike, Signer } from 'ethers'
 import { parseEther, parseUnits } from '@ethersproject/units'
 
 export const buildExecute_BatchSwapGivenIn = async (
   asset_in_address: string,
   asset_out_address: string,
-  amountToSwap: number,
+  amountToSwap: BigNumberish,
   asset_in_decimals: number,
   //   asset_out_decimals: number,
   sender_address: string,
@@ -197,7 +197,7 @@ export const buildExecute_BatchSwapGivenOut = async (
 export const buildExecute_SingleSwapGivenIn = async (
   asset_in_address: string,
   asset_out_address: string,
-  amountToSwap: number,
+  amountToSwap: BigNumberish,
   asset_in_decimals: number,
   sender_address: string,
   recipient_address: string,

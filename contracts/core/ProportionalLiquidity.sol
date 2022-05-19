@@ -10,6 +10,7 @@ import './lib/UnsafeMath64x64.sol';
 import './lib/ABDKMath64x64.sol';
 
 import './CurveMath.sol';
+import 'hardhat/console.sol';
 
 library ProportionalLiquidity {
     using ABDKMath64x64 for uint256;
@@ -298,8 +299,24 @@ library ProportionalLiquidity {
             _nBals[i] = _nBals[i].add(intDepositAmounts[i]);
         }
 
+        console.log('requireLiquidityInvariant _oGLiq: ');
+        console.logInt(_oGLiq);
+        console.log('requireLiquidityInvariant _nGLiq w/o new shells: ');
+        console.logInt(_nGLiq);
+        console.log('requireLiquidityInvariant _oBals[0]: ');
+        console.logInt(_oBals[0]);
+        console.log('requireLiquidityInvariant _oBals[1]: ');
+        console.logInt(_oBals[1]);
+        console.log('requireLiquidityInvariant _nBals[0]: ');
+        console.logInt(_nBals[0]);
+        console.log('requireLiquidityInvariant _nBals[1]: ');
+        console.logInt(_nBals[1]);
+
         // add to nGliq cause Vault does transfers after onJoin
         _nGLiq = _nGLiq.add(_newShells);
+
+        console.log('requireLiquidityInvariant _nGLiq w/ new shells: ');
+        console.logInt(_nGLiq);
 
         int128 _beta = curve.beta;
         int128 _delta = curve.delta;
