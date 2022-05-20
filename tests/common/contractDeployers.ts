@@ -83,8 +83,6 @@ export interface FXPoolCurveParams {
 }
 export const deployFXPool = async (
   assets: string[],
-  expiration: string,
-  unitSeconds: BigNumberish,
   vaultAddress: string,
   percentFee: BigNumberish,
   name: string, // LP Token name
@@ -107,21 +105,7 @@ export const deployFXPool = async (
     },
   })
 
-  const fxPool = await FXPoolFactory.deploy(
-    assets,
-    //curveParams.baseCurrency,
-    //curveParams.quoteCurrency,
-    //curveParams.baseWeight,
-    //curveParams.quoteWeight,
-    //curveParams.baseAssimilator,
-    //curveParams.quoteAssimilator,
-    expiration,
-    unitSeconds,
-    vaultAddress,
-    percentFee,
-    name,
-    symbol
-  )
+  const fxPool = await FXPoolFactory.deploy(assets, vaultAddress, percentFee, name, symbol)
 
   await fxPool.deployed()
 

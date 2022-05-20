@@ -161,6 +161,34 @@ library ProportionalLiquidity {
         return (curves_, deposits_);
     }
 
+    function emergencyProportionalWithdraw(Storage.Curve storage curve, uint256 _withdrawal)
+        external
+        returns (uint256[] memory)
+    {
+        uint256 _length = curve.assets.length;
+
+        (, int128[] memory _oBals) = getGrossLiquidityAndBalances(curve);
+
+        uint256[] memory withdrawals_ = new uint256[](_length);
+
+        int128 _totalShells = curve.totalSupply.divu(1e18);
+        int128 __withdrawal = _withdrawal.divu(1e18);
+
+        int128 _multiplier = __withdrawal.div(_totalShells);
+
+        for (uint256 i = 0; i < _length; i++) {
+            withdrawals_[i] = Assimilators.outputNumeraire(
+                curve.assets[i].addr,
+                msg.sender,
+                _oBals[i].mul(_multiplier)
+            );
+        }
+
+        //  burn(curve, msg.sender, _withdrawal);
+
+        return withdrawals_;
+    }
+
     function proportionalWithdraw(Storage.Curve storage curve, uint256 _withdrawal)
         external
         view
@@ -311,39 +339,4 @@ library ProportionalLiquidity {
 
         CurveMath.enforceLiquidityInvariant(_curves, _newShells, _oGLiq, _nGLiq, _omega, _psi);
     }
-
-    /*
-    function burn(
-        Storage.Curve storage curve,
-        address account,
-        uint256 amount
-    ) private {
-        curve.balances[account] = burnSub(curve.balances[account], amount);
-
-        curve.totalSupply = burnSub(curve.totalSupply, amount);
-
-        emit Transfer(msg.sender, address(0), amount);
-    }
-
-    function mint(
-        Storage.Curve storage curve,
-        address account,
-        uint256 amount
-    ) private {
-        curve.totalSupply = mintAdd(curve.totalSupply, amount);
-
-        curve.balances[account] = mintAdd(curve.balances[account], amount);
-
-        emit Transfer(address(0), msg.sender, amount);
-    }
-
-    function mintAdd(uint256 x, uint256 y) private pure returns (uint256 z) {
-        require((z = x + y) >= x, 'Curve/mint-overflow');
-    }
-
-    function burnSub(uint256 x, uint256 y) private pure returns (uint256 z) {
-        require((z = x - y) <= x, 'Curve/burn-underflow');
-    }
-
-    */
 }
