@@ -748,10 +748,10 @@
     "@ethersproject/properties" "^5.5.0"
     "@ethersproject/strings" "^5.5.0"
 
-"@halodao/halodao-contract-addresses@^0.0.23":
-  version "0.0.23"
-  resolved "https://registry.yarnpkg.com/@halodao/halodao-contract-addresses/-/halodao-contract-addresses-0.0.23.tgz#441c54a8c130b7c859ed2cdc74af9bd5f5f5e8d8"
-  integrity sha512-y7P95umLvDfW8J5mVdRhe+dg+WLt/eStglpPTGzwFkyd1CpAYEqh9YRds7/kIq0Wdk5K2Y0Z3NBgQy5btZpjDQ==
+"@halodao/xave-contract-addresses@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@halodao/xave-contract-addresses/-/xave-contract-addresses-0.0.4.tgz#21e25d6303e51271923fba5e9645d2ae9a754601"
+  integrity sha512-9tcpeCc9IVj4ftH3fXOHMCymrN1Pvw7rQwtiIw2UetwH1WAlz6Ey3Hz7os3cQeBecNv2TVjQGcV29Y6RIDwwtg==
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"

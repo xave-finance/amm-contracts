@@ -31,8 +31,6 @@ import './interfaces/IGeneralPool.sol';
 import './interfaces/IMinimalSwapInfoPool.sol';
 import './balances/BalanceAllocation.sol';
 
-//import 'hardhat/console.sol';
-
 /**
  * Implements the Vault's high-level swap functionality.
  *
@@ -139,6 +137,7 @@ abstract contract Swaps is ReentrancyGuard, PoolBalances {
             int256 delta = assetDeltas[i];
             _require(delta <= limits[i], Errors.SWAP_LIMIT);
 
+            // where it decides if it needs to receive or send the asset
             if (delta > 0) {
                 uint256 toReceive = uint256(delta);
                 _receiveAsset(asset, toReceive, funds.sender, funds.fromInternalBalance);

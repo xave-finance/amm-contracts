@@ -92,12 +92,18 @@ export const deployFXPool = async (
 ): Promise<FXPool> => {
   const ProportionalLiquidityFactory = await ethers.getContractFactory('ProportionalLiquidity')
   const proportionalLiquidity = await ProportionalLiquidityFactory.deploy()
-
   await proportionalLiquidity.deployed()
+  console.log('proportionalLiquidity deployed at', proportionalLiquidity.address)
+
+  const SwapLibFactory = await ethers.getContractFactory('FXSwaps')
+  const swapLib = await SwapLibFactory.deploy()
+  await swapLib.deployed()
+  console.log('swapLib deployed at', swapLib.address)
 
   const FXPoolFactory = await ethers.getContractFactory('FXPool', {
     libraries: {
       ProportionalLiquidity: proportionalLiquidity.address,
+      FXSwaps: swapLib.address,
     },
   })
 

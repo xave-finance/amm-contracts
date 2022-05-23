@@ -1,6 +1,6 @@
 const inquirer = require('inquirer')
 const childProcess = require('child_process')
-const haloContractAddresses = require('@halodao/halodao-contract-addresses')
+const haloContractAddresses = require('@halodao/xave-contract-addresses')
 
 const runNpmCommand = (command: string) => childProcess.execSync(command, { stdio: [0, 1, 2] })
 
@@ -12,7 +12,7 @@ inquirer
       type: 'list',
       name: 'network',
       message: 'Which network to deploy',
-      choices: ['kovan', 'rinkeby', 'matic'],
+      choices: ['kovan', 'rinkeby', 'matic', 'arb'],
     },
     {
       type: 'list',
@@ -23,7 +23,7 @@ inquirer
     {
       type: 'confirm',
       name: 'fresh',
-      message: 'Deploy a new AssimilatorFactory?',
+      message: 'Fresh deploy?',
     },
   ])
   .then((answers: any) => {

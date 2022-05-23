@@ -27,8 +27,6 @@ import './PoolTokens.sol';
 import './UserBalance.sol';
 import './interfaces/IBasePool.sol';
 
-//import 'hardhat/console.sol';
-
 /**
  * @dev Stores the Asset Managers (by Pool and token), and implements the top level Asset Manager and Pool interfaces,
  * such as registering and deregistering tokens, joining and exiting Pools, and informational functions like `getPool`
