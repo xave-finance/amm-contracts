@@ -371,8 +371,22 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     ) external override whenNotPaused returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts) {
         (uint256[] memory tokensIn, address[] memory assetAddresses) = abi.decode(userData, (uint256[], address[]));
 
+        {
+            (uint256 curves, uint256[] memory values) = ProportionalLiquidity.viewProportionalDeposit(
+                curve,
+                uint256(4000000000000000000000)
+            );
+            console.log('Number of curves: ', curves);
+            console.log(values[0]);
+            console.log(values[1]);
+        }
+
         uint256 totalDepositNumeraire = (_convertToNumeraire(tokensIn[0], _getAssetIndex(assetAddresses[0])) +
             _convertToNumeraire(tokensIn[1], _getAssetIndex(assetAddresses[1]))) * 1e18;
+
+        console.log('Token 0: ', _convertToNumeraire(tokensIn[0], _getAssetIndex(assetAddresses[0])));
+        console.log('Token 1: ', _convertToNumeraire(tokensIn[1], _getAssetIndex(assetAddresses[1])));
+        console.log('Total deposit numeraire: ', totalDepositNumeraire);
 
         (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.proportionalDeposit(
             curve,

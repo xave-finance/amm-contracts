@@ -32,7 +32,10 @@ library ProportionalLiquidity {
         view
         returns (uint256 curves_, uint256[] memory)
     {
+        console.log('_deposit :', _deposit);
         int128 __deposit = _deposit.divu(1e18);
+        console.log('__deposit: ');
+        console.logInt(__deposit);
 
         uint256 _length = curve.assets.length;
 
@@ -41,21 +44,48 @@ library ProportionalLiquidity {
         JoinExitData memory depositData = JoinExitData(new uint256[](_length), new int128[](_length));
 
         (int128 _oGLiq, int128[] memory _oBals) = getGrossLiquidityAndBalancesForDeposit(curve);
+        console.log('_oGLiq');
+        console.logInt(_oGLiq);
+        console.log(ABDKMath64x64.toUInt(_oGLiq));
+        console.log('_oBals[0]');
+        console.logInt(_oBals[0]);
+        console.log(ABDKMath64x64.toUInt(_oBals[0]));
+        console.log('_oBals[1]');
+        console.logInt(_oBals[1]);
+        console.log(ABDKMath64x64.toUInt(_oBals[1]));
 
         // Needed to calculate liquidity invariant
         (int128 _oGLiqProp, int128[] memory _oBalsProp) = getGrossLiquidityAndBalances(curve);
+        console.log('_oGLiqProp');
+        console.logInt(_oGLiqProp);
+        console.log(ABDKMath64x64.toUInt(_oGLiqProp));
+        console.log('_oBalsProp[0]');
+        console.logInt(_oBalsProp[0]);
+        console.log(ABDKMath64x64.toUInt(_oBalsProp[0]));
+        console.log('_oBalsProp[1]');
+        console.logInt(_oBalsProp[1]);
+        console.log(ABDKMath64x64.toUInt(_oBalsProp[1]));
 
         // No liquidity, oracle sets the ratio
         if (_oGLiq == 0) {
             for (uint256 i = 0; i < _length; i++) {
                 // Variable here to avoid stack-too-deep errors
                 int128 _d = __deposit.mul(curve.weights[i]);
+                console.log('_d');
+                console.logInt(_d);
                 depositData.uintAmounts[i] = Assimilators.viewRawAmount(curve.assets[i].addr, _d.add(ONE_WEI));
+                console.log('Deposit data amounts [1]: ', depositData.uintAmounts[0]);
+                console.log('Deposit data amounts [2]: ', depositData.uintAmounts[1]);
             }
         } else {
             // We already have an existing pool ratio
             // which must be respected
             int128 _multiplier = __deposit.div(_oGLiq);
+
+            console.log('_multiplier');
+            // console.logInt(_multiplier);
+            console.log(ABDKMath64x64.toUInt(_multiplier));
+
             address vault = address(curve.vault);
             bytes32 poolId = curve.poolId;
 
@@ -65,6 +95,18 @@ library ProportionalLiquidity {
             for (uint256 i = 0; i < _length; i++) {
                 // int128 amount = _oBals[i].mul(_multiplier).add(ONE_WEI);
                 depositData.intAmounts[i] = _oBals[i].mul(_multiplier).add(ONE_WEI);
+                console.log('_oBals[0]');
+                console.logInt(_oBals[0]);
+                console.log(ABDKMath64x64.toUInt(_oBals[0]));
+                console.log('_oBals[1]');
+                console.logInt(_oBals[1]);
+                console.log(ABDKMath64x64.toUInt(_oBals[1]));
+
+                console.log('depositData.intAmounts[0]: ');
+                console.logInt(depositData.intAmounts[0]);
+                console.log(ABDKMath64x64.toUInt(depositData.intAmounts[0]));
+                console.log('depositData.intAmounts[1]: ');
+                console.log(ABDKMath64x64.toUInt(depositData.intAmounts[1]));
 
                 depositData.uintAmounts[i] = Assimilators.viewRawAmountLPRatio(
                     assims[i].addr,
@@ -75,6 +117,9 @@ library ProportionalLiquidity {
                     vault,
                     poolId
                 );
+
+                console.log('depositData.uintAmounts[0]: ', depositData.uintAmounts[0]);
+                console.log('depositData.uintAmounts[1]: ', depositData.uintAmounts[1]);
             }
         }
 

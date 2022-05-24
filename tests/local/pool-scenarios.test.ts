@@ -121,7 +121,7 @@ describe('FXPool Test Cases', () => {
     )
 
     console.log('USDC IN: ', amountsIn[0])
-    console.log('fxPHP: ', amountsIn[1])
+    console.log('fxPHP In: ', amountsIn[1])
 
     const sortedAmountsIn = sortDataLikeVault(sortedAddresses, fxPHPAddress, [amountsIn[0], amountsIn[1]])
     const sortedDecimals = sortDataLikeVault(sortedAddresses, fxPHPAddress, [fxPHPDecimals, usdcDecimals])
@@ -229,7 +229,7 @@ describe('FXPool Test Cases', () => {
     console.log('fxPHP: ', afterVaultfxPhpBalance)
   })
 
-  it(`Case ${swapTestCases[0].caseNo}: ${swapTestCases[0].description}`, async () => {
+  it.skip(`Case ${swapTestCases[0].caseNo}: ${swapTestCases[0].description}`, async () => {
     const fxPHPAmountToSwapInEther = swapTestCases[0].input
 
     const fxPHPAddress = await testEnv.fxPHP.address
