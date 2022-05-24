@@ -229,7 +229,7 @@ describe('FXPool Test Cases', () => {
     console.log('fxPHP: ', afterVaultfxPhpBalance)
   })
 
-  it.skip(`Case ${swapTestCases[0].caseNo}: ${swapTestCases[0].description}`, async () => {
+  it(`Case ${swapTestCases[0].caseNo}: ${swapTestCases[0].description}`, async () => {
     const fxPHPAmountToSwapInEther = swapTestCases[0].input
 
     const fxPHPAddress = await testEnv.fxPHP.address

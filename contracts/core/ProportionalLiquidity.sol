@@ -83,7 +83,7 @@ library ProportionalLiquidity {
             int128 _multiplier = __deposit.div(_oGLiq);
 
             console.log('_multiplier');
-            // console.logInt(_multiplier);
+            console.logInt(_multiplier);
             console.log(ABDKMath64x64.toUInt(_multiplier));
 
             address vault = address(curve.vault);

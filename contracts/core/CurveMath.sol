@@ -106,16 +106,22 @@ library CurveMath {
         outputAmt_ = -_inputAmt;
         console.log('Calculate Trade _oGLiq: ');
         console.logInt(_oGLiq);
+        console.log(ABDKMath64x64.toUInt(_oGLiq));
         console.log('Calculate Trade _nGLiq: ');
         console.logInt(_nGLiq);
+        console.log(ABDKMath64x64.toUInt(_nGLiq));
         console.log('Calculate Trade _oBals[0]: ');
         console.logInt(_oBals[0]);
+        console.log(ABDKMath64x64.toUInt(_oBals[0]));
         console.log('Calculate Trade _oBals[1]: ');
         console.logInt(_oBals[1]);
+        console.log(ABDKMath64x64.toUInt(_oBals[1]));
         console.log('Calculate Trade _nBals[0]: ');
         console.logInt(_nBals[0]);
+        console.log(ABDKMath64x64.toUInt(_nBals[0]));
         console.log('Calculate Trade _nBals[1]: ');
         console.logInt(_nBals[1]);
+        console.log(ABDKMath64x64.toUInt(_nBals[1]));
 
         int128 _lambda = curve.lambda;
         int128[] memory _weights = curve.weights;
@@ -123,21 +129,33 @@ library CurveMath {
         int128 _omega = calculateFee(_oGLiq, _oBals, curve, _weights);
         console.log('omega: ');
         console.logInt(_omega);
+        console.log(ABDKMath64x64.toUInt(_omega));
         int128 _psi;
 
         for (uint256 i = 0; i < 32; i++) {
             _psi = calculateFee(_nGLiq, _nBals, curve, _weights);
             console.log('psi: ');
             console.logInt(_psi);
+            console.log(ABDKMath64x64.toUInt(_psi));
 
             int128 prevAmount;
             {
                 prevAmount = outputAmt_;
+                console.log('prevAmount: ');
+                console.logInt(prevAmount);
+                //  console.log(ABDKMath64x64.toUInt(prevAmount));
+
                 outputAmt_ = _omega < _psi ? -(_inputAmt + _omega - _psi) : -(_inputAmt + _lambda.mul(_omega - _psi));
+                console.log('final outputAmount: ');
+                console.logInt(outputAmt_);
+                //console.log(ABDKMath64x64.toUInt(outputAmt_));
             }
 
             if (outputAmt_ / 1e13 == prevAmount / 1e13) {
                 _nGLiq = _oGLiq + _inputAmt + outputAmt_;
+                console.log('_nGLiq: ');
+                console.logInt(_nGLiq);
+                console.log(ABDKMath64x64.toUInt(_nGLiq));
 
                 _nBals[_outputIndex] = _oBals[_outputIndex] + outputAmt_;
 

@@ -22,6 +22,7 @@ import '../core/interfaces/IAssimilator.sol';
 import '../core/interfaces/IOracle.sol';
 
 import '../interfaces/IVaultPoolBalances.sol';
+import 'hardhat/console.sol';
 
 contract BaseToUsdAssimilator is IAssimilator {
     using ABDKMath64x64 for int128;
@@ -250,11 +251,19 @@ contract BaseToUsdAssimilator is IAssimilator {
     ) external view override returns (int128 balance_) {
         (uint256 baseTokenBal, uint256 usdcBal) = _getBalancesFromVault(vault, poolId, address(usdc));
 
+        console.log('Base assimilator - baseTokenBal: ', baseTokenBal);
+        console.log('Base assimilator - usdcTokenBal: ', usdcBal);
+
         if (baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
 
         usdcBal = usdcBal.mul(1e18).div(_quoteWeight);
         uint256 _rate = usdcBal.mul(1e18).div(baseTokenBal.mul(1e18).div(_baseWeight));
+        console.log('Base assimilator - usdcTokenBal after mul: ', usdcBal);
+        console.log('Base assimilator - _rate: ', _rate);
 
         balance_ = ((baseTokenBal * _rate) / 1e6).divu(1e18);
+        console.log('balance inside: ', (baseTokenBal * _rate) / 1e6);
+        console.log('returned balance: ');
+        console.logInt(balance_);
     }
 }
