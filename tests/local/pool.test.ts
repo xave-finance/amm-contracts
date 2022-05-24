@@ -22,8 +22,12 @@ describe('FXPool', () => {
   let usdcAssimilatorAddress: string
   let sortedAddresses: string[]
 
-  const NEW_CAP = parseEther('100000000')
+  const NEW_CAP = parseEther('400000000')
   const NEW_CAP_FAIL = parseEther('1000')
+  const SET_CAP_FAIL = parseEther('100')
+  const CAP_DEPOSIT_FAIL_fxPHP = '50000000000'
+  const CAP_DEPOSIT_FAIL_USDC = '250000000'
+  const EXPECTED_LIQUIDITY = '1902491.115440530330957566' // todo: make dynamic?
   const ALPHA = parseUnits('0.8')
   const BETA = parseUnits('0.5')
   const MAX = parseUnits('0.15')
@@ -353,6 +357,7 @@ describe('FXPool', () => {
     const liquidity = (await testEnv.fxPool.liquidity())[0]
     console.log('liquidity number', await ethers.utils.formatEther(liquidity))
     console.log('liquidity BigNumber', liquidity.toString())
+    expect(await ethers.utils.formatEther(liquidity)).to.be.equals(EXPECTED_LIQUIDITY)
     // await expect(liquidity, 'unexpected liquidity() result')
     //   .to.be.greaterThan(BigNumber.from(10000))
     //   .lessThan(BigNumber.from(10001))
@@ -566,6 +571,8 @@ describe('FXPool', () => {
     expect(await testEnv.fxPool.setEmergency(false))
       .to.emit(testEnv.fxPool, 'EmergencyAlarm')
       .withArgs(false) // reset for now, test emergency withdraw
+
+    // todo: add emergency withdraw case from calcualted test cases
   })
 
   it('can set cap when owner', async () => {
@@ -580,5 +587,111 @@ describe('FXPool', () => {
       testEnv.fxPool.connect(notOwner).setCap(NEW_CAP_FAIL),
       'Non owner can call the function'
     ).to.be.revertedWith(CONTRACT_REVERT.Ownable)
+  })
+
+  it('cannot set cap when desired cap value is less than total liquidity', async () => {
+    await expect(testEnv.fxPool.setCap(SET_CAP_FAIL)).to.be.revertedWith(CONTRACT_REVERT.CapLessThanLiquidity)
+  })
+
+  it('reverts when numeraire value is greater than cap limit given base input (fxPHP)', async () => {
+    const baseAmountsIn = [CAP_DEPOSIT_FAIL_fxPHP]
+
+    let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
+    for (var i = 0; i < baseAmountsIn.length; i++) {
+      const amountIn0 = baseAmountsIn[i]
+
+      // Frontend estimation of other token in amount
+      const poolTokens = await testEnv.vault.getPoolTokens(poolId)
+      const balances = orderDataLikeFE(poolTokens.tokens, fxPHPAddress, poolTokens.balances)
+      const otherTokenIn = await calculateOtherTokenIn(
+        amountIn0,
+        0,
+        balances,
+        [fxPHPDecimals, usdcDecimals],
+        [fxPHPAssimilatorAddress, usdcAssimilatorAddress]
+      )
+      const amountIn1 = formatUnits(otherTokenIn, usdcDecimals)
+
+      // Backend estimation `viewDeposit()` of LPT amount to receive + actual token ins
+      const [estimatedLptAmount, estimatedAmountsIn, adjustedAmountsIn] = await calculateLptOutAndTokensIn(
+        [amountIn0, amountIn1],
+        [fxPHPDecimals, usdcDecimals],
+        sortedAddresses,
+        fxPHPAddress,
+        testEnv.fxPool
+      )
+
+      // Actual deposit `joinPool()` request
+      let sortedAmounts: BigNumber[] = sortDataLikeVault(sortedAddresses, fxPHPAddress, adjustedAmountsIn)
+
+      const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [sortedAmounts, sortedAddresses])
+
+      const sortedAmountsIn = sortDataLikeVault(sortedAddresses, fxPHPAddress, [amountIn0, amountIn1])
+      const sortedDecimals = sortDataLikeVault(sortedAddresses, fxPHPAddress, [fxPHPDecimals, usdcDecimals])
+      const maxAmountsIn = [
+        parseUnits(sortedAmountsIn[0], sortedDecimals[0]),
+        parseUnits(sortedAmountsIn[1], sortedDecimals[1]),
+      ]
+
+      const joinPoolRequest = {
+        assets: sortedAddresses,
+        maxAmountsIn,
+        userData: payload,
+        fromInternalBalance: false,
+      }
+      await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.be.revertedWith(
+        CONTRACT_REVERT.CapLimit
+      )
+    }
+  })
+
+  it('reverts when numeraire value is greater than cap limit given quote input (USDC)', async () => {
+    let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
+    const quoteAmountsIn = [CAP_DEPOSIT_FAIL_USDC]
+
+    for (var i = 0; i < quoteAmountsIn.length; i++) {
+      const amountIn1 = quoteAmountsIn[i]
+
+      // Frontend estimation of other token in amount
+      const poolTokens = await testEnv.vault.getPoolTokens(poolId)
+      const balances = orderDataLikeFE(poolTokens.tokens, fxPHPAddress, poolTokens.balances)
+      const otherTokenIn = await calculateOtherTokenIn(
+        amountIn1,
+        1,
+        balances,
+        [fxPHPDecimals, usdcDecimals],
+        [fxPHPAssimilatorAddress, usdcAssimilatorAddress]
+      )
+      const amountIn0 = formatUnits(otherTokenIn, fxPHPDecimals)
+
+      // Backend estimation `viewDeposit()` of LPT amount to receive + actual token ins
+      const [estimatedLptAmount, estimatedAmountsIn, adjustedAmountsIn] = await calculateLptOutAndTokensIn(
+        [amountIn0, amountIn1],
+        [fxPHPDecimals, usdcDecimals],
+        sortedAddresses,
+        fxPHPAddress,
+        testEnv.fxPool
+      )
+
+      // Actual deposit `joinPool()` request
+      let sortedAmounts: BigNumber[] = sortDataLikeVault(sortedAddresses, fxPHPAddress, adjustedAmountsIn)
+      const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [sortedAmounts, sortedAddresses])
+      const sortedAmountsIn = sortDataLikeVault(sortedAddresses, fxPHPAddress, [amountIn0, amountIn1])
+      const sortedDecimals = sortDataLikeVault(sortedAddresses, fxPHPAddress, [fxPHPDecimals, usdcDecimals])
+      const maxAmountsIn = [
+        parseUnits(sortedAmountsIn[0], sortedDecimals[0]),
+        parseUnits(sortedAmountsIn[1], sortedDecimals[1]),
+      ]
+
+      const joinPoolRequest = {
+        assets: sortedAddresses,
+        maxAmountsIn,
+        userData: payload,
+        fromInternalBalance: false,
+      }
+      await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.be.revertedWith(
+        CONTRACT_REVERT.CapLimit
+      )
+    }
   })
 })

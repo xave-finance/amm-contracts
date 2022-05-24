@@ -326,6 +326,8 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256 totalDepositNumeraire = (_convertToNumeraire(tokensIn[0], _getAssetIndex(assetAddresses[0])) +
             _convertToNumeraire(tokensIn[1], _getAssetIndex(assetAddresses[1]))) * 1e18;
 
+        _enforceCap(totalDepositNumeraire);
+
         (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.proportionalDeposit(
             curve,
             totalDepositNumeraire
@@ -415,6 +417,8 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     /// @notice Set cap for pool
     /// @param _cap cap value
     function setCap(uint256 _cap) external onlyOwner {
+        (uint256 total, ) = liquidity();
+        require(_cap > total, 'FXPool/cap-less-than-total-liquidity');
         curve.cap = _cap;
     }
 
@@ -467,6 +471,12 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         } else {
             return 1;
         }
+    }
+
+    function _enforceCap(uint256 _amount) private view {
+        if (curve.cap == 0) return;
+
+        require(_amount < curve.cap, 'FXPool/amount-beyond-set-cap');
     }
 
     /// @notice view the assimilator address for a derivative
