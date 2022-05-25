@@ -66,8 +66,11 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         string memory _symbol
     ) BalancerPoolToken(_name, _symbol) {
         // Initialization on the vault
-        bytes32 poolId = vault.registerPool(IVault.PoolSpecialization.TWO_TOKEN);
+        percentFee = _percentFee;
+        curve.vault = vault;
 
+        bytes32 poolId = vault.registerPool(IVault.PoolSpecialization.TWO_TOKEN);
+        curve.poolId = poolId;
         // Pass in zero addresses for Asset Managers
         // Functions below assume this token order
         IERC20[] memory tokens = new IERC20[](2);
@@ -75,11 +78,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         tokens[1] = IERC20(_assetsToRegister[1]);
 
         vault.registerTokens(poolId, tokens, new address[](2));
-
-        curve.vault = vault;
-        curve.poolId = poolId;
-
-        percentFee = _percentFee;
     }
 
     /// @dev Initialize pool first to set assets, assimilators and weights
@@ -255,7 +253,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         SwapRequest memory swapRequest,
         uint256 currentBalanceTokenIn,
         uint256 currentBalanceTokenOut
-    ) public override whenNotPaused returns (uint256) {
+    ) external override whenNotPaused returns (uint256) {
         require(msg.sender == address(curve.vault), 'Non Vault caller');
 
         bool isTargetSwap = swapRequest.kind == IVault.SwapKind.GIVEN_OUT;
@@ -375,10 +373,17 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     ) external override returns (uint256[] memory amountsOut, uint256[] memory dueProtocolFeeAmounts) {
         (uint256 tokensToBurn, address[] memory assetAddresses) = abi.decode(userData, (uint256, address[]));
 
+        curve.totalSupply = curve.totalSupply -= tokensToBurn;
+        BalancerPoolToken._burnPoolTokens(sender, tokensToBurn);
+
         // check if in emergency mode. call emergency withdraw to bypass invariant check should it prevent withdrawls during emergency
-        uint256[] memory amountToWithdraw = !emergency
-            ? ProportionalLiquidity.proportionalWithdraw(curve, tokensToBurn)
-            : ProportionalLiquidity.emergencyProportionalWithdraw(curve, tokensToBurn);
+        uint256[] memory amountToWithdraw;
+
+        if (emergency) {
+            amountToWithdraw = ProportionalLiquidity.emergencyProportionalWithdraw(curve, tokensToBurn);
+        } else {
+            amountToWithdraw = ProportionalLiquidity.proportionalWithdraw(curve, tokensToBurn);
+        }
 
         {
             amountsOut = new uint256[](2);
@@ -393,24 +398,19 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             dueProtocolFeeAmounts[1] = 0;
         }
 
-        curve.totalSupply = curve.totalSupply -= tokensToBurn;
-        BalancerPoolToken._burnPoolTokens(sender, tokensToBurn);
-
         emit OnExitPool(poolId, tokensToBurn, amountToWithdraw);
     }
 
     // ADMIN AND ACCESS CONTROL FUNCTIONS
     /// @notice Governance sets someone's pause status, enable only withdraw
-    /// @param status true for able to pause false for not
-    function setPause(bool status) external onlyOwner {
+
+    function setPause() external onlyOwner {
         bool currentStatus = paused();
 
-        require(currentStatus != status, 'FXPool: Pause status is the same as parameter');
-
-        if (status == true) {
-            _pause();
-        } else {
+        if (currentStatus) {
             _unpause();
+        } else {
+            _pause();
         }
     }
 

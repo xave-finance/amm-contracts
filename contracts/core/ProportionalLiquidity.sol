@@ -163,6 +163,7 @@ library ProportionalLiquidity {
 
     function emergencyProportionalWithdraw(Storage.Curve storage curve, uint256 _withdrawal)
         external
+        view
         returns (uint256[] memory)
     {
         uint256 _length = curve.assets.length;
@@ -176,12 +177,9 @@ library ProportionalLiquidity {
 
         int128 _multiplier = __withdrawal.div(_totalShells);
 
+        // changed outputNumeraire to viewRawAmount. same calculation without the destination parameter
         for (uint256 i = 0; i < _length; i++) {
-            withdrawals_[i] = Assimilators.outputNumeraire(
-                curve.assets[i].addr,
-                msg.sender,
-                _oBals[i].mul(_multiplier)
-            );
+            withdrawals_[i] = Assimilators.viewRawAmount(curve.assets[i].addr, _oBals[i].mul(_multiplier));
         }
 
         //  burn(curve, msg.sender, _withdrawal);
