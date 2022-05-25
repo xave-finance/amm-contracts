@@ -11,6 +11,7 @@ import './lib/ABDKMath64x64.sol';
 
 // importing copy paste OZ SafeMath here to avoid circular dependency + balancer version has missing funcs
 import './lib/OZSafeMath.sol';
+import 'hardhat/console.sol';
 
 library FXSwaps {
     using ABDKMath64x64 for int128;
@@ -53,6 +54,9 @@ library FXSwaps {
             int128[] memory _oBals
         ) = viewOriginSwapData(curve, _o.ix, _t.ix, _originAmount, _o.addr);
 
+        console.log('OriginSwap: _amt: ', ABDKMath64x64.toUInt(_amt));
+        console.logInt(_amt);
+
         _amt = CurveMath.calculateTrade(curve, _oGLiq, _nGLiq, _oBals, _nBals, _amt, _t.ix);
 
         _amt = _amt.us_mul(ONE - curve.epsilon);
@@ -91,6 +95,8 @@ library FXSwaps {
             int128[] memory _nBals,
             int128[] memory _oBals
         ) = viewTargetSwapData(curve, _t.ix, _o.ix, _targetAmount, _t.addr);
+        console.log('TargetSwap: _amt: ', ABDKMath64x64.toUInt(_amt));
+        console.logInt(_amt);
 
         _amt = CurveMath.calculateTrade(curve, _oGLiq, _nGLiq, _oBals, _nBals, _amt, _o.ix);
 
@@ -124,6 +130,7 @@ library FXSwaps {
             int128[] memory
         )
     {
+        console.log('viewTargetSwapData - Initial Amount not parsed: ', _amt);
         uint256 _length = curve.assets.length;
         int128[] memory nBals_ = new int128[](_length);
         int128[] memory oBals_ = new int128[](_length);
@@ -134,6 +141,9 @@ library FXSwaps {
             } else {
                 int128 _bal;
                 (amt_, _bal) = _viewNumeraireAmountAndBalance(curve, _assim, _amt);
+                console.log('viewOriginSwapData _inputAmt: ', ABDKMath64x64.toUInt(amt_));
+                console.logInt(amt_); // before negation
+
                 amt_ = amt_.neg();
 
                 oBals_[i] = _bal;
@@ -167,6 +177,7 @@ library FXSwaps {
             int128[] memory
         )
     {
+        console.log('viewOriginSwapData - Initial Amount not parsed: ', _amt);
         uint256 _length = curve.assets.length;
         int128[] memory nBals_ = new int128[](_length);
         int128[] memory oBals_ = new int128[](_length);
@@ -176,8 +187,10 @@ library FXSwaps {
                 nBals_[i] = oBals_[i] = _viewNumeraireBalance(curve, i);
             } else {
                 int128 _bal;
-                (amt_, _bal) = _viewNumeraireAmountAndBalance(curve, _assim, _amt);
 
+                (amt_, _bal) = _viewNumeraireAmountAndBalance(curve, _assim, _amt);
+                console.log('viewOriginSwapData _inputAmt: ', ABDKMath64x64.toUInt(amt_));
+                console.logInt(amt_);
                 oBals_[i] = _bal;
                 nBals_[i] = _bal.add(amt_);
             }

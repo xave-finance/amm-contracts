@@ -104,6 +104,8 @@ library CurveMath {
         uint256 _outputIndex
     ) internal view returns (int128 outputAmt_) {
         outputAmt_ = -_inputAmt;
+        console.log('_inputAmt: ', ABDKMath64x64.toUInt(_inputAmt));
+        console.logInt(_inputAmt);
         console.log('Calculate Trade _oGLiq: ');
         console.logInt(_oGLiq);
         console.log(ABDKMath64x64.toUInt(_oGLiq));

@@ -232,6 +232,11 @@ contract BaseToUsdAssimilator is IAssimilator {
     ) external view override returns (int128 amount_, int128 balance_) {
         uint256 _rate = getRate();
 
+        console.log(
+            'viewNumeraireAmountAndBalance - Before dividing to baseDecimals and parsing to int128',
+            ((_amount * _rate) / 1e8)
+        );
+
         amount_ = ((_amount * _rate) / 1e8).divu(baseDecimals);
 
         (uint256 baseTokenBal, ) = _getBalancesFromVault(vault, poolId, address(usdc));
