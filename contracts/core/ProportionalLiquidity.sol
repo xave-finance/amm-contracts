@@ -338,6 +338,10 @@ library ProportionalLiquidity {
         int128[] memory intDepositAmounts
     ) private view {
         (int128 _nGLiq, int128[] memory _nBals) = getGrossLiquidityAndBalances(curve);
+        console.log('Require liquidity invariant');
+        console.log('_nGliq before simulating token balances: ', ABDKMath64x64.toUInt(_nGLiq));
+        console.log('_nGBals[0] before simulating token balances: ', ABDKMath64x64.toUInt(_nBals[0]));
+        console.log('_nGBals[1] before simulating token balances: ', ABDKMath64x64.toUInt(_nBals[1]));
 
         // 'simulate' the deposit/withdrawal of token balances
         for (uint256 i = 0; i < _nBals.length; i++) {
