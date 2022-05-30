@@ -76,7 +76,7 @@
     "inquirer": "^8.2.0",
     "lodash": "^4.17.21",
     "open": "^8.3.0",
-    "solidity-coverage": "^0.7.17",
+    "solidity-coverage": "^0.7.21",
     "truffle-plugin-verify": "^0.5.16",
     "typechain": "^5.2.0"
   }

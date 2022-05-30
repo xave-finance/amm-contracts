@@ -10,6 +10,7 @@ import './lib/UnsafeMath64x64.sol';
 import './lib/ABDKMath64x64.sol';
 
 import './CurveMath.sol';
+import 'hardhat/console.sol';
 
 library ProportionalLiquidity {
     using ABDKMath64x64 for uint256;
@@ -183,7 +184,8 @@ library ProportionalLiquidity {
         }
 
         //  burn(curve, msg.sender, _withdrawal);
-
+        console.log(withdrawals_[0]);
+        console.log(withdrawals_[1]);
         return withdrawals_;
     }
 
@@ -231,11 +233,14 @@ library ProportionalLiquidity {
         uint256[] memory withdrawals_ = new uint256[](_length);
 
         int128 _multiplier = _withdrawal.divu(1e18).div(curve.totalSupply.divu(1e18));
+        console.logInt(_multiplier);
 
         for (uint256 i = 0; i < _length; i++) {
             withdrawals_[i] = Assimilators.viewRawAmount(curve.assets[i].addr, _oBals[i].mul(_multiplier));
         }
 
+        console.log(withdrawals_[0]);
+        console.log(withdrawals_[1]);
         return withdrawals_;
     }
 
