@@ -37,4 +37,5 @@ export enum CONTRACT_REVERT {
   Ownable = 'Ownable: caller is not the owner',
   CapLimit = 'FXPool/amount-beyond-set-cap',
   CapLessThanLiquidity = 'FXPool/cap-less-than-total-liquidity',
+  Paused = 'Pausable: paused',
 }

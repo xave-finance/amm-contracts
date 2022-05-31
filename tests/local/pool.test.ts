@@ -23,11 +23,11 @@ describe('FXPool', () => {
   let sortedAddresses: string[]
 
   const NEW_CAP = parseEther('2100000')
-  //const NEW_CAP = parseEther('100000000')
   const NEW_CAP_FAIL = parseEther('1000')
   const SET_CAP_FAIL = parseEther('100')
   const CAP_DEPOSIT_FAIL_fxPHP = '1157894799'
   const CAP_DEPOSIT_FAIL_USDC = '2200000'
+  const TEST_DEPOSIT_PAUSEABLE = '1000'
   const ALPHA = parseUnits('0.8')
   const BETA = parseUnits('0.5')
   const MAX = parseUnits('0.15')
@@ -552,7 +552,32 @@ describe('FXPool', () => {
     expect(await testEnv.fxPool.paused()).to.be.equals(false)
 
     await expect(testEnv.fxPool.setPause()).to.emit(testEnv.fxPool, 'Paused').withArgs(adminAddress)
-    // TODO: test deposit
+
+    const amountIn0 = TEST_DEPOSIT_PAUSEABLE
+
+    let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
+
+    // Frontend estimation of other token in amount
+    const poolTokens = await testEnv.vault.getPoolTokens(poolId)
+    const balances = orderDataLikeFE(poolTokens.tokens, fxPHPAddress, poolTokens.balances)
+    const otherTokenIn = await calculateOtherTokenIn(
+      amountIn0,
+      0,
+      balances,
+      [fxPHPDecimals, usdcDecimals],
+      [fxPHPAssimilatorAddress, usdcAssimilatorAddress]
+    )
+    const amountIn1 = formatUnits(otherTokenIn, usdcDecimals)
+
+    const sortedAmounts = sortDataLikeVault(sortedAddresses, fxPHPAddress, [
+      parseUnits(amountIn0),
+      parseUnits(amountIn1),
+    ])
+
+    const userData = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [sortedAmounts, sortedAddresses])
+
+    // test using view deposit, it will fail if the pool is paused
+    await expect(testEnv.fxPool.viewDeposit(userData)).to.be.revertedWith(CONTRACT_REVERT.Paused)
   })
 
   it('can unpause pool', async () => {
@@ -560,9 +585,33 @@ describe('FXPool', () => {
 
     await expect(testEnv.fxPool.connect(notOwner).setPause()).to.be.revertedWith(CONTRACT_REVERT.Ownable)
 
-    // reset for now, test if pool functions can still be used when paused
     await expect(testEnv.fxPool.setPause()).to.emit(testEnv.fxPool, 'Unpaused').withArgs(adminAddress)
-    // TODO: test deposit
+
+    const amountIn0 = TEST_DEPOSIT_PAUSEABLE
+
+    let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
+
+    // Frontend estimation of other token in amount
+    const poolTokens = await testEnv.vault.getPoolTokens(poolId)
+    const balances = orderDataLikeFE(poolTokens.tokens, fxPHPAddress, poolTokens.balances)
+    const otherTokenIn = await calculateOtherTokenIn(
+      amountIn0,
+      0,
+      balances,
+      [fxPHPDecimals, usdcDecimals],
+      [fxPHPAssimilatorAddress, usdcAssimilatorAddress]
+    )
+    const amountIn1 = formatUnits(otherTokenIn, usdcDecimals)
+
+    const sortedAmounts = sortDataLikeVault(sortedAddresses, fxPHPAddress, [
+      parseUnits(amountIn0),
+      parseUnits(amountIn1),
+    ])
+
+    const userData = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [sortedAmounts, sortedAddresses])
+
+    // test using view deposit, it will fail if the pool is paused
+    await expect(testEnv.fxPool.viewDeposit(userData)).to.not.be.reverted
   })
 
   it('can trigger emergency alarm', async () => {
@@ -647,6 +696,7 @@ describe('FXPool', () => {
         userData: payload,
         fromInternalBalance: false,
       }
+
       await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.be.revertedWith(
         CONTRACT_REVERT.CapLimit
       )
