@@ -22,12 +22,12 @@ describe('FXPool', () => {
   let usdcAssimilatorAddress: string
   let sortedAddresses: string[]
 
-  //const NEW_CAP = parseEther('400000000')
-  const NEW_CAP = parseEther('100000000')
+  const NEW_CAP = parseEther('2100000')
+  //const NEW_CAP = parseEther('100000000')
   const NEW_CAP_FAIL = parseEther('1000')
   const SET_CAP_FAIL = parseEther('100')
-  const CAP_DEPOSIT_FAIL_fxPHP = '50000000000'
-  const CAP_DEPOSIT_FAIL_USDC = '250000000'
+  const CAP_DEPOSIT_FAIL_fxPHP = '1157894799'
+  const CAP_DEPOSIT_FAIL_USDC = '2200000'
   const ALPHA = parseUnits('0.8')
   const BETA = parseUnits('0.5')
   const MAX = parseUnits('0.15')
@@ -601,7 +601,7 @@ describe('FXPool', () => {
     await expect(testEnv.fxPool.setCap(SET_CAP_FAIL)).to.be.revertedWith(CONTRACT_REVERT.CapLessThanLiquidity)
   })
 
-  it.skip('reverts when numeraire value is greater than cap limit given base input (fxPHP)', async () => {
+  it('reverts when numeraire value is greater than cap limit given base input (fxPHP)', async () => {
     const baseAmountsIn = [CAP_DEPOSIT_FAIL_fxPHP]
 
     let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
@@ -653,7 +653,7 @@ describe('FXPool', () => {
     }
   })
 
-  it.skip('reverts when numeraire value is greater than cap limit given quote input (USDC)', async () => {
+  it('reverts when numeraire value is greater than cap limit given quote input (USDC)', async () => {
     let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
     const quoteAmountsIn = [CAP_DEPOSIT_FAIL_USDC]
 

@@ -72,7 +72,6 @@ export const deployMockABDKLib = async (): Promise<MockABDK> => {
   return mockABDKLib as MockABDK
 }
 
-// @todo re arrange the weights?
 export interface FXPoolCurveParams {
   baseCurrency: string
   quoteCurrency: string

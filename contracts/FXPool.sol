@@ -13,7 +13,6 @@ import './core/FXSwaps.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {Pausable} from '@openzeppelin/contracts/utils/Pausable.sol';
 import {ReentrancyGuard} from '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
-import 'hardhat/console.sol';
 
 // check bptOut
 contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, ReentrancyGuard, Pausable {
@@ -325,7 +324,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256 totalDepositNumeraire = (_convertToNumeraire(tokensIn[0], _getAssetIndex(assetAddresses[0])) +
             _convertToNumeraire(tokensIn[1], _getAssetIndex(assetAddresses[1]))) * 1e18;
 
-        //      _enforceCap(totalDepositNumeraire);
+        _enforceCap(totalDepositNumeraire);
 
         (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.proportionalDeposit(
             curve,
@@ -333,12 +332,9 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         );
         {
             amountsIn = new uint256[](2);
-            console.log('Amounts In 0: ', amountsIn[0]);
-            console.log('Amounts In 1: ', amountsIn[1]);
             amountsIn[0] = amountToDeposit[_getAssetIndex(assetAddresses[0])];
             amountsIn[1] = amountToDeposit[_getAssetIndex(assetAddresses[1])];
         }
-        // @todo check reentrancy attack, call from BalancerToken.supply or change the library?
         curve.totalSupply = curve.totalSupply += lpTokens;
 
         BalancerPoolToken._mintPoolTokens(recipient, lpTokens);
@@ -376,18 +372,13 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     ) external override returns (uint256[] memory amountsOut, uint256[] memory dueProtocolFeeAmounts) {
         (uint256 tokensToBurn, address[] memory assetAddresses) = abi.decode(userData, (uint256, address[]));
 
+        uint256[] memory amountToWithdraw = emergency
+            ? ProportionalLiquidity.emergencyProportionalWithdraw(curve, tokensToBurn)
+            : ProportionalLiquidity.proportionalWithdraw(curve, tokensToBurn);
+
+        // change state here since calculation using the previous supply is needed before deducting in the state
         curve.totalSupply = curve.totalSupply -= tokensToBurn;
         BalancerPoolToken._burnPoolTokens(sender, tokensToBurn);
-
-        // check if in emergency mode. call emergency withdraw to bypass invariant check should it prevent withdrawls during emergency
-        uint256[] memory amountToWithdraw;
-
-        // if (emergency) {
-        //     amountToWithdraw = ProportionalLiquidity.emergencyProportionalWithdraw(curve, tokensToBurn);
-        // } else {
-        amountToWithdraw = ProportionalLiquidity.proportionalWithdraw(curve, tokensToBurn);
-        //  }
-
         {
             amountsOut = new uint256[](2);
             amountsOut[0] = amountToWithdraw[_getAssetIndex(assetAddresses[0])];
