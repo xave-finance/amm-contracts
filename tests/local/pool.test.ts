@@ -551,7 +551,7 @@ describe('FXPool', () => {
   it('can pause pool', async () => {
     expect(await testEnv.fxPool.paused()).to.be.equals(false)
 
-    await expect(testEnv.fxPool.setPause()).to.emit(testEnv.fxPool, 'Paused').withArgs(adminAddress)
+    await expect(testEnv.fxPool.setPaused()).to.emit(testEnv.fxPool, 'Paused').withArgs(adminAddress)
 
     const amountIn0 = TEST_DEPOSIT_PAUSEABLE
 
@@ -583,9 +583,9 @@ describe('FXPool', () => {
   it('can unpause pool', async () => {
     expect(await testEnv.fxPool.paused()).to.be.equals(true)
 
-    await expect(testEnv.fxPool.connect(notOwner).setPause()).to.be.revertedWith(CONTRACT_REVERT.Ownable)
+    await expect(testEnv.fxPool.connect(notOwner).setPaused()).to.be.revertedWith(CONTRACT_REVERT.Ownable)
 
-    await expect(testEnv.fxPool.setPause()).to.emit(testEnv.fxPool, 'Unpaused').withArgs(adminAddress)
+    await expect(testEnv.fxPool.setPaused()).to.emit(testEnv.fxPool, 'Unpaused').withArgs(adminAddress)
 
     const amountIn0 = TEST_DEPOSIT_PAUSEABLE
 
@@ -650,7 +650,7 @@ describe('FXPool', () => {
     await expect(testEnv.fxPool.setCap(SET_CAP_FAIL)).to.be.revertedWith(CONTRACT_REVERT.CapLessThanLiquidity)
   })
 
-  it('reverts when numeraire value is greater than cap limit given base input (fxPHP)', async () => {
+  it('reverts when deposit numeraire + current liquidity is greater than cap limit given base input (fxPHP)', async () => {
     const baseAmountsIn = [CAP_DEPOSIT_FAIL_fxPHP]
 
     let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
@@ -703,7 +703,7 @@ describe('FXPool', () => {
     }
   })
 
-  it('reverts when numeraire value is greater than cap limit given quote input (USDC)', async () => {
+  it('reverts when  deposit numeraire + current liquidity value is greater than cap limit given quote input (USDC)', async () => {
     let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
     const quoteAmountsIn = [CAP_DEPOSIT_FAIL_USDC]
 

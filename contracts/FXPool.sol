@@ -398,7 +398,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     // ADMIN AND ACCESS CONTROL FUNCTIONS
     /// @notice Governance sets someone's pause status, enable only withdraw
 
-    function setPause() external onlyOwner {
+    function setPaused() external onlyOwner {
         bool currentStatus = paused();
 
         if (currentStatus) {
@@ -412,7 +412,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     /// @param _cap cap value
     function setCap(uint256 _cap) external onlyOwner {
         (uint256 total, ) = liquidity();
-        require(_cap > total, 'FXPool/cap-less-than-total-liquidity');
+        require(_cap > total, 'FXPool/cap-is-not-greater-than-total-liquidity');
         curve.cap = _cap;
     }
 
@@ -470,7 +470,9 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     function _enforceCap(uint256 _amount) private view {
         if (curve.cap == 0) return;
 
-        require(_amount < curve.cap, 'FXPool/amount-beyond-set-cap');
+        (uint256 total, ) = liquidity();
+
+        require(total + _amount < curve.cap, 'FXPool/amount-beyond-set-cap');
     }
 
     /// @notice view the assimilator address for a derivative
