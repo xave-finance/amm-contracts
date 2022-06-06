@@ -1,20 +1,27 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
-import { Signer } from 'ethers'
+import { BigNumber, Signer } from 'ethers'
 import { setupEnvironment, TestEnv } from '../common/setupEnvironment'
 import { getAssimilatorContract, getUSDCAssimilatorContract } from '../common/contractGetters'
 import { mockToken } from '../constants/mockTokenList'
 import calculator from '../common/helpers/calculators'
-import { parseEther, parseUnits } from 'ethers/lib/utils'
+import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
 import { ONE_ETHER, ONE_TO_THE_SIX } from '../constants'
+import { orderDataLikeFE, sortDataLikeVault } from '../common/helpers/sorter'
+import { calculateLptOutAndTokensIn, calculateOtherTokenIn } from '../common/helpers/frontend'
+import { sortAddresses } from '../../scripts/utils/sortAddresses'
 
-describe.skip('Assimilators', () => {
+// TODO: Before each, deploy a new vault?
+
+describe('Assimilators', () => {
   const INPUT_AMOUNT = parseEther('100')
   let testEnv: TestEnv
   let admin: Signer
   let adminAddress: string
   let calc: ReturnType<typeof calculator>
   let poolId: string
+  const usdcDecimals = mockToken[0].decimal
+  const fxPHPDecimals = mockToken[3].decimal
 
   before('build test env', async () => {
     testEnv = await setupEnvironment()
@@ -23,6 +30,8 @@ describe.skip('Assimilators', () => {
     calc = calculator(testEnv.mockABDK)
 
     poolId = await testEnv.fxPool.getPoolId()
+
+    // add deposits to pool
   })
 
   it('Assimilator Factory is deployed properly', async () => {
@@ -105,6 +114,10 @@ describe.skip('Assimilators', () => {
 
   it('Gets newly deployed fxPHP-USD assimilator from the assimilator factory with immutable params set properly', async () => {
     const fxPHPAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.fxPHP.address)
+    const usdcAssimilatorAddress = await testEnv.assimilatorFactory.usdcAssimilator()
+    const baseWeight = parseUnits('0.5')
+    const quoteWeight = parseUnits('0.5')
+
     expect(fxPHPAssimilatorAddress, 'fxPHP-USD assimilator not created and returns zero address').to.not.equals(
       ethers.constants.AddressZero
     )
@@ -119,9 +132,25 @@ describe.skip('Assimilators', () => {
     expect(await fxPHPAssimilatorContract.baseDecimals(), 'fxPHP decimals incorrect').to.be.equals(
       parseUnits('1', `${mockToken[3].decimal}`)
     )
+
+    await testEnv.fxPool.initialize(
+      [
+        testEnv.fxPHP.address,
+        fxPHPAssimilatorAddress,
+        testEnv.fxPHP.address,
+        fxPHPAssimilatorAddress,
+        testEnv.fxPHP.address,
+        testEnv.USDC.address,
+        usdcAssimilatorAddress,
+        testEnv.USDC.address,
+        usdcAssimilatorAddress,
+        testEnv.USDC.address,
+      ],
+      [baseWeight, quoteWeight]
+    )
   })
 
-  it('XSGD-USD assimilator calculation tests', async () => {
+  it.skip('XSGD-USD assimilator calculation tests', async () => {
     const mockCurveAddress = adminAddress // illustrate calculation using current EOA account
     const xsgdAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.XSGD.address)
     const xsgdAssimilatorContract = await getAssimilatorContract(xsgdAssimilatorAddress)
@@ -195,7 +224,7 @@ describe.skip('Assimilators', () => {
     ).to.equals(await calc.calculateNumeraireBalanceLPRatio(usdcBalance, quoteWeight, xsgdBalance, baseWeight))
   })
 
-  it('EURS-USD assimilator calculation tests', async () => {
+  it.skip('EURS-USD assimilator calculation tests', async () => {
     const mockCurveAddress = adminAddress // illustrate calculation using current EOA account
     const eursAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.EURS.address)
     const eursAssimilatorContract = await getAssimilatorContract(eursAssimilatorAddress)
@@ -270,8 +299,10 @@ describe.skip('Assimilators', () => {
   })
 
   it('fxPHP-USD assimilator calculation tests', async () => {
+    // 1 - assign constants
     const mockCurveAddress = adminAddress // illustrate calculation using current EOA account
     const fxPHPAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.fxPHP.address)
+    const usdcAssimilatorAddress = await testEnv.assimilatorFactory.usdcAssimilator()
     const fxPHPAssimilatorContract = await getAssimilatorContract(fxPHPAssimilatorAddress)
     const fxPHPRateFromAssimilator = await fxPHPAssimilatorContract.getRate()
 
@@ -279,8 +310,99 @@ describe.skip('Assimilators', () => {
     const baseWeight = await testEnv.mockABDK.mulu(parseUnits('0.5'), ONE_ETHER) // from ProportionalLiquidity line 106
     const quoteWeight = await testEnv.mockABDK.mulu(parseUnits('0.5'), ONE_ETHER) // from ProportionalLiquidity line 107
 
-    const usdcBalance = await testEnv.USDC.balanceOf(mockCurveAddress)
-    const fxPHPBalance = await testEnv.fxPHP.balanceOf(mockCurveAddress)
+    await testEnv.fxPHP.approve(testEnv.vault.address, ethers.constants.MaxUint256)
+    await testEnv.USDC.approve(testEnv.vault.address, ethers.constants.MaxUint256)
+
+    // 2 - Simulate Deposit
+    const quoteAmountsIn = ['100000']
+    const fxPHPAddress = testEnv.fxPHP.address
+
+    for (var i = 0; i < quoteAmountsIn.length; i++) {
+      const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+      const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+      const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+      const amountIn1 = quoteAmountsIn[i]
+
+      // Frontend estimation of other token in amount
+      const poolTokens = await testEnv.vault.getPoolTokens(poolId)
+      const balances = orderDataLikeFE(poolTokens.tokens, fxPHPAddress, poolTokens.balances)
+      const otherTokenIn = await calculateOtherTokenIn(
+        amountIn1,
+        1,
+        balances,
+        [fxPHPDecimals, usdcDecimals],
+        [fxPHPAssimilatorAddress, usdcAssimilatorAddress]
+      )
+
+      const amountIn0 = formatUnits(otherTokenIn, fxPHPDecimals)
+      console.log(`Deposit [${i}] amounts in: `, amountIn0, amountIn1)
+
+      const sortedAddresses = sortAddresses([
+        ethers.utils.getAddress(testEnv.fxPHP.address),
+        ethers.utils.getAddress(testEnv.USDC.address),
+      ])
+
+      console.log(sortedAddresses)
+      console.log([amountIn0, amountIn1])
+
+      // Backend estimation `viewDeposit()` of LPT amount to receive + actual token ins
+      const [estimatedLptAmount, estimatedAmountsIn, adjustedAmountsIn] = await calculateLptOutAndTokensIn(
+        [amountIn0, amountIn1],
+        [fxPHPDecimals, usdcDecimals],
+        sortedAddresses,
+        fxPHPAddress,
+        testEnv.fxPool
+      )
+
+      console.log(`Deposit [${i}] estimated lpt amount: `, estimatedLptAmount)
+
+      console.log(
+        `Deposit [${i}] estimated amounts in: `,
+        formatUnits(estimatedAmountsIn[0], fxPHPDecimals),
+        formatUnits(estimatedAmountsIn[1], usdcDecimals)
+      )
+
+      // Actual deposit `joinPool()` request
+      let sortedAmounts: BigNumber[] = sortDataLikeVault(sortedAddresses, fxPHPAddress, adjustedAmountsIn)
+
+      const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [sortedAmounts, sortedAddresses])
+      console.log(`Deposit [${i}] joinPool payload: `, sortedAmounts.toString(), sortedAddresses)
+
+      const sortedAmountsIn = sortDataLikeVault(sortedAddresses, fxPHPAddress, [amountIn0, amountIn1])
+      const sortedDecimals = sortDataLikeVault(sortedAddresses, fxPHPAddress, [fxPHPDecimals, usdcDecimals])
+      const maxAmountsIn = [
+        parseUnits(sortedAmountsIn[0], sortedDecimals[0]),
+        parseUnits(sortedAmountsIn[1], sortedDecimals[1]),
+      ]
+      console.log(`Deposit [${i}] joinPool maxAmountsIn: `, maxAmountsIn.toString())
+
+      const joinPoolRequest = {
+        assets: sortedAddresses,
+        maxAmountsIn,
+        userData: payload,
+        fromInternalBalance: false,
+      }
+      await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest))
+        .to.emit(testEnv.fxPool, 'OnJoinPool')
+        .withArgs(poolId, estimatedLptAmount, [estimatedAmountsIn[0], estimatedAmountsIn[1]])
+
+      const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+      const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+      const afterVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
+      expect(afterLpBalance, 'Current LP Balance not expected').to.be.equals(beforeLpBalance.add(estimatedLptAmount))
+      expect(afterVaultfxPhpBalance, 'Current fxPHP Balance not expected').to.be.equals(
+        beforeVaultfxPhpBalance.add(estimatedAmountsIn[0])
+      )
+      expect(afterVaultUsdcBalance, 'Current USDC Balance not expected').to.be.equals(
+        beforeVaultUsdcBalance.add(estimatedAmountsIn[1])
+      )
+    }
+
+    const usdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+    const fxPHPBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+    // 3 - Check assimilator values
 
     expect(fxPHPRateFromAssimilator, 'Rate from assimilator is not equal to oracle price').to.equals(
       mockToken[3].mockOraclePrice
@@ -348,7 +470,7 @@ describe.skip('Assimilators', () => {
     ).to.equals(await calc.calculateNumeraireBalanceLPRatio(usdcBalance, quoteWeight, fxPHPBalance, baseWeight))
   })
 
-  it('USDC-USD assimilator calculation tests', async () => {
+  it.skip('USDC-USD assimilator calculation tests', async () => {
     const mockCurveAddress = adminAddress // illustrate calculation using current EOA account
     const USDC_DECIMALS = ONE_TO_THE_SIX // assigning for reference purposes
     const usdcAssimilatorAddress = await testEnv.assimilatorFactory.usdcAssimilator()
