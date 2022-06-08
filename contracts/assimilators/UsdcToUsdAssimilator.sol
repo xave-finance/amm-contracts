@@ -46,7 +46,7 @@ contract UsdcToUsdAssimilator is IAssimilator {
         bool _success = usdc.transferFrom(msg.sender, address(this), _amount);
         // needs transfer from vault
 
-        require(_success, 'Curve/USDC-transfer-from-failed');
+        require(_success, 'UsdcAssimilator/USDC-transfer-from-failed');
 
         uint256 _balance = usdc.balanceOf(address(this));
         // needs vault balance check
@@ -62,7 +62,7 @@ contract UsdcToUsdAssimilator is IAssimilator {
         bool _success = usdc.transferFrom(msg.sender, address(this), _amount);
         // needs transfer from vault
 
-        require(_success, 'Curve/USDC-transfer-from-failed');
+        require(_success, 'UsdcAssimilator/USDC-transfer-from-failed');
 
         uint256 _rate = getRate();
 
@@ -77,7 +77,7 @@ contract UsdcToUsdAssimilator is IAssimilator {
         bool _success = usdc.transferFrom(msg.sender, address(this), amount_);
         // needs transfer from vault
 
-        require(_success, 'Curve/USDC-transfer-from-failed');
+        require(_success, 'UsdcAssimilator/USDC-transfer-from-failed');
     }
 
     function intakeNumeraireLPRatio(
@@ -91,7 +91,7 @@ contract UsdcToUsdAssimilator is IAssimilator {
         bool _success = usdc.transferFrom(msg.sender, address(this), amount_);
         // transfer from vault
 
-        require(_success, 'Curve/USDC-transfer-from-failed');
+        require(_success, 'UsdcAssimilator/USDC-transfer-from-failed');
     }
 
     function outputRawAndGetBalance(address _dst, uint256 _amount)
@@ -106,7 +106,7 @@ contract UsdcToUsdAssimilator is IAssimilator {
         bool _success = usdc.transfer(_dst, _usdcAmount);
         // needs token check + transfer from vault
 
-        require(_success, 'Curve/USDC-transfer-failed');
+        require(_success, 'UsdcAssimilator/USDC-transfer-failed');
 
         uint256 _balance = usdc.balanceOf(address(this));
         // needs token check + transfer from vault
@@ -123,7 +123,7 @@ contract UsdcToUsdAssimilator is IAssimilator {
 
         bool _success = usdc.transfer(_dst, _usdcAmount);
 
-        require(_success, 'Curve/USDC-transfer-failed');
+        require(_success, 'UsdcAssimilator/USDC-transfer-failed');
 
         amount_ = _usdcAmount.divu(DECIMALS);
     }
@@ -135,7 +135,7 @@ contract UsdcToUsdAssimilator is IAssimilator {
 
         bool _success = usdc.transfer(_dst, amount_);
 
-        require(_success, 'Curve/USDC-transfer-failed');
+        require(_success, 'UsdcAssimilator/USDC-transfer-failed');
     }
 
     function viewRawAmount(int128 _amount) external view override returns (uint256 amount_) {

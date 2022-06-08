@@ -72,8 +72,6 @@ export const setupEnvironment = async (): Promise<TestEnv> => {
   const fxPool = await deployFXPool(
     sortAddresses([fxPHP.address, USDC.address]),
     // ['0.5', '0.5'],
-    `${await getFutureTime()}`,
-    fxPHPUSDCFxPool.unitSeconds,
     vault.address,
     fxPHPUSDCFxPool.percentFee,
     fxPHPUSDCFxPool.name,
