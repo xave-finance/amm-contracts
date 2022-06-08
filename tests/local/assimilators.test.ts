@@ -1,27 +1,31 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
-import { BigNumber, Signer } from 'ethers'
+import { Signer } from 'ethers'
 import { setupEnvironment, TestEnv } from '../common/setupEnvironment'
 import { getAssimilatorContract, getUSDCAssimilatorContract } from '../common/contractGetters'
 import { mockToken } from '../constants/mockTokenList'
 import calculator from '../common/helpers/calculators'
-import { formatUnits, parseEther, parseUnits } from 'ethers/lib/utils'
+import { parseEther, parseUnits } from 'ethers/lib/utils'
 import { ONE_ETHER, ONE_TO_THE_SIX } from '../constants'
-import { orderDataLikeFE, sortDataLikeVault } from '../common/helpers/sorter'
-import { calculateLptOutAndTokensIn, calculateOtherTokenIn } from '../common/helpers/frontend'
 import { sortAddresses } from '../../scripts/utils/sortAddresses'
+import { simulateDeposit } from '../common/helpers/amm'
+import { FXPool } from '../../typechain/FXPool'
+import { deployFXPool } from '../common/contractDeployers'
+import { getFutureTime } from '../common/helpers/utils'
+import { EURSUSDCFxPool, XSGDUSDCFxPool } from '../constants/mockPoolList'
 
-// TODO: Before each, deploy a new vault?
+const INPUT_AMOUNT = parseEther('100')
+const usdcDecimals = mockToken[0].decimal
 
-describe('Assimilators', () => {
-  const INPUT_AMOUNT = parseEther('100')
+describe('XSGD-USDC Assimilator Tests', () => {
   let testEnv: TestEnv
   let admin: Signer
   let adminAddress: string
   let calc: ReturnType<typeof calculator>
   let poolId: string
-  const usdcDecimals = mockToken[0].decimal
-  const fxPHPDecimals = mockToken[3].decimal
+  let fxPool: FXPool
+
+  const xsgdDecimals = mockToken[1].decimal
 
   before('build test env', async () => {
     testEnv = await setupEnvironment()
@@ -29,9 +33,16 @@ describe('Assimilators', () => {
     adminAddress = await admin.getAddress()
     calc = calculator(testEnv.mockABDK)
 
-    poolId = await testEnv.fxPool.getPoolId()
-
-    // add deposits to pool
+    fxPool = await deployFXPool(
+      sortAddresses([testEnv.XSGD.address, testEnv.USDC.address]),
+      `${await getFutureTime()}`,
+      XSGDUSDCFxPool.unitSeconds,
+      testEnv.vault.address,
+      XSGDUSDCFxPool.percentFee,
+      XSGDUSDCFxPool.name,
+      XSGDUSDCFxPool.symbol
+    )
+    poolId = await fxPool.getPoolId()
   })
 
   it('Assimilator Factory is deployed properly', async () => {
@@ -47,7 +58,7 @@ describe('Assimilators', () => {
     )
   })
 
-  it('Deploys XSGD, EURS & fxPHP assimilators from the assimilator factory', async () => {
+  it('Deploys xsgd assimilators from the assimilator factory', async () => {
     await expect(
       testEnv.assimilatorFactory.newBaseAssimilator(
         testEnv.XSGD.address,
@@ -56,28 +67,13 @@ describe('Assimilators', () => {
       ),
       'XSGD assimilator not created'
     ).to.emit(testEnv.assimilatorFactory, 'NewAssimilator')
-
-    await expect(
-      testEnv.assimilatorFactory.newBaseAssimilator(
-        testEnv.EURS.address,
-        parseUnits('1', `${mockToken[2].decimal}`),
-        testEnv.EURSOracle.address
-      ),
-      'EURS assimilator not created'
-    ).to.emit(testEnv.assimilatorFactory, 'NewAssimilator')
-
-    await expect(
-      testEnv.assimilatorFactory.newBaseAssimilator(
-        testEnv.fxPHP.address,
-        parseUnits('1', `${mockToken[3].decimal}`),
-        testEnv.fxPHPOracle.address
-      ),
-      'fxPHP assimilator not created'
-    ).to.emit(testEnv.assimilatorFactory, 'NewAssimilator')
   })
 
   it('Gets newly deployed XSGD-USD assimilator from the assimilator factory with immutable params set properly', async () => {
+    const baseWeight = parseUnits('0.5')
+    const quoteWeight = parseUnits('0.5')
     const xsgdAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.XSGD.address)
+    const usdcAssimilatorAddress = await testEnv.assimilatorFactory.usdcAssimilator()
     expect(xsgdAssimilatorAddress, 'XSGD-USD assimilator not created and returns zero address').to.not.equals(
       ethers.constants.AddressZero
     )
@@ -92,54 +88,14 @@ describe('Assimilators', () => {
     expect(await xsgdAssimilatorContract.baseDecimals(), 'XSGD decimals incorrect').to.be.equals(
       parseUnits('1', `${mockToken[1].decimal}`)
     )
-  })
 
-  it('Gets newly deployed EURS-USD assimilator from the assimilator factory with immutable params set properly', async () => {
-    const eursAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.EURS.address)
-    expect(eursAssimilatorAddress, 'EURS-USD assimilator not created and returns zero address').to.not.equals(
-      ethers.constants.AddressZero
-    )
-
-    const eursAssimilatorContract = await getAssimilatorContract(eursAssimilatorAddress)
-
-    expect(await eursAssimilatorContract.usdc(), 'USDC address incorrect').to.be.equals(testEnv.USDC.address)
-    expect(await eursAssimilatorContract.oracle(), 'EURS Oracle address incorrect').to.be.equals(
-      testEnv.EURSOracle.address
-    )
-    expect(await eursAssimilatorContract.baseToken(), 'EURS address incorrect').to.be.equals(testEnv.EURS.address)
-    expect(await eursAssimilatorContract.baseDecimals(), 'EURS decimals incorrect').to.be.equals(
-      parseUnits('1', `${mockToken[2].decimal}`)
-    )
-  })
-
-  it('Gets newly deployed fxPHP-USD assimilator from the assimilator factory with immutable params set properly', async () => {
-    const fxPHPAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.fxPHP.address)
-    const usdcAssimilatorAddress = await testEnv.assimilatorFactory.usdcAssimilator()
-    const baseWeight = parseUnits('0.5')
-    const quoteWeight = parseUnits('0.5')
-
-    expect(fxPHPAssimilatorAddress, 'fxPHP-USD assimilator not created and returns zero address').to.not.equals(
-      ethers.constants.AddressZero
-    )
-
-    const fxPHPAssimilatorContract = await getAssimilatorContract(fxPHPAssimilatorAddress)
-
-    expect(await fxPHPAssimilatorContract.usdc(), 'USDC address incorrect').to.be.equals(testEnv.USDC.address)
-    expect(await fxPHPAssimilatorContract.oracle(), 'fxPHP Oracle address incorrect').to.be.equals(
-      testEnv.fxPHPOracle.address
-    )
-    expect(await fxPHPAssimilatorContract.baseToken(), 'fxPHP address incorrect').to.be.equals(testEnv.fxPHP.address)
-    expect(await fxPHPAssimilatorContract.baseDecimals(), 'fxPHP decimals incorrect').to.be.equals(
-      parseUnits('1', `${mockToken[3].decimal}`)
-    )
-
-    await testEnv.fxPool.initialize(
+    await fxPool.initialize(
       [
-        testEnv.fxPHP.address,
-        fxPHPAssimilatorAddress,
-        testEnv.fxPHP.address,
-        fxPHPAssimilatorAddress,
-        testEnv.fxPHP.address,
+        testEnv.XSGD.address,
+        xsgdAssimilatorAddress,
+        testEnv.XSGD.address,
+        xsgdAssimilatorAddress,
+        testEnv.XSGD.address,
         testEnv.USDC.address,
         usdcAssimilatorAddress,
         testEnv.USDC.address,
@@ -150,18 +106,37 @@ describe('Assimilators', () => {
     )
   })
 
-  it.skip('XSGD-USD assimilator calculation tests', async () => {
-    const mockCurveAddress = adminAddress // illustrate calculation using current EOA account
+  it('XSGD-USD assimilator calculation tests', async () => {
     const xsgdAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.XSGD.address)
     const xsgdAssimilatorContract = await getAssimilatorContract(xsgdAssimilatorAddress)
     const xsgdRateFromAssimilator = await xsgdAssimilatorContract.getRate()
+    const usdcAssimilatorAddress = await testEnv.assimilatorFactory.usdcAssimilator()
 
     const xsgdAssimilatorDecimals = await xsgdAssimilatorContract.baseDecimals()
     const baseWeight = await testEnv.mockABDK.mulu(parseUnits('0.5'), ONE_ETHER) // from ProportionalLiquidity line 106
     const quoteWeight = await testEnv.mockABDK.mulu(parseUnits('0.5'), ONE_ETHER) // from ProportionalLiquidity line 107
 
-    const usdcBalance = await testEnv.USDC.balanceOf(mockCurveAddress)
-    const xsgdBalance = await testEnv.XSGD.balanceOf(mockCurveAddress)
+    await testEnv.XSGD.approve(testEnv.vault.address, ethers.constants.MaxUint256)
+    await testEnv.USDC.approve(testEnv.vault.address, ethers.constants.MaxUint256)
+
+    const quoteAmountsIn = ['10000']
+
+    await simulateDeposit(
+      quoteAmountsIn,
+      testEnv.USDC.address,
+      testEnv.XSGD.address,
+      poolId,
+      xsgdDecimals,
+      usdcDecimals,
+      xsgdAssimilatorAddress,
+      usdcAssimilatorAddress,
+      adminAddress,
+      fxPool,
+      testEnv.vault
+    )
+
+    const usdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+    const xsgdBalance = await testEnv.XSGD.balanceOf(testEnv.vault.address)
 
     expect(xsgdRateFromAssimilator, 'Rate from assimilator is not equal to oracle price').to.equals(
       mockToken[1].mockOraclePrice
@@ -203,7 +178,6 @@ describe('Assimilators', () => {
     ).to.equals(await calc.calculateNumeraireBalance(xsgdBalance, xsgdRateFromAssimilator, xsgdAssimilatorDecimals))
 
     const { amount_, balance_ } = await xsgdAssimilatorContract.viewNumeraireAmountAndBalance(
-      // mockCurveAddress,
       INPUT_AMOUNT,
       testEnv.vault.address,
       poolId
@@ -223,19 +197,129 @@ describe('Assimilators', () => {
       'View Numeraire Balance LP Ratio calculation is incorrect'
     ).to.equals(await calc.calculateNumeraireBalanceLPRatio(usdcBalance, quoteWeight, xsgdBalance, baseWeight))
   })
+})
 
-  it.skip('EURS-USD assimilator calculation tests', async () => {
-    const mockCurveAddress = adminAddress // illustrate calculation using current EOA account
+describe('EURS-USD Assimilator Tests', () => {
+  let testEnv: TestEnv
+  let admin: Signer
+  let adminAddress: string
+  let calc: ReturnType<typeof calculator>
+  let poolId: string
+  let fxPool: FXPool
+
+  const eursDecimals = mockToken[2].decimal
+
+  before('build test env', async () => {
+    testEnv = await setupEnvironment()
+    ;[admin] = await ethers.getSigners()
+    adminAddress = await admin.getAddress()
+    calc = calculator(testEnv.mockABDK)
+
+    fxPool = await deployFXPool(
+      sortAddresses([testEnv.EURS.address, testEnv.USDC.address]),
+      `${await getFutureTime()}`,
+      EURSUSDCFxPool.unitSeconds,
+      testEnv.vault.address,
+      EURSUSDCFxPool.percentFee,
+      EURSUSDCFxPool.name,
+      EURSUSDCFxPool.symbol
+    )
+
+    poolId = await fxPool.getPoolId()
+  })
+
+  it('Assimilator Factory is deployed properly', async () => {
+    expect(testEnv.assimilatorFactory.address, 'Assimilator Factory is not deployed').to.not.equals(
+      ethers.constants.AddressZero
+    )
+    expect(await testEnv.assimilatorFactory.usdc(), 'USDC not set').to.be.equals(testEnv.USDC.address)
+    expect(await testEnv.assimilatorFactory.usdcOracle(), 'USDC Oracle not set').to.be.equals(
+      testEnv.USDCOracle.address
+    )
+    expect(await testEnv.assimilatorFactory.usdcAssimilator(), 'USDC Assimilator not set').to.not.equals(
+      ethers.constants.AddressZero
+    )
+  })
+
+  it('Deploys eurs assimilators from the assimilator factory', async () => {
+    await expect(
+      testEnv.assimilatorFactory.newBaseAssimilator(
+        testEnv.EURS.address,
+        parseUnits('1', `${mockToken[2].decimal}`),
+        testEnv.EURSOracle.address
+      ),
+      'EURS assimilator not created'
+    ).to.emit(testEnv.assimilatorFactory, 'NewAssimilator')
+  })
+
+  it('Gets newly deployed EURS-USD assimilator from the assimilator factory with immutable params set properly', async () => {
+    const eursAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.EURS.address)
+    const usdcAssimilatorAddress = await testEnv.assimilatorFactory.usdcAssimilator()
+    expect(eursAssimilatorAddress, 'EURS-USD assimilator not created and returns zero address').to.not.equals(
+      ethers.constants.AddressZero
+    )
+
+    const eursAssimilatorContract = await getAssimilatorContract(eursAssimilatorAddress)
+    const baseWeight = await testEnv.mockABDK.mulu(parseUnits('0.5'), ONE_ETHER) // from ProportionalLiquidity line 106
+    const quoteWeight = await testEnv.mockABDK.mulu(parseUnits('0.5'), ONE_ETHER) // from ProportionalLiquidity line 107
+
+    expect(await eursAssimilatorContract.usdc(), 'USDC address incorrect').to.be.equals(testEnv.USDC.address)
+    expect(await eursAssimilatorContract.oracle(), 'EURS Oracle address incorrect').to.be.equals(
+      testEnv.EURSOracle.address
+    )
+    expect(await eursAssimilatorContract.baseToken(), 'EURS address incorrect').to.be.equals(testEnv.EURS.address)
+    expect(await eursAssimilatorContract.baseDecimals(), 'EURS decimals incorrect').to.be.equals(
+      parseUnits('1', `${mockToken[2].decimal}`)
+    )
+
+    await fxPool.initialize(
+      [
+        testEnv.EURS.address,
+        eursAssimilatorAddress,
+        testEnv.EURS.address,
+        eursAssimilatorAddress,
+        testEnv.EURS.address,
+        testEnv.USDC.address,
+        usdcAssimilatorAddress,
+        testEnv.USDC.address,
+        usdcAssimilatorAddress,
+        testEnv.USDC.address,
+      ],
+      [baseWeight, quoteWeight]
+    )
+  })
+
+  it('EURS-USD assimilator calculation tests', async () => {
     const eursAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.EURS.address)
     const eursAssimilatorContract = await getAssimilatorContract(eursAssimilatorAddress)
     const eursRateFromAssimilator = await eursAssimilatorContract.getRate()
+    const usdcAssimilatorAddress = await testEnv.assimilatorFactory.usdcAssimilator()
 
     const eursAssimilatorDecimals = await eursAssimilatorContract.baseDecimals()
     const baseWeight = await testEnv.mockABDK.mulu(parseUnits('0.5'), ONE_ETHER) // from ProportionalLiquidity line 106
     const quoteWeight = await testEnv.mockABDK.mulu(parseUnits('0.5'), ONE_ETHER) // from ProportionalLiquidity line 107
 
-    const usdcBalance = await testEnv.USDC.balanceOf(mockCurveAddress)
-    const eursBalance = await testEnv.EURS.balanceOf(mockCurveAddress)
+    await testEnv.EURS.approve(testEnv.vault.address, ethers.constants.MaxUint256)
+    await testEnv.USDC.approve(testEnv.vault.address, ethers.constants.MaxUint256)
+
+    const quoteAmountsIn = ['10000']
+
+    await simulateDeposit(
+      quoteAmountsIn,
+      testEnv.USDC.address,
+      testEnv.EURS.address,
+      poolId,
+      eursDecimals,
+      usdcDecimals,
+      eursAssimilatorAddress,
+      usdcAssimilatorAddress,
+      adminAddress,
+      fxPool,
+      testEnv.vault
+    )
+
+    const usdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+    const eursBalance = await testEnv.EURS.balanceOf(testEnv.vault.address)
 
     expect(eursRateFromAssimilator, 'Rate from assimilator is not equal to oracle price').to.equals(
       mockToken[2].mockOraclePrice
@@ -272,12 +356,11 @@ describe('Assimilators', () => {
     ).to.equals(await calc.calculateNumeraireAmount(INPUT_AMOUNT, eursRateFromAssimilator, eursAssimilatorDecimals))
 
     expect(
-      await eursAssimilatorContract.viewNumeraireBalance(/*mockCurveAddress, */ testEnv.vault.address, poolId),
+      await eursAssimilatorContract.viewNumeraireBalance(testEnv.vault.address, poolId),
       'View numeraire balance calculation is incorrect'
     ).to.equals(await calc.calculateNumeraireBalance(eursBalance, eursRateFromAssimilator, eursAssimilatorDecimals))
 
     const { amount_, balance_ } = await eursAssimilatorContract.viewNumeraireAmountAndBalance(
-      // mockCurveAddress,
       INPUT_AMOUNT,
       testEnv.vault.address,
       poolId
@@ -297,10 +380,90 @@ describe('Assimilators', () => {
       'View Numeraire Balance LP Ratio calculation is incorrect'
     ).to.equals(await calc.calculateNumeraireBalanceLPRatio(usdcBalance, quoteWeight, eursBalance, baseWeight))
   })
+})
+
+describe('FxPHP-USDC Assimilator and USDC-USD Assimilator tests', () => {
+  let testEnv: TestEnv
+  let admin: Signer
+  let adminAddress: string
+  let calc: ReturnType<typeof calculator>
+  let poolId: string
+
+  const fxPHPDecimals = mockToken[3].decimal
+
+  before('build test env', async () => {
+    testEnv = await setupEnvironment()
+    ;[admin] = await ethers.getSigners()
+    adminAddress = await admin.getAddress()
+    calc = calculator(testEnv.mockABDK)
+
+    poolId = await testEnv.fxPool.getPoolId() // php and usdc
+  })
+
+  it('Assimilator Factory is deployed properly', async () => {
+    expect(testEnv.assimilatorFactory.address, 'Assimilator Factory is not deployed').to.not.equals(
+      ethers.constants.AddressZero
+    )
+    expect(await testEnv.assimilatorFactory.usdc(), 'USDC not set').to.be.equals(testEnv.USDC.address)
+    expect(await testEnv.assimilatorFactory.usdcOracle(), 'USDC Oracle not set').to.be.equals(
+      testEnv.USDCOracle.address
+    )
+    expect(await testEnv.assimilatorFactory.usdcAssimilator(), 'USDC Assimilator not set').to.not.equals(
+      ethers.constants.AddressZero
+    )
+  })
+
+  it('Deploys fxPHP assimilators from the assimilator factory', async () => {
+    await expect(
+      testEnv.assimilatorFactory.newBaseAssimilator(
+        testEnv.fxPHP.address,
+        parseUnits('1', `${mockToken[3].decimal}`),
+        testEnv.fxPHPOracle.address
+      ),
+      'fxPHP assimilator not created'
+    ).to.emit(testEnv.assimilatorFactory, 'NewAssimilator')
+  })
+
+  it('Gets newly deployed fxPHP-USD assimilator from the assimilator factory with immutable params set properly', async () => {
+    const fxPHPAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.fxPHP.address)
+    const usdcAssimilatorAddress = await testEnv.assimilatorFactory.usdcAssimilator()
+    const baseWeight = parseUnits('0.5')
+    const quoteWeight = parseUnits('0.5')
+
+    expect(fxPHPAssimilatorAddress, 'fxPHP-USD assimilator not created and returns zero address').to.not.equals(
+      ethers.constants.AddressZero
+    )
+
+    const fxPHPAssimilatorContract = await getAssimilatorContract(fxPHPAssimilatorAddress)
+
+    expect(await fxPHPAssimilatorContract.usdc(), 'USDC address incorrect').to.be.equals(testEnv.USDC.address)
+    expect(await fxPHPAssimilatorContract.oracle(), 'fxPHP Oracle address incorrect').to.be.equals(
+      testEnv.fxPHPOracle.address
+    )
+    expect(await fxPHPAssimilatorContract.baseToken(), 'fxPHP address incorrect').to.be.equals(testEnv.fxPHP.address)
+    expect(await fxPHPAssimilatorContract.baseDecimals(), 'fxPHP decimals incorrect').to.be.equals(
+      parseUnits('1', `${mockToken[3].decimal}`)
+    )
+
+    await testEnv.fxPool.initialize(
+      [
+        testEnv.fxPHP.address,
+        fxPHPAssimilatorAddress,
+        testEnv.fxPHP.address,
+        fxPHPAssimilatorAddress,
+        testEnv.fxPHP.address,
+        testEnv.USDC.address,
+        usdcAssimilatorAddress,
+        testEnv.USDC.address,
+        usdcAssimilatorAddress,
+        testEnv.USDC.address,
+      ],
+      [baseWeight, quoteWeight]
+    )
+  })
 
   it('fxPHP-USD assimilator calculation tests', async () => {
     // 1 - assign constants
-    const mockCurveAddress = adminAddress // illustrate calculation using current EOA account
     const fxPHPAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.fxPHP.address)
     const usdcAssimilatorAddress = await testEnv.assimilatorFactory.usdcAssimilator()
     const fxPHPAssimilatorContract = await getAssimilatorContract(fxPHPAssimilatorAddress)
@@ -317,93 +480,24 @@ describe('Assimilators', () => {
     const quoteAmountsIn = ['100000']
     const fxPHPAddress = testEnv.fxPHP.address
 
-    for (var i = 0; i < quoteAmountsIn.length; i++) {
-      const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
-      const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
-      const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
-
-      const amountIn1 = quoteAmountsIn[i]
-
-      // Frontend estimation of other token in amount
-      const poolTokens = await testEnv.vault.getPoolTokens(poolId)
-      const balances = orderDataLikeFE(poolTokens.tokens, fxPHPAddress, poolTokens.balances)
-      const otherTokenIn = await calculateOtherTokenIn(
-        amountIn1,
-        1,
-        balances,
-        [fxPHPDecimals, usdcDecimals],
-        [fxPHPAssimilatorAddress, usdcAssimilatorAddress]
-      )
-
-      const amountIn0 = formatUnits(otherTokenIn, fxPHPDecimals)
-      console.log(`Deposit [${i}] amounts in: `, amountIn0, amountIn1)
-
-      const sortedAddresses = sortAddresses([
-        ethers.utils.getAddress(testEnv.fxPHP.address),
-        ethers.utils.getAddress(testEnv.USDC.address),
-      ])
-
-      console.log(sortedAddresses)
-      console.log([amountIn0, amountIn1])
-
-      // Backend estimation `viewDeposit()` of LPT amount to receive + actual token ins
-      const [estimatedLptAmount, estimatedAmountsIn, adjustedAmountsIn] = await calculateLptOutAndTokensIn(
-        [amountIn0, amountIn1],
-        [fxPHPDecimals, usdcDecimals],
-        sortedAddresses,
-        fxPHPAddress,
-        testEnv.fxPool
-      )
-
-      console.log(`Deposit [${i}] estimated lpt amount: `, estimatedLptAmount)
-
-      console.log(
-        `Deposit [${i}] estimated amounts in: `,
-        formatUnits(estimatedAmountsIn[0], fxPHPDecimals),
-        formatUnits(estimatedAmountsIn[1], usdcDecimals)
-      )
-
-      // Actual deposit `joinPool()` request
-      let sortedAmounts: BigNumber[] = sortDataLikeVault(sortedAddresses, fxPHPAddress, adjustedAmountsIn)
-
-      const payload = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [sortedAmounts, sortedAddresses])
-      console.log(`Deposit [${i}] joinPool payload: `, sortedAmounts.toString(), sortedAddresses)
-
-      const sortedAmountsIn = sortDataLikeVault(sortedAddresses, fxPHPAddress, [amountIn0, amountIn1])
-      const sortedDecimals = sortDataLikeVault(sortedAddresses, fxPHPAddress, [fxPHPDecimals, usdcDecimals])
-      const maxAmountsIn = [
-        parseUnits(sortedAmountsIn[0], sortedDecimals[0]),
-        parseUnits(sortedAmountsIn[1], sortedDecimals[1]),
-      ]
-      console.log(`Deposit [${i}] joinPool maxAmountsIn: `, maxAmountsIn.toString())
-
-      const joinPoolRequest = {
-        assets: sortedAddresses,
-        maxAmountsIn,
-        userData: payload,
-        fromInternalBalance: false,
-      }
-      await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest))
-        .to.emit(testEnv.fxPool, 'OnJoinPool')
-        .withArgs(poolId, estimatedLptAmount, [estimatedAmountsIn[0], estimatedAmountsIn[1]])
-
-      const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
-      const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
-      const afterVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
-
-      expect(afterLpBalance, 'Current LP Balance not expected').to.be.equals(beforeLpBalance.add(estimatedLptAmount))
-      expect(afterVaultfxPhpBalance, 'Current fxPHP Balance not expected').to.be.equals(
-        beforeVaultfxPhpBalance.add(estimatedAmountsIn[0])
-      )
-      expect(afterVaultUsdcBalance, 'Current USDC Balance not expected').to.be.equals(
-        beforeVaultUsdcBalance.add(estimatedAmountsIn[1])
-      )
-    }
+    await simulateDeposit(
+      quoteAmountsIn,
+      testEnv.USDC.address,
+      fxPHPAddress,
+      poolId,
+      fxPHPDecimals,
+      usdcDecimals,
+      fxPHPAssimilatorAddress,
+      usdcAssimilatorAddress,
+      adminAddress,
+      testEnv.fxPool,
+      testEnv.vault
+    )
 
     const usdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
     const fxPHPBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
-    // 3 - Check assimilator values
 
+    // 3 - Check assimilator values
     expect(fxPHPRateFromAssimilator, 'Rate from assimilator is not equal to oracle price').to.equals(
       mockToken[3].mockOraclePrice
     )
@@ -439,12 +533,11 @@ describe('Assimilators', () => {
     ).to.equals(await calc.calculateNumeraireAmount(INPUT_AMOUNT, fxPHPRateFromAssimilator, fxPHPAssimilatorDecimals))
 
     expect(
-      await fxPHPAssimilatorContract.viewNumeraireBalance(/*mockCurveAddress, */ testEnv.vault.address, poolId),
+      await fxPHPAssimilatorContract.viewNumeraireBalance(testEnv.vault.address, poolId),
       'View numeraire balance calculation is incorrect'
     ).to.equals(await calc.calculateNumeraireBalance(fxPHPBalance, fxPHPRateFromAssimilator, fxPHPAssimilatorDecimals))
 
     const { amount_, balance_ } = await fxPHPAssimilatorContract.viewNumeraireAmountAndBalance(
-      // mockCurveAddress,
       INPUT_AMOUNT,
       testEnv.vault.address,
       poolId
@@ -470,13 +563,12 @@ describe('Assimilators', () => {
     ).to.equals(await calc.calculateNumeraireBalanceLPRatio(usdcBalance, quoteWeight, fxPHPBalance, baseWeight))
   })
 
-  it.skip('USDC-USD assimilator calculation tests', async () => {
-    const mockCurveAddress = adminAddress // illustrate calculation using current EOA account
+  it('USDC-USD assimilator calculation tests', async () => {
     const USDC_DECIMALS = ONE_TO_THE_SIX // assigning for reference purposes
     const usdcAssimilatorAddress = await testEnv.assimilatorFactory.usdcAssimilator()
     const usdcAssimilatorContract = await getUSDCAssimilatorContract(usdcAssimilatorAddress)
     const usdcRateFromAssimilator = await usdcAssimilatorContract.getRate()
-    const usdcBalance = await testEnv.USDC.balanceOf(adminAddress)
+    const usdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
     const baseWeight = await testEnv.mockABDK.mulu(parseUnits('0.5'), ONE_ETHER) // from ProportionalLiquidity line 106
     const quoteWeight = await testEnv.mockABDK.mulu(parseUnits('0.5'), ONE_ETHER) // from ProportionalLiquidity line 107
@@ -505,12 +597,11 @@ describe('Assimilators', () => {
     ).to.equals(await calc.calculateNumeraireAmount(INPUT_AMOUNT, usdcRateFromAssimilator, USDC_DECIMALS))
 
     expect(
-      await usdcAssimilatorContract.viewNumeraireBalance(/*mockCurveAddress, */ testEnv.vault.address, poolId),
+      await usdcAssimilatorContract.viewNumeraireBalance(testEnv.vault.address, poolId),
       'View numeraire balance calculation is incorrect'
     ).to.equals(await calc.calculateNumeraireBalance(usdcBalance, usdcRateFromAssimilator, USDC_DECIMALS))
 
     const { amount_, balance_ } = await usdcAssimilatorContract.viewNumeraireAmountAndBalance(
-      // mockCurveAddress,
       INPUT_AMOUNT,
       testEnv.vault.address,
       poolId
