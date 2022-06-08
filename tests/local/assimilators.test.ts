@@ -35,8 +35,6 @@ describe('XSGD-USDC Assimilator Tests', () => {
 
     fxPool = await deployFXPool(
       sortAddresses([testEnv.XSGD.address, testEnv.USDC.address]),
-      `${await getFutureTime()}`,
-      XSGDUSDCFxPool.unitSeconds,
       testEnv.vault.address,
       XSGDUSDCFxPool.percentFee,
       XSGDUSDCFxPool.name,
@@ -217,8 +215,6 @@ describe('EURS-USD Assimilator Tests', () => {
 
     fxPool = await deployFXPool(
       sortAddresses([testEnv.EURS.address, testEnv.USDC.address]),
-      `${await getFutureTime()}`,
-      EURSUSDCFxPool.unitSeconds,
       testEnv.vault.address,
       EURSUSDCFxPool.percentFee,
       EURSUSDCFxPool.name,
