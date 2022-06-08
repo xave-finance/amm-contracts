@@ -35,4 +35,7 @@ export const ONE_ETHER: BigNumber = parseEther('1')
 
 export enum CONTRACT_REVERT {
   Ownable = 'Ownable: caller is not the owner',
+  CapLimit = 'FXPool/amount-beyond-set-cap',
+  CapLessThanLiquidity = 'FXPool/cap-is-not-greater-than-total-liquidity',
+  Paused = 'Pausable: paused',
 }
