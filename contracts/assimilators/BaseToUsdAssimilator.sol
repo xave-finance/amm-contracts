@@ -56,7 +56,7 @@ contract BaseToUsdAssimilator is IAssimilator {
     function intakeRawAndGetBalance(uint256 _amount) external override returns (int128 amount_, int128 balance_) {
         bool _transferSuccess = baseToken.transferFrom(msg.sender, address(this), _amount);
 
-        require(_transferSuccess, 'Curve/baseToken-transfer-from-failed');
+        require(_transferSuccess, 'BaseAssimilator/baseToken-transfer-from-failed');
 
         uint256 _balance = baseToken.balanceOf(address(this));
 
@@ -71,7 +71,7 @@ contract BaseToUsdAssimilator is IAssimilator {
     function intakeRaw(uint256 _amount) external override returns (int128 amount_) {
         bool _transferSuccess = baseToken.transferFrom(msg.sender, address(this), _amount);
 
-        require(_transferSuccess, 'Curve/baseToken-transfer-from-failed');
+        require(_transferSuccess, 'BaseAssimilator/baseToken-transfer-from-failed');
 
         uint256 _rate = getRate();
 
@@ -86,7 +86,7 @@ contract BaseToUsdAssimilator is IAssimilator {
 
         bool _transferSuccess = baseToken.transferFrom(msg.sender, address(this), amount_);
 
-        require(_transferSuccess, 'Curve/baseToken-transfer-from-failed');
+        require(_transferSuccess, 'BaseAssimilator/baseToken-transfer-from-failed');
     }
 
     // takes a numeraire amount, calculates the raw amount of baseToken, transfers it in and returns the corresponding raw amount
@@ -113,7 +113,7 @@ contract BaseToUsdAssimilator is IAssimilator {
 
         bool _transferSuccess = baseToken.transferFrom(msg.sender, address(this), amount_);
 
-        require(_transferSuccess, 'Curve/baseToken-transfer-from-failed');
+        require(_transferSuccess, 'BaseAssimilator/baseToken-transfer-from-failed');
     }
 
     // takes a raw amount of baseToken and transfers it out, returns numeraire value of the raw amount
@@ -128,7 +128,7 @@ contract BaseToUsdAssimilator is IAssimilator {
 
         bool _transferSuccess = baseToken.transfer(_dst, _baseTokenAmount);
 
-        require(_transferSuccess, 'Curve/baseToken-transfer-failed');
+        require(_transferSuccess, 'BaseAssimilator/baseToken-transfer-failed');
 
         uint256 _balance = baseToken.balanceOf(address(this));
 
@@ -145,7 +145,7 @@ contract BaseToUsdAssimilator is IAssimilator {
 
         bool _transferSuccess = baseToken.transfer(_dst, _baseTokenAmount);
 
-        require(_transferSuccess, 'Curve/baseToken-transfer-failed');
+        require(_transferSuccess, 'BaseAssimilator/baseToken-transfer-failed');
 
         amount_ = _baseTokenAmount.divu(baseDecimals);
     }
@@ -158,7 +158,7 @@ contract BaseToUsdAssimilator is IAssimilator {
 
         bool _transferSuccess = baseToken.transfer(_dst, amount_);
 
-        require(_transferSuccess, 'Curve/baseToken-transfer-failed');
+        require(_transferSuccess, 'BaseAssimilator/baseToken-transfer-failed');
     }
 
     // takes a numeraire amount and returns the raw amount

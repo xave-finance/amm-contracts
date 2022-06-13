@@ -29,8 +29,8 @@ library FXSwaps {
         Storage.Assimilator memory o_ = curve.assimilators[_o];
         Storage.Assimilator memory t_ = curve.assimilators[_t];
 
-        require(o_.addr != address(0), 'Curve/origin-not-supported');
-        require(t_.addr != address(0), 'Curve/target-not-supported');
+        require(o_.addr != address(0), 'FxSwaps/origin-not-supported');
+        require(t_.addr != address(0), 'FxSwaps/target-not-supported');
 
         return (o_, t_);
     }

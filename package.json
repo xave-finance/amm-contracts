@@ -28,7 +28,8 @@
     "recompile": "rm -rf artifacts && rm -rf cache && yarn compile-fix",
     "load-balancer-contracts": "sh scripts/shell/load-balancer-contracts.sh",
     "compile-fix": "TS_NODE_TRANSPILE_ONLY=1 npx hardhat compile",
-    "bootstrap-local": "yarn hardhat run scripts/bootstrapLocal.ts --network localhost"
+    "bootstrap-local": "yarn hardhat run scripts/bootstrapLocal.ts --network localhost",
+    "slither:fxpool": "slither contracts/FXPool.sol --solc-remaps @=node_modules/@"
   },
   "devDependencies": {
     "@balancer-labs/v2-deployments": "^1.1.1",
@@ -76,7 +77,7 @@
     "inquirer": "^8.2.0",
     "lodash": "^4.17.21",
     "open": "^8.3.0",
-    "solidity-coverage": "^0.7.17",
+    "solidity-coverage": "^0.7.21",
     "truffle-plugin-verify": "^0.5.16",
     "typechain": "^5.2.0"
   }

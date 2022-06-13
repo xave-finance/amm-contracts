@@ -7,6 +7,7 @@ import '@nomiclabs/hardhat-etherscan'
 import '@nomiclabs/hardhat-ethers'
 import 'hardhat-gas-reporter'
 import 'hardhat-tracer'
+import 'solidity-coverage'
 //import '@tenderly/hardhat-tenderly'
 
 import initializePoolTasks from './scripts/pool-actions/'

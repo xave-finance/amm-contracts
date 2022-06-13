@@ -173,7 +173,7 @@ library CurveMath {
             }
         }
 
-        revert('Curve/swap-convergence-failed');
+        revert('CurveMath/swap-convergence-failed');
     }
 
     function calculateLiquidityMembrane(
@@ -232,7 +232,7 @@ library CurveMath {
 
         int128 _diff = _nextUtil - _prevUtil;
 
-        require(0 < _diff || _diff >= MAX_DIFF, 'Curve/swap-invariant-violation');
+        require(0 < _diff || _diff >= MAX_DIFF, 'CurveMath/swap-invariant-violation');
     }
 
     function enforceLiquidityInvariant(
@@ -251,7 +251,7 @@ library CurveMath {
 
         int128 _diff = _nextUtilPerShell - _prevUtilPerShell;
 
-        require(0 < _diff || _diff >= MAX_DIFF, 'Curve/liquidity-invariant-violation');
+        require(0 < _diff || _diff >= MAX_DIFF, 'CurveMath/liquidity-invariant-violation');
     }
 
     function enforceHalts(
@@ -277,10 +277,10 @@ library CurveMath {
                     int128 _oHalt = _oGLiq.mul(_weights[i]).mul(_upperAlpha);
 
                     if (_oBals[i] < _oHalt) {
-                        revert('Curve/upper-halt');
+                        revert('CurveMath/upper-halt');
                     }
                     if (_nBals[i] - _nHalt > _oBals[i] - _oHalt) {
-                        revert('Curve/upper-halt');
+                        revert('CurveMath/upper-halt');
                     }
                 }
             } else {
@@ -293,10 +293,10 @@ library CurveMath {
                     _oHalt = _oHalt.mul(_lowerAlpha);
 
                     if (_oBals[i] > _oHalt) {
-                        revert('Curve/lower-halt');
+                        revert('CurveMath/lower-halt');
                     }
                     if (_nHalt - _nBals[i] > _oHalt - _oBals[i]) {
-                        revert('Curve/lower-halt');
+                        revert('CurveMath/lower-halt');
                     }
                 }
             }
