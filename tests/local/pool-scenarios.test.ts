@@ -11,17 +11,28 @@ import { sortAddresses } from '../../scripts/utils/sortAddresses'
 import * as swaps from '../common/helpers/swap'
 import { Contract } from 'ethers'
 import { depositTestCases, swapTestCases } from '../constants/scenarios'
+import { FXPool } from '../../typechain/FXPool'
+import { fxPHPUSDCFxPool, XSGDUSDCFxPool } from '../constants/mockPoolList'
+import { getFxPoolContract } from '../common/contractGetters'
 
 describe('FXPool Test Cases', () => {
   let testEnv: TestEnv
   let admin: Signer
   let notOwner: Signer
   let adminAddress: string
-  let poolId: string
 
   let fxPHPAssimilatorAddress: string
   let usdcAssimilatorAddress: string
-  let sortedAddresses: string[]
+  let xsgdAssimilatorAddress: string
+  let sortedAddressesFXPHP: string[]
+  let sortedAddressesXSGD: string[]
+  let fxPoolFXPHPAddress: string
+  let fxPoolXSGDAddress: string
+  let fxPoolFXPHPPoolId: string
+  let fxPoolXSGDPoolId: string
+
+  let fxPoolFXPHP: FXPool
+  let fxPoolXSGD: FXPool
 
   const ALPHA = parseUnits('0.8')
   const BETA = parseUnits('0.5')
@@ -49,19 +60,63 @@ describe('FXPool Test Cases', () => {
       parseUnits('1', `${mockToken[3].decimal}`),
       testEnv.fxPHPOracle.address
     )
-    // 2 - get Pool Id
-    poolId = await testEnv.fxPool.getPoolId()
 
-    // 3 - getAssimilators
+    await testEnv.assimilatorFactory.newBaseAssimilator(
+      testEnv.XSGD.address,
+      parseUnits('1', `${mockToken[1].decimal}`),
+      testEnv.XSGDOracle.address
+    )
+
+    // 2 - getAssimilators
     fxPHPAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.fxPHP.address)
     usdcAssimilatorAddress = await testEnv.assimilatorFactory.usdcAssimilator()
+    xsgdAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.XSGD.address)
 
-    // 4 - sortedAddress references
+    // 3 - sortedAddress references
+    sortedAddressesFXPHP = sortAddresses([testEnv.fxPHP.address, testEnv.USDC.address])
+    sortedAddressesXSGD = sortAddresses([testEnv.XSGD.address, testEnv.USDC.address])
 
-    sortedAddresses = sortAddresses([await testEnv.fxPHP.address, await testEnv.USDC.address])
+    // 4 - get vault instance
+    contract_vault = await testEnv.vault
 
-    contract_vault = await ethers.getContractAt('Vault', testEnv.vault.address)
-    await testEnv.fxPool.initialize(
+    // 5 - deploy fxPools
+    await testEnv.fxPoolFactory.newFXPool(
+      fxPHPUSDCFxPool.name,
+      fxPHPUSDCFxPool.symbol,
+      fxPHPUSDCFxPool.percentFee,
+      contract_vault.address,
+      sortedAddressesFXPHP
+    )
+
+    await testEnv.fxPoolFactory.newFXPool(
+      XSGDUSDCFxPool.name,
+      XSGDUSDCFxPool.symbol,
+      XSGDUSDCFxPool.percentFee,
+      contract_vault.address,
+      sortedAddressesXSGD
+    )
+
+    // 6 - get fxpool instances
+    fxPoolFXPHPAddress = await testEnv.fxPoolFactory.getFxPool(sortedAddressesFXPHP)
+    fxPoolXSGDAddress = await testEnv.fxPoolFactory.getFxPool(sortedAddressesXSGD)
+
+    fxPoolFXPHP = await getFxPoolContract(
+      fxPoolFXPHPAddress,
+      testEnv.proportionalLiquidity.address,
+      testEnv.fxSwaps.address
+    )
+    fxPoolXSGD = await getFxPoolContract(
+      fxPoolXSGDAddress,
+      testEnv.proportionalLiquidity.address,
+      testEnv.fxSwaps.address
+    )
+
+    fxPoolFXPHPPoolId = await fxPoolFXPHP.getPoolId()
+    fxPoolXSGDPoolId = await fxPoolXSGD.getPoolId()
+
+    // 7 - initialized and set curve params
+
+    await fxPoolFXPHP.initialize(
       [
         testEnv.fxPHP.address,
         fxPHPAssimilatorAddress,
@@ -77,9 +132,30 @@ describe('FXPool Test Cases', () => {
       [baseWeight, quoteWeight]
     )
 
-    await testEnv.fxPool.setParams(ALPHA, BETA, MAX, EPSILON, LAMBDA)
+    await fxPoolFXPHP.setParams(ALPHA, BETA, MAX, EPSILON, LAMBDA)
+
+    // Note for XSGD: same params for now, we can make another set of constant params after
+    await fxPoolXSGD.initialize(
+      [
+        testEnv.XSGD.address,
+        fxPHPAssimilatorAddress,
+        testEnv.XSGD.address,
+        fxPHPAssimilatorAddress,
+        testEnv.XSGD.address,
+        testEnv.USDC.address,
+        usdcAssimilatorAddress,
+        testEnv.USDC.address,
+        usdcAssimilatorAddress,
+        testEnv.USDC.address,
+      ],
+      [baseWeight, quoteWeight]
+    )
+
+    await fxPoolXSGD.setParams(ALPHA, BETA, MAX, EPSILON, LAMBDA)
+
     // addtl mint
     await testEnv.fxPHP.mint(adminAddress, parseUnits('10000000000'))
+    await testEnv.XSGD.mint(adminAddress, parseUnits('10000000000'))
     await testEnv.USDC.mint(adminAddress, parseUnits('10000000000', 6))
   })
 
@@ -89,7 +165,7 @@ describe('FXPool Test Cases', () => {
 
     let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
 
-    const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+    const beforeLpBalance = await fxPoolFXPHP.balanceOf(adminAddress)
     const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
@@ -113,18 +189,18 @@ describe('FXPool Test Cases', () => {
 
     //  console.log(amountsIn)
     // Actual deposit `joinPool()` request
-    let sortedAmounts: BigNumber[] = sortDataLikeVault(sortedAddresses, fxPHPAddress, amountsIn)
+    let sortedAmounts: BigNumber[] = sortDataLikeVault(sortedAddressesFXPHP, fxPHPAddress, amountsIn)
 
     const payload = ethers.utils.defaultAbiCoder.encode(
       ['uint256[]', 'address[]'],
-      [[amountsIn[0], amountsIn[1]], sortedAddresses]
+      [[amountsIn[0], amountsIn[1]], sortedAddressesFXPHP]
     )
 
     console.log('USDC IN: ', amountsIn[0])
     console.log('fxPHP In: ', amountsIn[1])
 
-    const sortedAmountsIn = sortDataLikeVault(sortedAddresses, fxPHPAddress, [amountsIn[0], amountsIn[1]])
-    const sortedDecimals = sortDataLikeVault(sortedAddresses, fxPHPAddress, [fxPHPDecimals, usdcDecimals])
+    const sortedAmountsIn = sortDataLikeVault(sortedAddressesFXPHP, fxPHPAddress, [amountsIn[0], amountsIn[1]])
+    const sortedDecimals = sortDataLikeVault(sortedAddressesFXPHP, fxPHPAddress, [fxPHPDecimals, usdcDecimals])
 
     const maxAmountsIn = [
       parseUnits(sortedAmountsIn[0].toString(), sortedDecimals[0]),
@@ -135,23 +211,20 @@ describe('FXPool Test Cases', () => {
     // console.log(`Deposit [${i}] joinPool maxAmountsIn: `, maxAmountsIn.toString())
 
     const joinPoolRequest = {
-      assets: sortedAddresses,
+      assets: sortedAddressesFXPHP,
       maxAmountsIn,
       userData: payload,
       fromInternalBalance: false,
     }
 
-    await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.emit(
-      testEnv.fxPool,
+    await expect(testEnv.vault.joinPool(fxPoolFXPHPPoolId, adminAddress, adminAddress, joinPoolRequest)).to.emit(
+      fxPoolFXPHP,
       'OnJoinPool'
     )
 
-    // expect(await testEnv.fxPool.balanceOf(adminAddress)).to.equals(parseUnits('4000'))
-
-    //    .withArgs(poolId, estimatedLptAmount, [estimatedAmountsIn[0], estimatedAmountsIn[1]])
     const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const afterVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
-    console.log('LP: Balance: ', await testEnv.fxPool.balanceOf(adminAddress))
+    console.log('LP: Balance: ', await fxPoolFXPHP.balanceOf(adminAddress))
     console.log('USDC: ', afterVaultUsdcBalance)
     console.log('fxPHP: ', afterVaultfxPhpBalance)
   })
@@ -162,7 +235,7 @@ describe('FXPool Test Cases', () => {
 
     let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
 
-    const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+    const beforeLpBalance = await fxPoolFXPHP.balanceOf(adminAddress)
     const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
@@ -186,18 +259,18 @@ describe('FXPool Test Cases', () => {
 
     //  console.log(amountsIn)
     // Actual deposit `joinPool()` request
-    let sortedAmounts: BigNumber[] = sortDataLikeVault(sortedAddresses, fxPHPAddress, amountsIn)
+    let sortedAmounts: BigNumber[] = sortDataLikeVault(sortedAddressesFXPHP, fxPHPAddress, amountsIn)
 
     const payload = ethers.utils.defaultAbiCoder.encode(
       ['uint256[]', 'address[]'],
-      [[amountsIn[0], amountsIn[1]], sortedAddresses]
+      [[amountsIn[0], amountsIn[1]], sortedAddressesFXPHP]
     )
 
     console.log('USDC IN: ', amountsIn[0])
     console.log('fxPHP: ', amountsIn[1])
 
-    const sortedAmountsIn = sortDataLikeVault(sortedAddresses, fxPHPAddress, [amountsIn[0], amountsIn[1]])
-    const sortedDecimals = sortDataLikeVault(sortedAddresses, fxPHPAddress, [fxPHPDecimals, usdcDecimals])
+    const sortedAmountsIn = sortDataLikeVault(sortedAddressesFXPHP, fxPHPAddress, [amountsIn[0], amountsIn[1]])
+    const sortedDecimals = sortDataLikeVault(sortedAddressesFXPHP, fxPHPAddress, [fxPHPDecimals, usdcDecimals])
 
     const maxAmountsIn = [
       parseUnits(sortedAmountsIn[0].toString(), sortedDecimals[0]),
@@ -208,14 +281,14 @@ describe('FXPool Test Cases', () => {
     // console.log(`Deposit [${i}] joinPool maxAmountsIn: `, maxAmountsIn.toString())
 
     const joinPoolRequest = {
-      assets: sortedAddresses,
+      assets: sortedAddressesFXPHP,
       maxAmountsIn,
       userData: payload,
       fromInternalBalance: false,
     }
 
-    await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.emit(
-      testEnv.fxPool,
+    await expect(testEnv.vault.joinPool(fxPoolFXPHPPoolId, adminAddress, adminAddress, joinPoolRequest)).to.emit(
+      fxPoolFXPHP,
       'OnJoinPool'
     )
 
@@ -224,7 +297,7 @@ describe('FXPool Test Cases', () => {
     //    .withArgs(poolId, estimatedLptAmount, [estimatedAmountsIn[0], estimatedAmountsIn[1]])
     const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const afterVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
-    console.log('LP: Balance: ', await testEnv.fxPool.balanceOf(adminAddress))
+    console.log('LP: Balance: ', await fxPoolFXPHP.balanceOf(adminAddress))
     console.log('USDC: ', afterVaultUsdcBalance)
     console.log('fxPHP: ', afterVaultfxPhpBalance)
   })
@@ -254,6 +327,7 @@ describe('FXPool Test Cases', () => {
       fxPHPDecimals, // specify token in decimals
       adminAddress,
       adminAddress, // the account swapping should get the output tokens
+      fxPoolFXPHP,
       testEnv,
       false
     )
@@ -275,7 +349,7 @@ describe('FXPool Test Cases', () => {
 
     let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
 
-    const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+    const beforeLpBalance = await fxPoolFXPHP.balanceOf(adminAddress)
     const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
@@ -299,18 +373,18 @@ describe('FXPool Test Cases', () => {
 
     //  console.log(amountsIn)
     // Actual deposit `joinPool()` request
-    let sortedAmounts: BigNumber[] = sortDataLikeVault(sortedAddresses, fxPHPAddress, amountsIn)
+    let sortedAmounts: BigNumber[] = sortDataLikeVault(sortedAddressesFXPHP, fxPHPAddress, amountsIn)
 
     const payload = ethers.utils.defaultAbiCoder.encode(
       ['uint256[]', 'address[]'],
-      [[amountsIn[0], amountsIn[1]], sortedAddresses]
+      [[amountsIn[0], amountsIn[1]], sortedAddressesFXPHP]
     )
 
     console.log('USDC IN: ', amountsIn[0])
     console.log('fxPHP: ', amountsIn[1])
 
-    const sortedAmountsIn = sortDataLikeVault(sortedAddresses, fxPHPAddress, [amountsIn[0], amountsIn[1]])
-    const sortedDecimals = sortDataLikeVault(sortedAddresses, fxPHPAddress, [fxPHPDecimals, usdcDecimals])
+    const sortedAmountsIn = sortDataLikeVault(sortedAddressesFXPHP, fxPHPAddress, [amountsIn[0], amountsIn[1]])
+    const sortedDecimals = sortDataLikeVault(sortedAddressesFXPHP, fxPHPAddress, [fxPHPDecimals, usdcDecimals])
 
     const maxAmountsIn = [
       parseUnits(sortedAmountsIn[0].toString(), sortedDecimals[0]),
@@ -321,14 +395,14 @@ describe('FXPool Test Cases', () => {
     // console.log(`Deposit [${i}] joinPool maxAmountsIn: `, maxAmountsIn.toString())
 
     const joinPoolRequest = {
-      assets: sortedAddresses,
+      assets: sortedAddressesFXPHP,
       maxAmountsIn,
       userData: payload,
       fromInternalBalance: false,
     }
 
-    await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.emit(
-      testEnv.fxPool,
+    await expect(testEnv.vault.joinPool(fxPoolFXPHPPoolId, adminAddress, adminAddress, joinPoolRequest)).to.emit(
+      fxPoolFXPHP,
       'OnJoinPool'
     )
 
@@ -336,7 +410,7 @@ describe('FXPool Test Cases', () => {
     //    .withArgs(poolId, estimatedLptAmount, [estimatedAmountsIn[0], estimatedAmountsIn[1]])
     const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const afterVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
-    console.log('LP: Balance: ', await testEnv.fxPool.balanceOf(adminAddress))
+    console.log('LP: Balance: ', await fxPoolFXPHP.balanceOf(adminAddress))
     console.log('USDC: ', afterVaultUsdcBalance)
     console.log('fxPHP: ', afterVaultfxPhpBalance)
   })
@@ -366,6 +440,7 @@ describe('FXPool Test Cases', () => {
       fxPHPDecimals, // specify token in decimals
       adminAddress,
       adminAddress, // the account swapping should get the output tokens
+      fxPoolFXPHP,
       testEnv,
       false
     )
@@ -387,7 +462,7 @@ describe('FXPool Test Cases', () => {
 
     let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
 
-    const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+    const beforeLpBalance = await fxPoolFXPHP.balanceOf(adminAddress)
     const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
@@ -411,18 +486,18 @@ describe('FXPool Test Cases', () => {
 
     //  console.log(amountsIn)
     // Actual deposit `joinPool()` request
-    let sortedAmounts: BigNumber[] = sortDataLikeVault(sortedAddresses, fxPHPAddress, amountsIn)
+    let sortedAmounts: BigNumber[] = sortDataLikeVault(sortedAddressesFXPHP, fxPHPAddress, amountsIn)
 
     const payload = ethers.utils.defaultAbiCoder.encode(
       ['uint256[]', 'address[]'],
-      [[amountsIn[0], amountsIn[1]], sortedAddresses]
+      [[amountsIn[0], amountsIn[1]], sortedAddressesFXPHP]
     )
 
     console.log('USDC IN: ', amountsIn[0])
     console.log('fxPHP: ', amountsIn[1])
 
-    const sortedAmountsIn = sortDataLikeVault(sortedAddresses, fxPHPAddress, [amountsIn[0], amountsIn[1]])
-    const sortedDecimals = sortDataLikeVault(sortedAddresses, fxPHPAddress, [fxPHPDecimals, usdcDecimals])
+    const sortedAmountsIn = sortDataLikeVault(sortedAddressesFXPHP, fxPHPAddress, [amountsIn[0], amountsIn[1]])
+    const sortedDecimals = sortDataLikeVault(sortedAddressesFXPHP, fxPHPAddress, [fxPHPDecimals, usdcDecimals])
 
     const maxAmountsIn = [
       parseUnits(sortedAmountsIn[0].toString(), sortedDecimals[0]),
@@ -433,14 +508,14 @@ describe('FXPool Test Cases', () => {
     // console.log(`Deposit [${i}] joinPool maxAmountsIn: `, maxAmountsIn.toString())
 
     const joinPoolRequest = {
-      assets: sortedAddresses,
+      assets: sortedAddressesFXPHP,
       maxAmountsIn,
       userData: payload,
       fromInternalBalance: false,
     }
 
-    await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.emit(
-      testEnv.fxPool,
+    await expect(testEnv.vault.joinPool(fxPoolFXPHPPoolId, adminAddress, adminAddress, joinPoolRequest)).to.emit(
+      fxPoolFXPHP,
       'OnJoinPool'
     )
 
@@ -448,7 +523,7 @@ describe('FXPool Test Cases', () => {
     //    .withArgs(poolId, estimatedLptAmount, [estimatedAmountsIn[0], estimatedAmountsIn[1]])
     const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
     const afterVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
-    console.log('LP: Balance: ', await testEnv.fxPool.balanceOf(adminAddress))
+    console.log('LP: Balance: ', await fxPoolFXPHP.balanceOf(adminAddress))
     console.log('USDC: ', afterVaultUsdcBalance)
     console.log('fxPHP: ', afterVaultfxPhpBalance)
   })
@@ -477,7 +552,8 @@ describe('FXPool Test Cases', () => {
       fxPHPAmountToSwapInEther,
       fxPHPDecimals, // specify token in decimals
       adminAddress,
-      adminAddress, // the account swapping should get the output tokens
+      adminAddress, // the account swapping should get the output token
+      fxPoolFXPHP,
       testEnv,
       false
     )

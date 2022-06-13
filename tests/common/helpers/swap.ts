@@ -1,7 +1,7 @@
 import { TestEnv } from '../..//common/setupEnvironment'
 import { ethers } from 'hardhat'
 import * as types from '../..//common/types/types'
-import { BigNumber, BytesLike } from 'ethers'
+import { BigNumber, BigNumberish, BytesLike } from 'ethers'
 import { parseUnits } from '@ethersproject/units'
 import { FXPool } from '../../../typechain/FXPool'
 
