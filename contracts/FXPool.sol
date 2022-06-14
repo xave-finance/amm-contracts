@@ -14,6 +14,8 @@ import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {Pausable} from '@openzeppelin/contracts/utils/Pausable.sol';
 import {ReentrancyGuard} from '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
 
+import 'hardhat/console.sol';
+
 // check bptOut
 contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, ReentrancyGuard, Pausable {
     using ABDKMath64x64 for int128;
@@ -22,6 +24,8 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     // The percent of each trade's implied yield to collect as LP fee
     uint256 public immutable percentFee;
     int128 private constant ONE_WEI = 0x12;
+    address public collectorAddress = address(0);
+    uint256 public totalUnclaimedFeesInNumeraire = 0;
 
     struct SwapData {
         address originAddress;
@@ -41,6 +45,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         address assimilator
     );
     event EmergencyAlarm(bool isEmergency);
+    event ChangeCollectorAddress(address newCollector);
     event OnJoinPool(bytes32 poolId, uint256 lptAmountMinted, uint256[] amountsDeposited);
     event OnExitPool(bytes32 poolId, uint256 lptAmountBurned, uint256[] amountsWithdrawn);
     event Trade(
@@ -50,6 +55,8 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256 originAmount,
         uint256 targetAmount
     );
+    event FeesCollected(address recipient, uint256 feesCollected);
+    event FeesAccrued(uint256 feesCollected);
 
     modifier deadline(uint256 _deadline) {
         require(block.timestamp < _deadline, 'FXPool/tx-deadline-passed');
@@ -258,6 +265,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
         bool isTargetSwap = swapRequest.kind == IVault.SwapKind.GIVEN_OUT;
         SwapData memory data;
+        int128 fees;
 
         if (isTargetSwap) {
             // unpack swapRequest from external caller (FE or another contract)
@@ -269,7 +277,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
                 0
             );
 
-            data.outputAmount = FXSwaps.viewTargetSwap(
+            (data.outputAmount, fees) = FXSwaps.viewTargetSwap(
                 curve,
                 data.originAddress,
                 data.targetAddress,
@@ -285,7 +293,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
                 0
             );
 
-            data.outputAmount = FXSwaps.viewOriginSwap(
+            (data.outputAmount, fees) = FXSwaps.viewOriginSwap(
                 curve,
                 data.originAddress,
                 data.targetAddress,
@@ -293,6 +301,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             );
         }
 
+        _calculateAndStorePoolFee(fees);
         emit Trade(msg.sender, data.originAddress, data.targetAddress, data.originAmount, data.outputAmount);
         return data.outputAmount;
     }
@@ -344,7 +353,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             dueProtocolFeeAmounts[0] = 0;
             dueProtocolFeeAmounts[1] = 0;
         }
-
+        _mintProtocolFees();
         emit OnJoinPool(poolId, lpTokens, amountToDeposit);
     }
 
@@ -392,12 +401,14 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             dueProtocolFeeAmounts[1] = 0;
         }
 
+        _mintProtocolFees();
         emit OnExitPool(poolId, tokensToBurn, amountToWithdraw);
     }
 
     // ADMIN AND ACCESS CONTROL FUNCTIONS
     /// @notice Governance sets someone's pause status, enable only withdraw
 
+    // SETTERS
     function setPaused() external onlyOwner {
         bool currentStatus = paused();
 
@@ -419,16 +430,30 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     /// @notice Set emergency alarm
     /// @param _emergency turn on or off
     function setEmergency(bool _emergency) external onlyOwner {
-        emit EmergencyAlarm(_emergency);
-
         emergency = _emergency;
+        emit EmergencyAlarm(_emergency);
     }
+
+    /// @notice Change collector address
+    /// @param _collectorAddress collector's new address
+    function setCollectorAddress(address _collectorAddress) external onlyOwner {
+        collectorAddress = _collectorAddress;
+        emit ChangeCollectorAddress(_collectorAddress);
+    }
+
+    // UTILITY VIEW FUNCTIONS
 
     /// @notice views the total amount of liquidity in the curve in numeraire value and format - 18 decimals
     /// @return total_ the total value in the curve
     /// @return individual_ the individual values in the curve
     function liquidity() public view returns (uint256 total_, uint256[] memory individual_) {
         return ProportionalLiquidity.viewLiquidity(curve);
+    }
+
+    /// @notice view the assimilator address for a derivative
+    /// @return assimilator_ the assimilator address
+    function assimilator(address _derivative) public view returns (address assimilator_) {
+        assimilator_ = curve.assimilators[_derivative].addr;
     }
 
     /// @notice view LP tokens and token needed for deposit
@@ -446,6 +471,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         return ProportionalLiquidity.viewProportionalWithdraw(curve, _curvesToBurn, address(curve.vault), curve.poolId);
     }
 
+    // INTERNAL LOGIC FUNCTIONS
     /// @dev convert tokens to numeraire value
     function _convertToNumeraire(uint256 tokenAmount, uint256 tokenPosition) internal view returns (uint256) {
         int128 numeraireAmount = Assimilators.viewNumeraireAmount(curve.assets[tokenPosition].addr, tokenAmount);
@@ -475,9 +501,23 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         require(total + _amount < curve.cap, 'FXPool/amount-beyond-set-cap');
     }
 
-    /// @notice view the assimilator address for a derivative
-    /// @return assimilator_ the assimilator address
-    function assimilator(address _derivative) public view returns (address assimilator_) {
-        assimilator_ = curve.assimilators[_derivative].addr;
+    function _calculateAndStorePoolFee(int128 fees) private {
+        // added 1e18 to convert to wei
+        uint256 feesToAdd = ABDKMath64x64.toUInt(fees.add(curve.epsilon) * 1e18);
+        console.log('FEES CHECK: ', ABDKMath64x64.toUInt(fees));
+        console.log('Fees to add:', feesToAdd);
+        totalUnclaimedFeesInNumeraire += feesToAdd;
+
+        emit FeesAccrued(feesToAdd);
+    }
+
+    function _mintProtocolFees() private {
+        // todo: bring back
+        //  require(collectorAddress != address(0), 'FXPool/fee-collector-not-set');
+        uint256 feesToCollect = totalUnclaimedFeesInNumeraire;
+        totalUnclaimedFeesInNumeraire = 0;
+        BalancerPoolToken._mintPoolTokens(collectorAddress, feesToCollect);
+
+        emit FeesCollected(collectorAddress, feesToCollect);
     }
 }

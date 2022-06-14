@@ -39,11 +39,12 @@ library FXSwaps {
         address _origin,
         address _target,
         uint256 _originAmount
-    ) external view returns (uint256 tAmt_) {
+    ) external view returns (uint256 tAmt_, int128 accruedFees_) {
         (Storage.Assimilator memory _o, Storage.Assimilator memory _t) = getOriginAndTarget(curve, _origin, _target);
 
+        // TODO: discuss placement of zero. explanation: no additional fees since fee calculation is in line 57
         if (_o.ix == _t.ix)
-            return Assimilators.viewRawAmount(_t.addr, Assimilators.viewNumeraireAmount(_o.addr, _originAmount));
+            return (Assimilators.viewRawAmount(_t.addr, Assimilators.viewNumeraireAmount(_o.addr, _originAmount)), 0);
 
         (
             int128 _amt,
@@ -53,7 +54,7 @@ library FXSwaps {
             int128[] memory _oBals
         ) = viewOriginSwapData(curve, _o.ix, _t.ix, _originAmount, _o.addr);
 
-        _amt = CurveMath.calculateTrade(curve, _oGLiq, _nGLiq, _oBals, _nBals, _amt, _t.ix);
+        (_amt, accruedFees_) = CurveMath.calculateTrade(curve, _oGLiq, _nGLiq, _oBals, _nBals, _amt, _t.ix);
 
         _amt = _amt.us_mul(ONE - curve.epsilon);
 
@@ -65,11 +66,11 @@ library FXSwaps {
         address _origin,
         address _target,
         uint256 _targetAmount
-    ) external view returns (uint256 oAmt_) {
+    ) external view returns (uint256 oAmt_, int128 accruedFees_) {
         (Storage.Assimilator memory _o, Storage.Assimilator memory _t) = getOriginAndTarget(curve, _origin, _target);
-
+        // TODO: discuss placement of zero. explanation: no additional fees since fee calculation is in line 73
         if (_o.ix == _t.ix)
-            return Assimilators.viewRawAmount(_o.addr, Assimilators.viewNumeraireAmount(_t.addr, _targetAmount));
+            return (Assimilators.viewRawAmount(_o.addr, Assimilators.viewNumeraireAmount(_t.addr, _targetAmount)), 0);
 
         // If the origin is the quote currency (i.e. usdc)
         // we need to make sure to massage the _targetAmount
@@ -92,7 +93,7 @@ library FXSwaps {
             int128[] memory _oBals
         ) = viewTargetSwapData(curve, _t.ix, _o.ix, _targetAmount, _t.addr);
 
-        _amt = CurveMath.calculateTrade(curve, _oGLiq, _nGLiq, _oBals, _nBals, _amt, _o.ix);
+        (_amt, accruedFees_) = CurveMath.calculateTrade(curve, _oGLiq, _nGLiq, _oBals, _nBals, _amt, _o.ix);
 
         // If the origin is the quote currency (i.e. usdc)
         // we need to make sure to massage the _amt too

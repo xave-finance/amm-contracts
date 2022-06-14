@@ -10,6 +10,7 @@ import { calculateLptOutAndTokensIn, calculateOtherTokenIn } from '../common/hel
 import { sortAddresses } from '../../scripts/utils/sortAddresses'
 import * as swaps from '../common/helpers/swap'
 import { Contract } from 'ethers'
+import { formatEther } from 'ethers/lib/utils'
 
 describe('FXPool', () => {
   let testEnv: TestEnv
@@ -108,6 +109,7 @@ describe('FXPool', () => {
       .to.emit(testEnv.fxPool, 'AssimilatorIncluded')
 
     await expect(testEnv.fxPool.setParams(ALPHA, BETA, MAX, EPSILON, LAMBDA)).to.emit(testEnv.fxPool, 'ParametersSet')
+    await expect(testEnv.fxPool.setCollectorAddress(adminAddress)).to.emit(testEnv.fxPool, 'ChangeCollectorAddress')
     //  .withArgs(ALPHA, BETA, MAX, EPSILON, LAMBDA) - check delta calculation
   })
 
@@ -215,6 +217,8 @@ describe('FXPool', () => {
       await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest))
         .to.emit(testEnv.fxPool, 'OnJoinPool')
         .withArgs(poolId, estimatedLptAmount, [estimatedAmountsIn[0], estimatedAmountsIn[1]])
+        .to.emit(testEnv.fxPool, 'FeesCollected')
+        .withArgs(adminAddress, await testEnv.fxPool.totalUnclaimedFeesInNumeraire())
 
       const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
       const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
@@ -292,6 +296,8 @@ describe('FXPool', () => {
       await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest))
         .to.emit(testEnv.fxPool, 'OnJoinPool')
         .withArgs(poolId, estimatedLptAmount, [estimatedAmountsIn[0], estimatedAmountsIn[1]])
+        .to.emit(testEnv.fxPool, 'FeesCollected')
+        .withArgs(adminAddress, await testEnv.fxPool.totalUnclaimedFeesInNumeraire())
 
       const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
       const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
@@ -338,6 +344,8 @@ describe('FXPool', () => {
       await expect(testEnv.vault.exitPool(poolId, adminAddress, adminAddress, exitPoolRequest))
         .to.emit(testEnv.fxPool, 'OnExitPool')
         .withArgs(poolId, hlpTokensToBurninWei, [withdrawTokensOut[0], withdrawTokensOut[1]])
+        .to.emit(testEnv.fxPool, 'FeesCollected')
+        .withArgs(adminAddress, await testEnv.fxPool.totalUnclaimedFeesInNumeraire())
 
       const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
       const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
@@ -545,6 +553,10 @@ describe('FXPool', () => {
     expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.gt(afterTradeUSDCPoolBalance)
   })
 
+  it('totalUnclaimedFeesInNumeraire must be minted during onJoin or onExit', async () => {
+    console.log(formatEther(await testEnv.fxPool.totalUnclaimedFeesInNumeraire()))
+  })
+
   // it('Previews swap caclculation from the onSwap hook using queryBatchSwap() ', async () => {})
   // it('Previews swap caclculation when providing single sided liquidity from the onJoin and onExit hook', async () => {})
 
@@ -578,6 +590,12 @@ describe('FXPool', () => {
 
     // test using view deposit, it will fail if the pool is paused
     await expect(testEnv.fxPool.viewDeposit(userData)).to.be.revertedWith(CONTRACT_REVERT.Paused)
+  })
+
+  it('cannot set new collectorAddress if not owner', async () => {
+    await expect(testEnv.fxPool.connect(notOwner).setCollectorAddress(await notOwner.getAddress())).to.be.revertedWith(
+      CONTRACT_REVERT.Ownable
+    )
   })
 
   it('can unpause pool', async () => {

@@ -101,22 +101,27 @@ library CurveMath {
         int128[] memory _nBals,
         int128 _inputAmt,
         uint256 _outputIndex
-    ) internal view returns (int128 outputAmt_) {
+    ) internal view returns (int128 outputAmt_, int128 accruedFees_) {
         outputAmt_ = -_inputAmt;
 
-        int128 _lambda = curve.lambda;
+        // int128 _lambda = curve.lambda;
         int128[] memory _weights = curve.weights;
 
         int128 _omega = calculateFee(_oGLiq, _oBals, curve, _weights);
         int128 _psi;
 
         for (uint256 i = 0; i < 32; i++) {
-            _psi = calculateFee(_nGLiq, _nBals, curve, _weights);
+            {
+                _psi = calculateFee(_nGLiq, _nBals, curve, _weights);
+            }
 
             int128 prevAmount;
             {
                 prevAmount = outputAmt_;
-                outputAmt_ = _omega < _psi ? -(_inputAmt + _omega - _psi) : -(_inputAmt + _lambda.mul(_omega - _psi));
+                outputAmt_ = _omega < _psi
+                    ? -(_inputAmt + _omega - _psi)
+                    : -(_inputAmt + (curve.lambda).mul(_omega - _psi));
+                accruedFees_ = _omega < _psi ? _omega - _psi : (curve.lambda).mul(_omega - _psi);
             }
 
             if (outputAmt_ / 1e13 == prevAmount / 1e13) {
@@ -128,7 +133,7 @@ library CurveMath {
 
                 enforceSwapInvariant(_oGLiq, _omega, _nGLiq, _psi);
 
-                return outputAmt_;
+                return (outputAmt_, accruedFees_);
             } else {
                 _nGLiq = _oGLiq + _inputAmt + outputAmt_;
 
