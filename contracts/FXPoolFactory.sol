@@ -12,6 +12,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+pragma experimental ABIEncoderV2;
 
 pragma solidity ^0.7.3;
 
@@ -20,19 +21,32 @@ import '@balancer-labs/v2-vault/contracts/interfaces/IVault.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 
 contract FXPoolFactory is Ownable {
+    struct FXPoolData {
+        address poolAddress;
+        bytes32 poolId;
+    }
+
     /// @dev Event emitted after fx pool creation
     /// @param caller fxpool creator
     /// @param id fxpool id for the factory not poolId in balancer
     /// @param fxpool fxpool address
     event NewFXPool(address indexed caller, bytes32 indexed id, address indexed fxpool);
 
-    mapping(bytes32 => address) public pools;
+    mapping(bytes32 => FXPoolData[]) public pools;
 
-    /// @dev get fxpool address
-    /// @param _assetsToRegister array for assets to register. this must be in vault's order
-    function getFxPool(address[] memory _assetsToRegister) external view returns (address) {
+    /// @dev get the current active fxpool address, last index
+    /// @param _assets array for assets to register. this must be in vault's order
+    function getActiveFxPool(address[] memory _assets) external view returns (address) {
         // must follow balancer vault's ordering
-        bytes32 fxPoolId = keccak256(abi.encode(_assetsToRegister[0], _assetsToRegister[1]));
+        bytes32 fxPoolId = keccak256(abi.encode(_assets[0], _assets[1]));
+        return (pools[fxPoolId][pools[fxPoolId].length - 1].poolAddress);
+    }
+
+    /// @dev get the current active fxpool address
+    /// @param _assets array for assets to register. this must be in vault's order
+    function getFxPools(address[] memory _assets) external view returns (FXPoolData[] memory) {
+        // must follow balancer vault's ordering
+        bytes32 fxPoolId = keccak256(abi.encode(_assets[0], _assets[1]));
         return (pools[fxPoolId]);
     }
 
@@ -51,12 +65,14 @@ contract FXPoolFactory is Ownable {
     ) public onlyOwner returns (FXPool) {
         // must follow balancer vault's ordering
         bytes32 fxPoolId = keccak256(abi.encode(_assetsToRegister[0], _assetsToRegister[1]));
-        if (pools[fxPoolId] != address(0)) revert('FxPoolFactory/currency-pair-already-exists');
 
         // New curve
         FXPool fxpool = new FXPool(_assetsToRegister, vault, _percentFee, _name, _symbol);
         fxpool.transferOwnership(msg.sender);
-        pools[fxPoolId] = address(fxpool);
+        FXPoolData memory newFxPoolData;
+        newFxPoolData.poolAddress = address(fxpool);
+        newFxPoolData.poolId = fxpool.getPoolId();
+        pools[fxPoolId].push(newFxPoolData);
 
         emit NewFXPool(msg.sender, fxPoolId, address(fxpool));
 
