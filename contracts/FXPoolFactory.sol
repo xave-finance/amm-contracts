@@ -68,11 +68,14 @@ contract FXPoolFactory is Ownable {
 
         // New curve
         FXPool fxpool = new FXPool(_assetsToRegister, vault, _percentFee, _name, _symbol);
-        fxpool.transferOwnership(msg.sender);
+
         FXPoolData memory newFxPoolData;
         newFxPoolData.poolAddress = address(fxpool);
         newFxPoolData.poolId = fxpool.getPoolId();
+
         pools[fxPoolId].push(newFxPoolData);
+
+        fxpool.transferOwnership(msg.sender);
 
         emit NewFXPool(msg.sender, fxPoolId, address(fxpool));
 
