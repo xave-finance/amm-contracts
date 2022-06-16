@@ -62,7 +62,7 @@ contract FXPoolFactory is Ownable {
         uint256 _percentFee,
         IVault vault,
         address[] memory _assetsToRegister
-    ) public onlyOwner returns (FXPool) {
+    ) public onlyOwner returns (bytes32) {
         // must follow balancer vault's ordering
         bytes32 fxPoolId = keccak256(abi.encode(_assetsToRegister[0], _assetsToRegister[1]));
 
@@ -80,6 +80,6 @@ contract FXPoolFactory is Ownable {
 
         emit NewFXPool(msg.sender, balancerPoolId, address(fxpool));
 
-        return fxpool;
+        return balancerPoolId;
     }
 }
