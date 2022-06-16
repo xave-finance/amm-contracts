@@ -40,6 +40,7 @@ describe('FXPool', () => {
   const LAMBDA = parseUnits('0.3')
   const baseWeight = parseUnits('0.5')
   const quoteWeight = parseUnits('0.5')
+  const EXPECTED_POOLS_CREATED = 4
 
   const loopCount = 10
   const log = true // do console logging
@@ -81,7 +82,7 @@ describe('FXPool', () => {
       )
     ).to.emit(testEnv.fxPoolFactory, 'NewFXPool') // not withArgs, will assert in another test case
 
-    fxPoolAddress = await testEnv.fxPoolFactory.getFxPool(sortedAddresses)
+    fxPoolAddress = await testEnv.fxPoolFactory.getActiveFxPool(sortedAddresses)
     expect(fxPoolAddress).to.be.properAddress
 
     fxPool = await getFxPoolContract(fxPoolAddress, testEnv.proportionalLiquidity.address, testEnv.fxSwaps.address)
@@ -770,6 +771,65 @@ describe('FXPool', () => {
       await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.be.revertedWith(
         CONTRACT_REVERT.CapLimit
       )
+    }
+  })
+
+  it('creates new pools and use the last pool in the array as the active fxpool ', async () => {
+    // new pool #1 is the previously created pool
+
+    // new pool #2
+    await expect(
+      testEnv.fxPoolFactory.newFXPool(
+        fxPHPUSDCFxPool.name,
+        fxPHPUSDCFxPool.symbol,
+        fxPHPUSDCFxPool.percentFee,
+        contract_vault.address,
+        sortedAddresses
+      )
+    ).to.emit(testEnv.fxPoolFactory, 'NewFXPool')
+    // new pool #3
+    await expect(
+      testEnv.fxPoolFactory.newFXPool(
+        fxPHPUSDCFxPool.name,
+        fxPHPUSDCFxPool.symbol,
+        fxPHPUSDCFxPool.percentFee,
+        contract_vault.address,
+        sortedAddresses
+      )
+    ).to.emit(testEnv.fxPoolFactory, 'NewFXPool')
+    // new pool #4
+    await expect(
+      testEnv.fxPoolFactory.newFXPool(
+        fxPHPUSDCFxPool.name,
+        fxPHPUSDCFxPool.symbol,
+        fxPHPUSDCFxPool.percentFee,
+        contract_vault.address,
+        sortedAddresses
+      )
+    ).to.emit(testEnv.fxPoolFactory, 'NewFXPool')
+
+    const fxPhpPoolsArray = await testEnv.fxPoolFactory.getFxPools(sortedAddresses)
+    expect(fxPhpPoolsArray.length, 'Pools created must be equal to the expected pools created').to.be.equals(
+      EXPECTED_POOLS_CREATED
+    ) // 4 created pools until this line
+
+    expect(
+      fxPhpPoolsArray[EXPECTED_POOLS_CREATED - 1].poolAddress,
+      'Active address is not equal the last element of the array'
+    ).to.be.equals(await testEnv.fxPoolFactory.getActiveFxPool(sortedAddresses))
+
+    for await (const fxPoolData of fxPhpPoolsArray) {
+      console.log(`Checking if ${fxPoolData.poolAddress} is an fxPool contract`)
+      const fxPoolIteration = await getFxPoolContract(
+        fxPoolData.poolAddress,
+        testEnv.proportionalLiquidity.address,
+        testEnv.fxSwaps.address
+      )
+
+      expect(
+        await fxPoolIteration.getPoolId(),
+        'poolId in fxPoolFactory is not equal to poolId in fxPool'
+      ).to.be.equals(fxPoolData.poolId)
     }
   })
 })
