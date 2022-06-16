@@ -18,3 +18,20 @@ export const getUSDCAssimilatorContract = async (assimilatorAddress: string): Pr
 
   return usdcAssimilator as UsdcToUsdAssimilator
 }
+
+export const getFxPoolContract = async (
+  fxPoolAddress: string,
+  proportionalLiquidityAddress: string,
+  swapsLibAddress: string
+): Promise<FXPool> => {
+  const FXPoolFactory = await ethers.getContractFactory('FXPool', {
+    libraries: {
+      ProportionalLiquidity: proportionalLiquidityAddress,
+      FXSwaps: swapsLibAddress,
+    },
+  })
+
+  const fxPool = FXPoolFactory.attach(fxPoolAddress)
+
+  return fxPool as FXPool
+}

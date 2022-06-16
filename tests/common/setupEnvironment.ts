@@ -5,12 +5,14 @@ import { ethers } from 'hardhat'
 import {
   deployAllMockTokensAndOracles,
   deployAssimilatorFactory,
-  deployFXPool,
+  deployFxPoolFactory,
+  deployFXSwaps,
   deployMockABDKLib,
   deployMockBalancerVault,
   deployMockOracle,
   deployMockWeightedPoolFactory,
   deployMockWETH,
+  deployProportionalLiquidity,
   MockTokenAndOracle,
 } from './contractDeployers'
 import { mockToken } from '../constants/mockTokenList'
@@ -18,10 +20,10 @@ import { MockToken } from '../../typechain/MockToken'
 import { AssimilatorFactory } from '../../typechain/AssimilatorFactory'
 import { MockABDK } from '../../typechain/MockABDK'
 import { MockWeightedPoolFactory } from '../../typechain/MockWeightedPoolFactory'
-import { getFutureTime } from './helpers/utils'
-import { fxPHPUSDCFxPool } from '../constants/mockPoolList'
-import { FXPool } from '../../typechain/FXPool'
 import { sortAddresses } from '../../scripts/utils/sortAddresses'
+import { FXPoolFactory } from '../../typechain/FXPoolFactory'
+import { ProportionalLiquidity } from '../../typechain/ProportionalLiquidity'
+import { FXSwaps } from '../../typechain/FXSwaps'
 
 export interface TestEnv {
   WETH: MockWETH9
@@ -40,7 +42,9 @@ export interface TestEnv {
   assimilatorFactory: AssimilatorFactory
   mockABDK: MockABDK
   mockWeightedPoolFactory: MockWeightedPoolFactory
-  fxPool: FXPool
+  fxPoolFactory: FXPoolFactory
+  proportionalLiquidity: ProportionalLiquidity
+  fxSwaps: FXSwaps
 }
 
 export const setupEnvironment = async (): Promise<TestEnv> => {
@@ -65,18 +69,10 @@ export const setupEnvironment = async (): Promise<TestEnv> => {
   const EURSOracle = mockTokenArray[2].oracleInstance
   const fxPHPOracle = mockTokenArray[3].oracleInstance
 
-  console.log('USDC address:', USDC.address)
-  console.log('fxPHP address:', fxPHP.address)
-
   const assimilatorFactory = await deployAssimilatorFactory(USDCOracle.address, USDC.address)
-  const fxPool = await deployFXPool(
-    sortAddresses([fxPHP.address, USDC.address]),
-    // ['0.5', '0.5'],
-    vault.address,
-    fxPHPUSDCFxPool.percentFee,
-    fxPHPUSDCFxPool.name,
-    fxPHPUSDCFxPool.symbol
-  )
+  const proportionalLiquidity = await deployProportionalLiquidity()
+  const fxSwaps = await deployFXSwaps()
+  const fxPoolFactory = await deployFxPoolFactory(proportionalLiquidity.address, fxSwaps.address)
 
   return {
     WETH,
@@ -95,6 +91,8 @@ export const setupEnvironment = async (): Promise<TestEnv> => {
     assimilatorFactory,
     mockABDK,
     mockWeightedPoolFactory,
-    fxPool,
+    fxPoolFactory,
+    proportionalLiquidity,
+    fxSwaps,
   }
 }
