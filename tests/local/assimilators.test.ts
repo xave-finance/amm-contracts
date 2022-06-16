@@ -11,7 +11,6 @@ import { sortAddresses } from '../../scripts/utils/sortAddresses'
 import { simulateDeposit } from '../common/helpers/amm'
 import { FXPool } from '../../typechain/FXPool'
 import { deployFXPool } from '../common/contractDeployers'
-import { getFutureTime } from '../common/helpers/utils'
 import { EURSUSDCFxPool, XSGDUSDCFxPool } from '../constants/mockPoolList'
 
 const INPUT_AMOUNT = parseEther('100')
