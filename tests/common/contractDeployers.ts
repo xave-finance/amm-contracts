@@ -10,7 +10,11 @@ import { MockAggregator } from '../../typechain/MockAggregator'
 import { AssimilatorFactory } from '../../typechain/AssimilatorFactory'
 import { MockABDK } from '../../typechain/MockABDK'
 import { FXPool } from '../../typechain/FXPool'
+import { FXPoolFactory } from '../../typechain/FXPoolFactory'
 import { MockWeightedPoolFactory } from '../../typechain/MockWeightedPoolFactory'
+import { ProportionalLiquidity } from '../../typechain/ProportionalLiquidity'
+import { FXSwaps } from '../../typechain/FXSwaps'
+
 import { BigNumberish } from 'ethers'
 
 export const deployMockBalancerVault = async (adminAddress: string, WETHAddress: string): Promise<Vault> => {
@@ -51,6 +55,35 @@ export const deployMockOracle = async (latestAnswer: string): Promise<MockAggreg
   return mockOracle as MockAggregator
 }
 
+export const deployProportionalLiquidity = async () => {
+  const ProportionalLiquidityFactory = await ethers.getContractFactory('ProportionalLiquidity')
+  const proportionalLiquidity = await ProportionalLiquidityFactory.deploy()
+  await proportionalLiquidity.deployed()
+
+  return proportionalLiquidity as ProportionalLiquidity
+}
+
+export const deployFXSwaps = async () => {
+  const SwapLibFactory = await ethers.getContractFactory('FXSwaps')
+  const swapLib = await SwapLibFactory.deploy()
+  await swapLib.deployed()
+  return swapLib as FXSwaps
+}
+
+export const deployFxPoolFactory = async (proportionalLiquidityAddress: string, swapLibAddress: string) => {
+  const FXPoolFactoryFactory = await ethers.getContractFactory('FXPoolFactory', {
+    libraries: {
+      ProportionalLiquidity: proportionalLiquidityAddress,
+      FXSwaps: swapLibAddress,
+    },
+  })
+
+  const fxpoolFactory = await FXPoolFactoryFactory.deploy()
+
+  await fxpoolFactory.deployed()
+  return fxpoolFactory as FXPoolFactory
+}
+
 export const deployAssimilatorFactory = async (
   usdcOracleAddress: string,
   usdcAddress: string
@@ -80,27 +113,20 @@ export interface FXPoolCurveParams {
   baseAssimilator: string
   quoteAssimilator: string
 }
+
 export const deployFXPool = async (
   assets: string[],
   vaultAddress: string,
   percentFee: BigNumberish,
   name: string, // LP Token name
-  symbol: string // LP token symbol
+  symbol: string, // LP token symbol
+  proportionalLiquidityAddress: string,
+  swapsLibAddress: string
 ): Promise<FXPool> => {
-  const ProportionalLiquidityFactory = await ethers.getContractFactory('ProportionalLiquidity')
-  const proportionalLiquidity = await ProportionalLiquidityFactory.deploy()
-  await proportionalLiquidity.deployed()
-  console.log('proportionalLiquidity deployed at', proportionalLiquidity.address)
-
-  const SwapLibFactory = await ethers.getContractFactory('FXSwaps')
-  const swapLib = await SwapLibFactory.deploy()
-  await swapLib.deployed()
-  console.log('swapLib deployed at', swapLib.address)
-
   const FXPoolFactory = await ethers.getContractFactory('FXPool', {
     libraries: {
-      ProportionalLiquidity: proportionalLiquidity.address,
-      FXSwaps: swapLib.address,
+      ProportionalLiquidity: proportionalLiquidityAddress,
+      FXSwaps: swapsLibAddress,
     },
   })
 
