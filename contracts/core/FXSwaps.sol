@@ -56,8 +56,10 @@ library FXSwaps {
 
         (_amt, accruedFees_) = CurveMath.calculateTrade(curve, _oGLiq, _nGLiq, _oBals, _nBals, _amt, _t.ix);
 
+        // negative for origin swap
+        accruedFees_ = -(_calculateFeeInNumeraire(curve, _amt, accruedFees_));
         _amt = _amt.us_mul(ONE - curve.epsilon);
-
+        // total amount gets converted to output token amount
         tAmt_ = Assimilators.viewRawAmount(_t.addr, _amt.abs());
     }
 
@@ -103,8 +105,10 @@ library FXSwaps {
             _amt = _amt.mul(Assimilators.getRate(_t.addr).divu(1e8));
         }
 
+        accruedFees_ = _calculateFeeInNumeraire(curve, _amt, accruedFees_);
         _amt = _amt.us_mul(ONE + curve.epsilon);
 
+        // total amount gets converted to output token amount
         oAmt_ = Assimilators.viewRawAmount(_o.addr, _amt);
     }
 
@@ -205,5 +209,18 @@ library FXSwaps {
         uint256 _amt
     ) internal view returns (int128 amt_, int128 bal_) {
         return Assimilators.viewNumeraireAmountAndBalance(_assim, _amt, address(curve.vault), curve.poolId);
+    }
+
+    // internal function to avoid stack too deep
+    function _calculateFeeInNumeraire(
+        Storage.Curve storage curve,
+        int128 _amtWithoutEpsilon,
+        int128 lambdaFee
+    ) internal view returns (int128 feeInNumeraire) {
+        // lambda + (amount w/ epsilon - amount without epsilon) in numeraire
+        int128 _amtWithEpsilon = _amtWithoutEpsilon.us_mul(ONE + curve.epsilon);
+
+        // multiplied by 1e18 to get the wei value
+        return lambdaFee.add(_amtWithEpsilon.sub(_amtWithoutEpsilon));
     }
 }

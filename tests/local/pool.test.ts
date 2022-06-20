@@ -13,6 +13,7 @@ import { Contract } from 'ethers'
 import { FXPool } from '../../typechain/FXPool'
 import { fxPHPUSDCFxPool } from '../constants/mockPoolList'
 import { getFxPoolContract } from '../common/contractGetters'
+import { formatEther } from 'ethers/lib/utils'
 
 describe('FXPool', () => {
   let testEnv: TestEnv
@@ -87,6 +88,7 @@ describe('FXPool', () => {
 
     fxPool = await getFxPoolContract(fxPoolAddress, testEnv.proportionalLiquidity.address, testEnv.fxSwaps.address)
     poolId = await fxPool.getPoolId() // get balance poolId
+    await expect(fxPool.setCollectorAddress(adminAddress)).to.emit(fxPool, 'ChangeCollectorAddress')
   })
 
   it('FXPool is registered on the vault', async () => {
@@ -570,6 +572,9 @@ describe('FXPool', () => {
 
   // it('Previews swap caclculation from the onSwap hook using queryBatchSwap() ', async () => {})
   // it('Previews swap caclculation when providing single sided liquidity from the onJoin and onExit hook', async () => {})
+  it('totalUnclaimedFeesInNumeraire must be minted during onJoin or onExit', async () => {
+    console.log('Total unclaimed fees in numeraire: ', formatEther(await fxPool.totalUnclaimedFeesInNumeraire()))
+  })
 
   it('can pause pool', async () => {
     expect(await fxPool.paused()).to.be.equals(false)
@@ -635,6 +640,12 @@ describe('FXPool', () => {
 
     // test using view deposit, it will fail if the pool is paused
     await expect(fxPool.viewDeposit(userData)).to.not.be.reverted
+  })
+
+  it('cannot set new collectorAddress if not owner', async () => {
+    await expect(fxPool.connect(notOwner).setCollectorAddress(await notOwner.getAddress())).to.be.revertedWith(
+      CONTRACT_REVERT.Ownable
+    )
   })
 
   it('can trigger emergency alarm', async () => {

@@ -503,17 +503,15 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
     function _calculateAndStorePoolFee(int128 fees) private {
         // added 1e18 to convert to wei
-        uint256 feesToAdd = ABDKMath64x64.toUInt(fees.add(curve.epsilon) * 1e18);
-        console.log('FEES CHECK: ', ABDKMath64x64.toUInt(fees));
-        console.log('Fees to add:', feesToAdd);
+        uint256 feesToAdd = ABDKMath64x64.toUInt(fees * 1e18);
+
         totalUnclaimedFeesInNumeraire += feesToAdd;
 
         emit FeesAccrued(feesToAdd);
     }
 
     function _mintProtocolFees() private {
-        // todo: bring back
-        //  require(collectorAddress != address(0), 'FXPool/fee-collector-not-set');
+        require(collectorAddress != address(0), 'FXPool/fee-collector-not-set');
         uint256 feesToCollect = totalUnclaimedFeesInNumeraire;
         totalUnclaimedFeesInNumeraire = 0;
         BalancerPoolToken._mintPoolTokens(collectorAddress, feesToCollect);
