@@ -831,7 +831,7 @@ describe('FXPool', () => {
     ).to.be.equals(await testEnv.fxPoolFactory.getActiveFxPool(sortedAddresses))
 
     for await (const fxPoolData of fxPhpPoolsArray) {
-      console.log(`Checking if ${fxPoolData.poolAddress} is an fxPool contract`)
+      console.log(`Checking if ${fxPoolData.poolAddress} is a fxPool contract`)
       const fxPoolIteration = await getFxPoolContract(
         fxPoolData.poolAddress,
         testEnv.proportionalLiquidity.address,
