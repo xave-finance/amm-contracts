@@ -220,7 +220,6 @@ library FXSwaps {
         // lambda + (amount w/ epsilon - amount without epsilon) in numeraire
         int128 _amtWithEpsilon = _amtWithoutEpsilon.us_mul(ONE + curve.epsilon);
 
-        // multiplied by 1e18 to get the wei value
         return lambdaFee.add(_amtWithEpsilon.sub(_amtWithoutEpsilon));
     }
 }
