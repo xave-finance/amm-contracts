@@ -1,9 +1,9 @@
 import { TestEnv } from '../..//common/setupEnvironment'
 import { ethers } from 'hardhat'
 import * as types from '../..//common/types/types'
-import { BigNumber, BytesLike, Signer } from 'ethers'
-import { parseEther, parseUnits } from '@ethersproject/units'
-import { expect } from 'chai'
+import { BigNumber, BytesLike } from 'ethers'
+import { parseUnits } from '@ethersproject/units'
+import { FXPool } from '../../../typechain/FXPool'
 
 const EPSILON = parseUnits('0.0004')
 
@@ -15,6 +15,7 @@ export const buildExecute_BatchSwapGivenIn = async (
   //   asset_out_decimals: number,
   sender_address: string,
   recipient_address: string,
+  fxPool: FXPool,
   testEnv: TestEnv,
   log: boolean
 ) => {
@@ -68,7 +69,7 @@ export const buildExecute_BatchSwapGivenIn = async (
 
   const swaps: types.BatchSwapDataForVault[] = [
     {
-      poolId: (await testEnv.fxPool.getPoolId()) as BytesLike,
+      poolId: (await fxPool.getPoolId()) as BytesLike,
       assetInIndex: BigNumber.from(ASSET_IN_INDEX), // assetInIndex must match swapAssets ordering, in this case usdc is origin
       assetOutIndex: BigNumber.from(ASSET_OUT_INDEX), // assetOutIndex must match swapAssets ordering, in this case fxPHP is target
       amount: parseUnits(amountToSwap.toString(), asset_in_decimals),
@@ -120,6 +121,7 @@ export const buildExecute_BatchSwapGivenOut = async (
   sender_address: string,
   recipient_address: string,
   testEnv: TestEnv,
+  fxPool: FXPool,
   log: boolean
 ) => {
   if (log) {
@@ -157,7 +159,7 @@ export const buildExecute_BatchSwapGivenOut = async (
 
   const swaps: types.BatchSwapDataForVault[] = [
     {
-      poolId: (await testEnv.fxPool.getPoolId()) as BytesLike,
+      poolId: (await fxPool.getPoolId()) as BytesLike,
       assetInIndex: BigNumber.from(ASSET_IN_INDEX), // assetInIndex must match swapAssets ordering, in this case usdc is origin
       assetOutIndex: BigNumber.from(ASSET_OUT_INDEX), // assetOutIndex must match swapAssets ordering, in this case fxPHP is target
       amount: parseUnits(amountToSwap.toString(), asset_out_decimals),
@@ -208,6 +210,7 @@ export const buildExecute_SingleSwapGivenIn = async (
   asset_in_decimals: number,
   sender_address: string,
   recipient_address: string,
+  fxPool: FXPool,
   testEnv: TestEnv,
   log: boolean
 ) => {
@@ -244,7 +247,7 @@ export const buildExecute_SingleSwapGivenIn = async (
 
   const singleSwap: types.SingleSwapDataForVault[] = [
     {
-      poolId: (await testEnv.fxPool.getPoolId()) as BytesLike,
+      poolId: (await fxPool.getPoolId()) as BytesLike,
       kind: BigNumber.from(SWAP_KIND),
       assetIn: asset_in_address, // assetIn must match swap assets ordering, in this case usdc is origin
       assetOut: asset_out_address, // assetOut must match swap assets ordering, in this case fxPHP is target

@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
-import { BigNumber, BytesLike, Signer } from 'ethers'
+import { BigNumber, Signer } from 'ethers'
 import { setupEnvironment, TestEnv } from '../common/setupEnvironment'
 import { formatUnits, parseEther, parseUnits } from '@ethersproject/units'
 import { CONTRACT_REVERT } from '../constants'
@@ -10,12 +10,14 @@ import { calculateLptOutAndTokensIn, calculateOtherTokenIn } from '../common/hel
 import { sortAddresses } from '../../scripts/utils/sortAddresses'
 import * as swaps from '../common/helpers/swap'
 import { Contract } from 'ethers'
-import { formatEther } from 'ethers/lib/utils'
+import { fxPHPUSDCFxPool } from '../constants/mockPoolList'
 
 describe('FXPool', () => {
   let testEnv: TestEnv
   let admin: Signer
   let notOwner: Signer
+  let fxPool: FXPool
+  let fxPoolAddress: string
   let adminAddress: string
   let poolId: string
 
@@ -36,6 +38,7 @@ describe('FXPool', () => {
   const LAMBDA = parseUnits('0.3')
   const baseWeight = parseUnits('0.5')
   const quoteWeight = parseUnits('0.5')
+  const EXPECTED_POOLS_CREATED = 4
 
   const loopCount = 10
   const log = true // do console logging
@@ -55,41 +58,53 @@ describe('FXPool', () => {
       parseUnits('1', `${mockToken[3].decimal}`),
       testEnv.fxPHPOracle.address
     )
-    // 2 - get Pool Id
-    poolId = await testEnv.fxPool.getPoolId()
 
-    // 3 - getAssimilators
+    // 2 - getAssimilators
     fxPHPAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.fxPHP.address)
     usdcAssimilatorAddress = await testEnv.assimilatorFactory.usdcAssimilator()
 
-    // 4 - sortedAddress references
-    sortedAddresses = sortAddresses([
-      ethers.utils.getAddress(testEnv.fxPHP.address),
-      ethers.utils.getAddress(testEnv.USDC.address),
-    ])
+    // 3 - sortedAddress references
+    sortedAddresses = sortAddresses([testEnv.fxPHP.address, testEnv.USDC.address])
 
     contract_vault = await ethers.getContractAt('Vault', testEnv.vault.address)
+  })
+
+  it('Creates a new FXPool using the FXPoolFactory', async () => {
+    await expect(
+      testEnv.fxPoolFactory.newFXPool(
+        fxPHPUSDCFxPool.name,
+        fxPHPUSDCFxPool.symbol,
+        fxPHPUSDCFxPool.percentFee,
+        contract_vault.address,
+        sortedAddresses
+      )
+    ).to.emit(testEnv.fxPoolFactory, 'NewFXPool') // not withArgs, will assert in another test case
+
+    fxPoolAddress = await testEnv.fxPoolFactory.getActiveFxPool(sortedAddresses)
+    expect(fxPoolAddress).to.be.properAddress
+
+    fxPool = await getFxPoolContract(fxPoolAddress, testEnv.proportionalLiquidity.address, testEnv.fxSwaps.address)
+    poolId = await fxPool.getPoolId() // get balance poolId
   })
 
   it('FXPool is registered on the vault', async () => {
     // const poolId = await testEnv.fxPool.getPoolId()
     const poolInfoFromVault = await testEnv.vault.getPool(poolId)
 
-    expect(
-      await testEnv.fxPool.getVault(),
-      'Vault in FXPool is different from the test environment vault'
-    ).to.be.equals(await testEnv.vault.address)
+    expect(await fxPool.getVault(), 'Vault in FXPool is different from the test environment vault').to.be.equals(
+      await testEnv.vault.address
+    )
 
-    expect(poolInfoFromVault[0], 'FXpool is not registered in the vault').to.be.equals(testEnv.fxPool.address)
+    expect(poolInfoFromVault[0], 'FXpool is not registered in the vault').to.be.equals(fxPool.address)
 
-    const curveDetails = await testEnv.fxPool.curve()
+    const curveDetails = await fxPool.curve()
     expect(curveDetails.cap).to.be.equals(0)
     expect(curveDetails.totalSupply).to.be.equals(0)
   })
 
   it('Initializes the FXPool and set curve parameters', async () => {
     await expect(
-      testEnv.fxPool.initialize(
+      fxPool.initialize(
         [
           testEnv.fxPHP.address,
           fxPHPAssimilatorAddress,
@@ -105,8 +120,8 @@ describe('FXPool', () => {
         [baseWeight, quoteWeight]
       )
     )
-      .to.emit(testEnv.fxPool, 'AssetIncluded')
-      .to.emit(testEnv.fxPool, 'AssimilatorIncluded')
+      .to.emit(fxPool, 'AssetIncluded')
+      .to.emit(fxPool, 'AssimilatorIncluded')
 
     await expect(testEnv.fxPool.setParams(ALPHA, BETA, MAX, EPSILON, LAMBDA)).to.emit(testEnv.fxPool, 'ParametersSet')
     await expect(testEnv.fxPool.setCollectorAddress(adminAddress)).to.emit(testEnv.fxPool, 'ChangeCollectorAddress')
@@ -160,7 +175,7 @@ describe('FXPool', () => {
     ]
 
     for (var i = 0; i < baseAmountsIn.length; i++) {
-      const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+      const beforeLpBalance = await fxPool.balanceOf(adminAddress)
       const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
       const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
@@ -185,7 +200,7 @@ describe('FXPool', () => {
         [fxPHPDecimals, usdcDecimals],
         sortedAddresses,
         fxPHPAddress,
-        testEnv.fxPool
+        fxPool
       )
       console.log(`Deposit [${i}] estimated lpt amount: `, estimatedLptAmount)
       console.log(
@@ -215,12 +230,12 @@ describe('FXPool', () => {
         fromInternalBalance: false,
       }
       await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest))
-        .to.emit(testEnv.fxPool, 'OnJoinPool')
+        .to.emit(fxPool, 'OnJoinPool')
         .withArgs(poolId, estimatedLptAmount, [estimatedAmountsIn[0], estimatedAmountsIn[1]])
         .to.emit(testEnv.fxPool, 'FeesCollected')
         .withArgs(adminAddress, await testEnv.fxPool.totalUnclaimedFeesInNumeraire())
 
-      const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+      const afterLpBalance = await fxPool.balanceOf(adminAddress)
       const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
       const afterVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
@@ -239,7 +254,7 @@ describe('FXPool', () => {
     const quoteAmountsIn = ['10', '50', '100', '1000', '500', '10000', '50000', '100000', '200000', '500000']
 
     for (var i = 0; i < quoteAmountsIn.length; i++) {
-      const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+      const beforeLpBalance = await fxPool.balanceOf(adminAddress)
       const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
       const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
@@ -264,7 +279,7 @@ describe('FXPool', () => {
         [fxPHPDecimals, usdcDecimals],
         sortedAddresses,
         fxPHPAddress,
-        testEnv.fxPool
+        fxPool
       )
       console.log(`Deposit [${i}] estimated lpt amount: `, estimatedLptAmount)
       console.log(
@@ -294,12 +309,12 @@ describe('FXPool', () => {
         fromInternalBalance: false,
       }
       await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest))
-        .to.emit(testEnv.fxPool, 'OnJoinPool')
+        .to.emit(fxPool, 'OnJoinPool')
         .withArgs(poolId, estimatedLptAmount, [estimatedAmountsIn[0], estimatedAmountsIn[1]])
         .to.emit(testEnv.fxPool, 'FeesCollected')
         .withArgs(adminAddress, await testEnv.fxPool.totalUnclaimedFeesInNumeraire())
 
-      const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+      const afterLpBalance = await fxPool.balanceOf(adminAddress)
       const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
       const afterVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
@@ -321,11 +336,11 @@ describe('FXPool', () => {
 
     for (var i = 1; i < loopCount + 1; i++) {
       console.log('Withdraw #', i, ' with total withdraw amount ', hlptTokenAmountInNumber * i)
-      const beforeLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+      const beforeLpBalance = await fxPool.balanceOf(adminAddress)
       const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
       const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
-      const withdrawTokensOut = await testEnv.fxPool.viewWithdraw(hlpTokensToBurninWei)
+      const withdrawTokensOut = await fxPool.viewWithdraw(hlpTokensToBurninWei)
 
       console.log(`Tokens out [0]: ${withdrawTokensOut[0]}`)
       console.log(`Tokens out [1]: ${withdrawTokensOut[1]}`)
@@ -342,12 +357,12 @@ describe('FXPool', () => {
       }
 
       await expect(testEnv.vault.exitPool(poolId, adminAddress, adminAddress, exitPoolRequest))
-        .to.emit(testEnv.fxPool, 'OnExitPool')
+        .to.emit(fxPool, 'OnExitPool')
         .withArgs(poolId, hlpTokensToBurninWei, [withdrawTokensOut[0], withdrawTokensOut[1]])
         .to.emit(testEnv.fxPool, 'FeesCollected')
         .withArgs(adminAddress, await testEnv.fxPool.totalUnclaimedFeesInNumeraire())
 
-      const afterLpBalance = await testEnv.fxPool.balanceOf(adminAddress)
+      const afterLpBalance = await fxPool.balanceOf(adminAddress)
       const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
       const afterVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
@@ -365,7 +380,7 @@ describe('FXPool', () => {
     // const THRESHOLD = BigNumber.from(0.5)
     // expectedLiquidity = prior numeraire balance
     // actualLiquidity = test.env.vault.liquidity()
-    const liquidity = (await testEnv.fxPool.liquidity())[0]
+    const liquidity = (await fxPool.liquidity())[0]
     console.log('liquidity number', await ethers.utils.formatEther(liquidity))
     console.log('liquidity BigNumber', liquidity.toString())
     //  expect(await ethers.utils.formatEther(liquidity)).to.be.equals(EXPECTED_LIQUIDITY)
@@ -395,6 +410,7 @@ describe('FXPool', () => {
       usdcDecimals,
       adminAddress,
       adminAddress, // the account swapping should get the output tokens
+      fxPool,
       testEnv,
       log
     )
@@ -431,6 +447,7 @@ describe('FXPool', () => {
       adminAddress,
       adminAddress, // the account swapping should get the output tokens
       testEnv,
+      fxPool,
       log
     )
 
@@ -466,6 +483,7 @@ describe('FXPool', () => {
       fxPHPDecimals,
       adminAddress,
       adminAddress, // the account swapping should get the output tokens
+      fxPool,
       testEnv,
       log
     )
@@ -501,6 +519,7 @@ describe('FXPool', () => {
       usdcDecimals,
       adminAddress,
       adminAddress, // the account swapping should get the output tokens
+      fxPool,
       testEnv,
       log
     )
@@ -537,6 +556,7 @@ describe('FXPool', () => {
       fxPHPDecimals, // specify token in decimals
       adminAddress,
       adminAddress, // the account swapping should get the output tokens
+      fxPool,
       testEnv,
       log
     )
@@ -561,9 +581,9 @@ describe('FXPool', () => {
   // it('Previews swap caclculation when providing single sided liquidity from the onJoin and onExit hook', async () => {})
 
   it('can pause pool', async () => {
-    expect(await testEnv.fxPool.paused()).to.be.equals(false)
+    expect(await fxPool.paused()).to.be.equals(false)
 
-    await expect(testEnv.fxPool.setPaused()).to.emit(testEnv.fxPool, 'Paused').withArgs(adminAddress)
+    await expect(fxPool.setPaused()).to.emit(fxPool, 'Paused').withArgs(adminAddress)
 
     const amountIn0 = TEST_DEPOSIT_PAUSEABLE
 
@@ -589,7 +609,7 @@ describe('FXPool', () => {
     const userData = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [sortedAmounts, sortedAddresses])
 
     // test using view deposit, it will fail if the pool is paused
-    await expect(testEnv.fxPool.viewDeposit(userData)).to.be.revertedWith(CONTRACT_REVERT.Paused)
+    await expect(fxPool.viewDeposit(userData)).to.be.revertedWith(CONTRACT_REVERT.Paused)
   })
 
   it('cannot set new collectorAddress if not owner', async () => {
@@ -599,11 +619,11 @@ describe('FXPool', () => {
   })
 
   it('can unpause pool', async () => {
-    expect(await testEnv.fxPool.paused()).to.be.equals(true)
+    expect(await fxPool.paused()).to.be.equals(true)
 
-    await expect(testEnv.fxPool.connect(notOwner).setPaused()).to.be.revertedWith(CONTRACT_REVERT.Ownable)
+    await expect(fxPool.connect(notOwner).setPaused()).to.be.revertedWith(CONTRACT_REVERT.Ownable)
 
-    await expect(testEnv.fxPool.setPaused()).to.emit(testEnv.fxPool, 'Unpaused').withArgs(adminAddress)
+    await expect(fxPool.setPaused()).to.emit(fxPool, 'Unpaused').withArgs(adminAddress)
 
     const amountIn0 = TEST_DEPOSIT_PAUSEABLE
 
@@ -629,43 +649,41 @@ describe('FXPool', () => {
     const userData = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [sortedAmounts, sortedAddresses])
 
     // test using view deposit, it will fail if the pool is paused
-    await expect(testEnv.fxPool.viewDeposit(userData)).to.not.be.reverted
+    await expect(fxPool.viewDeposit(userData)).to.not.be.reverted
   })
 
   it('can trigger emergency alarm', async () => {
-    expect(await testEnv.fxPool.emergency()).to.be.equals(false)
-    expect(await testEnv.fxPool.setEmergency(true))
-      .to.emit(testEnv.fxPool, 'EmergencyAlarm')
+    expect(await fxPool.emergency()).to.be.equals(false)
+    expect(await fxPool.setEmergency(true))
+      .to.emit(fxPool, 'EmergencyAlarm')
       .withArgs(true)
 
-    await expect(
-      testEnv.fxPool.connect(notOwner).setEmergency(false),
-      'Non owner can call the function'
-    ).to.be.revertedWith(CONTRACT_REVERT.Ownable)
+    await expect(fxPool.connect(notOwner).setEmergency(false), 'Non owner can call the function').to.be.revertedWith(
+      CONTRACT_REVERT.Ownable
+    )
 
-    expect(await testEnv.fxPool.setEmergency(false))
-      .to.emit(testEnv.fxPool, 'EmergencyAlarm')
+    expect(await fxPool.setEmergency(false))
+      .to.emit(fxPool, 'EmergencyAlarm')
       .withArgs(false) // reset for now, test emergency withdraw
 
     // todo: add emergency withdraw case from calcualted test cases
   })
 
   it('can set cap when owner', async () => {
-    const curveDetails = await testEnv.fxPool.curve()
+    const curveDetails = await fxPool.curve()
 
     expect(curveDetails.cap).to.be.equals(0)
-    await testEnv.fxPool.setCap(NEW_CAP)
-    const newCurveDetails = await testEnv.fxPool.curve()
+    await fxPool.setCap(NEW_CAP)
+    const newCurveDetails = await fxPool.curve()
     expect(newCurveDetails.cap).to.be.equals(NEW_CAP)
 
-    await expect(
-      testEnv.fxPool.connect(notOwner).setCap(NEW_CAP_FAIL),
-      'Non owner can call the function'
-    ).to.be.revertedWith(CONTRACT_REVERT.Ownable)
+    await expect(fxPool.connect(notOwner).setCap(NEW_CAP_FAIL), 'Non owner can call the function').to.be.revertedWith(
+      CONTRACT_REVERT.Ownable
+    )
   })
 
   it('cannot set cap when desired cap value is less than total liquidity', async () => {
-    await expect(testEnv.fxPool.setCap(SET_CAP_FAIL)).to.be.revertedWith(CONTRACT_REVERT.CapLessThanLiquidity)
+    await expect(fxPool.setCap(SET_CAP_FAIL)).to.be.revertedWith(CONTRACT_REVERT.CapLessThanLiquidity)
   })
 
   it('reverts when deposit numeraire + current liquidity is greater than cap limit given base input (fxPHP)', async () => {
@@ -693,7 +711,7 @@ describe('FXPool', () => {
         [fxPHPDecimals, usdcDecimals],
         sortedAddresses,
         fxPHPAddress,
-        testEnv.fxPool
+        fxPool
       )
 
       // Actual deposit `joinPool()` request
@@ -746,7 +764,7 @@ describe('FXPool', () => {
         [fxPHPDecimals, usdcDecimals],
         sortedAddresses,
         fxPHPAddress,
-        testEnv.fxPool
+        fxPool
       )
 
       // Actual deposit `joinPool()` request
@@ -768,6 +786,65 @@ describe('FXPool', () => {
       await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.be.revertedWith(
         CONTRACT_REVERT.CapLimit
       )
+    }
+  })
+
+  it('creates new pools and use the last pool in the array as the active fxpool ', async () => {
+    // new pool #1 is the previously created pool
+
+    // new pool #2
+    await expect(
+      testEnv.fxPoolFactory.newFXPool(
+        fxPHPUSDCFxPool.name,
+        fxPHPUSDCFxPool.symbol,
+        fxPHPUSDCFxPool.percentFee,
+        contract_vault.address,
+        sortedAddresses
+      )
+    ).to.emit(testEnv.fxPoolFactory, 'NewFXPool')
+    // new pool #3
+    await expect(
+      testEnv.fxPoolFactory.newFXPool(
+        fxPHPUSDCFxPool.name,
+        fxPHPUSDCFxPool.symbol,
+        fxPHPUSDCFxPool.percentFee,
+        contract_vault.address,
+        sortedAddresses
+      )
+    ).to.emit(testEnv.fxPoolFactory, 'NewFXPool')
+    // new pool #4
+    await expect(
+      testEnv.fxPoolFactory.newFXPool(
+        fxPHPUSDCFxPool.name,
+        fxPHPUSDCFxPool.symbol,
+        fxPHPUSDCFxPool.percentFee,
+        contract_vault.address,
+        sortedAddresses
+      )
+    ).to.emit(testEnv.fxPoolFactory, 'NewFXPool')
+
+    const fxPhpPoolsArray = await testEnv.fxPoolFactory.getFxPools(sortedAddresses)
+    expect(fxPhpPoolsArray.length, 'Pools created must be equal to the expected pools created').to.be.equals(
+      EXPECTED_POOLS_CREATED
+    ) // 4 created pools until this line
+
+    expect(
+      fxPhpPoolsArray[EXPECTED_POOLS_CREATED - 1].poolAddress,
+      'Active address is not equal the last element of the array'
+    ).to.be.equals(await testEnv.fxPoolFactory.getActiveFxPool(sortedAddresses))
+
+    for await (const fxPoolData of fxPhpPoolsArray) {
+      console.log(`Checking if ${fxPoolData.poolAddress} is an fxPool contract`)
+      const fxPoolIteration = await getFxPoolContract(
+        fxPoolData.poolAddress,
+        testEnv.proportionalLiquidity.address,
+        testEnv.fxSwaps.address
+      )
+
+      expect(
+        await fxPoolIteration.getPoolId(),
+        'poolId in fxPoolFactory is not equal to poolId in fxPool'
+      ).to.be.equals(fxPoolData.poolId)
     }
   })
 })
