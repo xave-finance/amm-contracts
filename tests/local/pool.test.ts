@@ -573,6 +573,7 @@ describe('FXPool', () => {
   // it('Previews swap caclculation from the onSwap hook using queryBatchSwap() ', async () => {})
   // it('Previews swap caclculation when providing single sided liquidity from the onJoin and onExit hook', async () => {})
   it('totalUnclaimedFeesInNumeraire must be minted during onJoin or onExit', async () => {
+    expect(await fxPool.totalUnclaimedFeesInNumeraire()).to.be.not.equals(0)
     console.log('Total unclaimed fees in numeraire: ', formatEther(await fxPool.totalUnclaimedFeesInNumeraire()))
   })
 
