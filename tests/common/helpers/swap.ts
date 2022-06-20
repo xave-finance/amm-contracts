@@ -5,8 +5,6 @@ import { BigNumber, BytesLike } from 'ethers'
 import { parseUnits } from '@ethersproject/units'
 import { FXPool } from '../../../typechain/FXPool'
 
-const EPSILON = parseUnits('0.0004')
-
 export const buildExecute_BatchSwapGivenIn = async (
   asset_in_address: string,
   asset_out_address: string,
@@ -85,9 +83,7 @@ export const buildExecute_BatchSwapGivenIn = async (
   const deadline = ethers.constants.MaxUint256
 
   //dev.balancer.fi/guides/swaps/batch-swaps
-  await expect(testEnv.vault.batchSwap(SWAP_KIND, swaps, swapAssets, fund_struct, limits, deadline))
-    .to.emit(testEnv.fxPool, 'FeesAccrued')
-    .withArgs(EPSILON)
+  await testEnv.vault.batchSwap(SWAP_KIND, swaps, swapAssets, fund_struct, limits, deadline)
 
   if (log) {
     const afterTradeUserUsdcBalance = await testEnv.USDC.balanceOf(sender_address)
@@ -175,9 +171,7 @@ export const buildExecute_BatchSwapGivenOut = async (
   const deadline = ethers.constants.MaxUint256
 
   //dev.balancer.fi/guides/swaps/batch-swaps
-  await expect(testEnv.vault.batchSwap(SWAP_KIND, swaps, swapAssets, fund_struct, limits, deadline))
-    .to.emit(testEnv.fxPool, 'FeesAccrued')
-    .withArgs(EPSILON)
+  await testEnv.vault.batchSwap(SWAP_KIND, swaps, swapAssets, fund_struct, limits, deadline)
 
   if (log) {
     const afterTradeUserUsdcBalance = await testEnv.USDC.balanceOf(sender_address)
@@ -258,9 +252,7 @@ export const buildExecute_SingleSwapGivenIn = async (
   if (log) console.log('singleSwap: ', singleSwap)
 
   const limit = '0' // max limit to receive
-  await expect(testEnv.vault.swap(singleSwap[0], fund_struct, limit, deadline))
-    .to.emit(testEnv.fxPool, 'FeesAccrued')
-    .withArgs(EPSILON)
+  await testEnv.vault.swap(singleSwap[0], fund_struct, limit, deadline)
 
   if (log) {
     const afterTradeUserUsdcBalance = await testEnv.USDC.balanceOf(sender_address)
