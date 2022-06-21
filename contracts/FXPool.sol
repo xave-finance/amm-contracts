@@ -314,7 +314,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     /// @param recipient The address which will receive lp tokens.
     /// @param currentBalances The current pool balances, sorted by address low to high.  length 2
     // @param latestBlockNumberUsed last block number unused in this pool
-    /// @param protocolSwapFee no fee is collected on join only when they are paid to governance
     /// @param userData Abi encoded fixed length 2 array containing max inputs also sorted by
     ///                 address low to high
     /// @return amountsIn The actual amounts of token the vault should move to this pool
@@ -325,20 +324,26 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         address recipient,
         uint256[] memory currentBalances, // @todo for vault transfers
         uint256,
-        uint256 protocolSwapFee,
+        uint256,
         bytes calldata userData
     ) external override whenNotPaused returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts) {
-        (uint256[] memory tokensIn, address[] memory assetAddresses) = abi.decode(userData, (uint256[], address[]));
+        (uint256 totalDepositNumeraire, address[] memory assetAddresses) = abi.decode(userData, (uint256, address[]));
 
-        uint256 totalDepositNumeraire = (_convertToNumeraire(tokensIn[0], _getAssetIndex(assetAddresses[0])) +
-            _convertToNumeraire(tokensIn[1], _getAssetIndex(assetAddresses[1]))) * 1e18;
+        // uint256 totalDepositNumeraire = (_convertToNumeraire(tokensIn[0], _getAssetIndex(assetAddresses[0])) +
+        //     _convertToNumeraire(tokensIn[1], _getAssetIndex(assetAddresses[1]))) * 1e18;
 
+        // TODO: reenable
         _enforceCap(totalDepositNumeraire);
 
         (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.proportionalDeposit(
             curve,
             totalDepositNumeraire
         );
+
+        console.log('LP tokens: ', lpTokens);
+        console.log('Amount to deposit[0]: ', amountToDeposit[0]);
+        console.log('Amount to deposit[1]: ', amountToDeposit[1]);
+
         {
             amountsIn = new uint256[](2);
             amountsIn[0] = amountToDeposit[_getAssetIndex(assetAddresses[0])];
@@ -347,7 +352,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         curve.totalSupply = curve.totalSupply += lpTokens;
 
         BalancerPoolToken._mintPoolTokens(recipient, lpTokens);
-        // @todo mintLPFee() & check fee calculation
         {
             dueProtocolFeeAmounts = new uint256[](2);
             dueProtocolFeeAmounts[0] = 0;
@@ -365,7 +369,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     // @param recipient Unused by this pool but in interface
     /// @param currentBalances The current pool balances, sorted by address low to high.  length 2
     // @param latestBlockNumberUsed last block number unused in this pool
-    /// @param protocolSwapFee The percent of pool fees to be paid to the Balancer Protocol
+    // @param protocolSwapFee The percent of pool fees to be paid to the Balancer Protocol
     /// @param userData Abi encoded uint256 which is the number of LP tokens the user wants to
     ///                 withdraw
     /// @return amountsOut The number of each token to send to the caller
@@ -376,7 +380,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         address,
         uint256[] memory currentBalances, // @todo for vault transfers
         uint256,
-        uint256 protocolSwapFee,
+        uint256,
         bytes calldata userData
     ) external override returns (uint256[] memory amountsOut, uint256[] memory dueProtocolFeeAmounts) {
         (uint256 tokensToBurn, address[] memory assetAddresses) = abi.decode(userData, (uint256, address[]));
@@ -394,7 +398,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             amountsOut[1] = amountToWithdraw[_getAssetIndex(assetAddresses[1])];
         }
 
-        // @todo check fee calculation
         {
             dueProtocolFeeAmounts = new uint256[](2);
             dueProtocolFeeAmounts[0] = 0;
@@ -458,10 +461,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
     /// @notice view LP tokens and token needed for deposit
     function viewDeposit(bytes calldata userData) external view whenNotPaused returns (uint256, uint256[] memory) {
-        (uint256[] memory tokensIn, address[] memory assetAddresses) = abi.decode(userData, (uint256[], address[]));
-
-        uint256 totalDepositNumeraire = (_convertToNumeraire(tokensIn[0], _getAssetIndex(assetAddresses[0])) +
-            _convertToNumeraire(tokensIn[1], _getAssetIndex(assetAddresses[1]))) * 1e18;
+        (uint256 totalDepositNumeraire, ) = abi.decode(userData, (uint256, address[]));
 
         return ProportionalLiquidity.viewProportionalDeposit(curve, totalDepositNumeraire);
     }
