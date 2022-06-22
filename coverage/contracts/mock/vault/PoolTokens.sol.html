@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for contracts/mock/vault/PoolTokens.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../prettify.css" />
+    <link rel="stylesheet" href="../../../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../../../index.html">all files</a> / <a href="index.html">contracts/mock/vault/</a> PoolTokens.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">38.1% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>16/42</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">12.5% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>2/16</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">60% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>3/5</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">41.03% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>16/39</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line low'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">127×</span>
+<span class="cline-any cline-yes">127×</span>
+<span class="cline-any cline-yes">127×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">142×</span>
+<span class="cline-any cline-yes">142×</span>
+<span class="cline-any cline-yes">142×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: GPL-3.0-or-later
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+&nbsp;
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+&nbsp;
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+&nbsp;
+pragma solidity ^0.7.0;
+pragma experimental ABIEncoderV2;
+&nbsp;
+import "@balancer-labs/v2-solidity-utils/contracts/helpers/BalancerErrors.sol";
+import "@balancer-labs/v2-solidity-utils/contracts/openzeppelin/ReentrancyGuard.sol";
+&nbsp;
+import "./AssetManagers.sol";
+import "./PoolRegistry.sol";
+import "./balances/BalanceAllocation.sol";
+&nbsp;
+abstract contract PoolTokens is ReentrancyGuard, PoolRegistry, AssetManagers {
+    using BalanceAllocation for bytes32;
+    using BalanceAllocation for bytes32[];
+&nbsp;
+    function registerTokens(
+        bytes32 poolId,
+        IERC20[] memory tokens,
+        address[] memory assetManagers
+    ) external override nonReentrant whenNotPaused onlyPool(poolId) {
+        InputHelpers.ensureInputLengthMatch(tokens.length, assetManagers.length);
+&nbsp;
+        // Validates token addresses and assigns Asset Managers
+        for (uint256 i = 0; i &lt; tokens.length; ++i) {
+            IERC20 token = tokens[i];
+            _require(token != IERC20(0), Errors.INVALID_TOKEN);
+&nbsp;
+            _poolAssetManagers[poolId][token] = assetManagers[i];
+        }
+&nbsp;
+        PoolSpecialization specialization = _getPoolSpecialization(poolId);
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (specialization == PoolSpecialization.TWO_TOKEN) {
+            _require(tokens.length == 2, Errors.TOKENS_LENGTH_MUST_BE_2);
+            _registerTwoTokenPoolTokens(poolId, tokens[0], tokens[1]);
+        } else <span class="cstat-no" title="statement not covered" >if (specialization == PoolSpecialization.MINIMAL_SWAP_INFO) {</span>
+<span class="cstat-no" title="statement not covered" >            _registerMinimalSwapInfoPoolTokens(poolId, tokens)</span>;
+        } else {
+            // PoolSpecialization.GENERAL
+<span class="cstat-no" title="statement not covered" >            _registerGeneralPoolTokens(poolId, tokens)</span>;
+        }
+&nbsp;
+        emit TokensRegistered(poolId, tokens, assetManagers);
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function deregisterTokens(bytes32 poolId, IERC20[] memory tokens)</span>
+        external
+        override
+        nonReentrant
+        whenNotPaused
+        onlyPool(poolId)
+    {
+<span class="cstat-no" title="statement not covered" >        PoolSpecialization specialization = _getPoolSpecialization(poolId);</span>
+<span class="cstat-no" title="statement not covered" >        if (specialization == PoolSpecialization.TWO_TOKEN) {</span>
+<span class="cstat-no" title="statement not covered" >            _require(tokens.length == 2, Errors.TOKENS_LENGTH_MUST_BE_2)</span>;
+<span class="cstat-no" title="statement not covered" >            _deregisterTwoTokenPoolTokens(poolId, tokens[0], tokens[1])</span>;
+        } else <span class="cstat-no" title="statement not covered" >if (specialization == PoolSpecialization.MINIMAL_SWAP_INFO) {</span>
+<span class="cstat-no" title="statement not covered" >            _deregisterMinimalSwapInfoPoolTokens(poolId, tokens)</span>;
+        } else {
+            // PoolSpecialization.GENERAL
+<span class="cstat-no" title="statement not covered" >            _deregisterGeneralPoolTokens(poolId, tokens)</span>;
+        }
+&nbsp;
+        // The deregister calls above ensure the total token balance is zero. Therefore it is now safe to remove any
+        // associated Asset Managers, since they hold no Pool balance.
+<span class="cstat-no" title="statement not covered" >        for (uint256 i = 0; i &lt; tokens.length; ++i) {</span>
+            delete _poolAssetManagers[poolId][tokens[i]];
+        }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        emit TokensDeregistered(poolId, tokens);</span>
+    }
+&nbsp;
+    function getPoolTokens(bytes32 poolId)
+        external
+        view
+        override
+        withRegisteredPool(poolId)
+        returns (
+            IERC20[] memory tokens,
+            uint256[] memory balances,
+            uint256 lastChangeBlock
+        )
+    {
+        bytes32[] memory rawBalances;
+        (tokens, rawBalances) = _getPoolTokens(poolId);
+        (balances, lastChangeBlock) = rawBalances.totalsAndLastChangeBlock();
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function getPoolTokenInfo(bytes32 poolId, IERC20 token)</span>
+        external
+        view
+        override
+        withRegisteredPool(poolId)
+        returns (
+            uint256 cash,
+            uint256 managed,
+            uint256 lastChangeBlock,
+            address assetManager
+        )
+    {
+<span class="cstat-no" title="statement not covered" >        bytes32 balance;</span>
+<span class="cstat-no" title="statement not covered" >        PoolSpecialization specialization = _getPoolSpecialization(poolId);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        if (specialization == PoolSpecialization.TWO_TOKEN) {</span>
+<span class="cstat-no" title="statement not covered" >            balance = _getTwoTokenPoolBalance(poolId, token)</span>;
+        } else <span class="cstat-no" title="statement not covered" >if (specialization == PoolSpecialization.MINIMAL_SWAP_INFO) {</span>
+<span class="cstat-no" title="statement not covered" >            balance = _getMinimalSwapInfoPoolBalance(poolId, token)</span>;
+        } else {
+            // PoolSpecialization.GENERAL
+<span class="cstat-no" title="statement not covered" >            balance = _getGeneralPoolBalance(poolId, token)</span>;
+        }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        cash = balance.cash()</span>;
+<span class="cstat-no" title="statement not covered" >        managed = balance.managed()</span>;
+<span class="cstat-no" title="statement not covered" >        lastChangeBlock = balance.lastChangeBlock()</span>;
+<span class="cstat-no" title="statement not covered" >        assetManager = _poolAssetManagers[poolId][token]</span>;
+    }
+&nbsp;
+    /**
+     * @dev Returns all of `poolId`'s registered tokens, along with their raw balances.
+     */
+    function _getPoolTokens(bytes32 poolId) internal view returns (IERC20[] memory tokens, bytes32[] memory balances) {
+        PoolSpecialization specialization = _getPoolSpecialization(poolId);
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (specialization == PoolSpecialization.TWO_TOKEN) {
+            return _getTwoTokenPoolTokens(poolId);
+        } else <span class="cstat-no" title="statement not covered" >if (specialization == PoolSpecialization.MINIMAL_SWAP_INFO) {</span>
+<span class="cstat-no" title="statement not covered" >            return _getMinimalSwapInfoPoolTokens(poolId);</span>
+        } else {
+            // PoolSpecialization.GENERAL
+<span class="cstat-no" title="statement not covered" >            return _getGeneralPoolTokens(poolId);</span>
+        }
+    }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Wed Jun 22 2022 11:09:50 GMT+0800 (Philippine Standard Time)
+</div>
+</div>
+<script src="../../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../../sorter.js"></script>
+</body>
+</html>

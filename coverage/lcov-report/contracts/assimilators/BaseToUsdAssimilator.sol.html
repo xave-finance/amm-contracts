@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for contracts/assimilators/BaseToUsdAssimilator.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../../index.html">all files</a> / <a href="index.html">contracts/assimilators/</a> BaseToUsdAssimilator.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">41.77% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>33/79</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">23.08% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>6/26</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">50% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>8/16</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">41.89% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>31/74</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line low'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-yes">1×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">76×</span>
+<span class="cline-any cline-yes">76×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">24×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">24×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">66×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">66×</span>
+<span class="cline-any cline-yes">66×</span>
+<span class="cline-any cline-yes">66×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">47×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">47×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">47×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">43×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
+&nbsp;
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+&nbsp;
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+&nbsp;
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+&nbsp;
+pragma solidity ^0.7.3;
+&nbsp;
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import '@openzeppelin/contracts/math/SafeMath.sol';
+import '../core/lib/ABDKMath64x64.sol';
+import '../core/interfaces/IAssimilator.sol';
+import '../core/interfaces/IOracle.sol';
+&nbsp;
+import '../interfaces/IVaultPoolBalances.sol';
+&nbsp;
+contract BaseToUsdAssimilator is IAssimilator {
+    using ABDKMath64x64 for int128;
+    using ABDKMath64x64 for uint256;
+&nbsp;
+    using SafeMath for uint256;
+&nbsp;
+    IERC20 public immutable usdc;
+    IOracle public immutable oracle;
+    IERC20 public immutable baseToken;
+    uint256 public immutable baseDecimals;
+&nbsp;
+    constructor(
+        uint256 _baseDecimals,
+        IERC20 _baseToken,
+        IERC20 _quoteToken,
+        IOracle _oracle
+    ) {
+        baseDecimals = _baseDecimals;
+        baseToken = _baseToken;
+        usdc = _quoteToken;
+        oracle = _oracle;
+    }
+&nbsp;
+    function getRate() public view override returns (uint256) {
+        (, int256 price, , , ) = oracle.latestRoundData();
+        return uint256(price);
+    }
+&nbsp;
+    // takes raw baseToken amount, transfers it in, calculates corresponding numeraire amount and returns it
+<span class="fstat-no" title="function not covered" >    function intakeRawAndGetBalance(uint256 _amount) external override returns (int128 amount_, int128 balance_) {</span>
+<span class="cstat-no" title="statement not covered" >        bool _transferSuccess = baseToken.transferFrom(msg.sender, address(this), _amount);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        require(_transferSuccess, 'BaseAssimilator/baseToken-transfer-from-failed')</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        uint256 _balance = baseToken.balanceOf(address(this));</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        uint256 _rate = getRate();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        balance_ = ((_balance * _rate) / 1e8).divu(baseDecimals)</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        amount_ = ((_amount * _rate) / 1e8).divu(baseDecimals)</span>;
+    }
+&nbsp;
+    // takes raw baseToken amount, transfers it in, calculates corresponding numeraire amount and returns it
+<span class="fstat-no" title="function not covered" >    function intakeRaw(uint256 _amount) external override returns (int128 amount_) {</span>
+<span class="cstat-no" title="statement not covered" >        bool _transferSuccess = baseToken.transferFrom(msg.sender, address(this), _amount);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        require(_transferSuccess, 'BaseAssimilator/baseToken-transfer-from-failed')</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        uint256 _rate = getRate();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        amount_ = ((_amount * _rate) / 1e8).divu(baseDecimals)</span>;
+    }
+&nbsp;
+    // takes a numeraire amount, calculates the raw amount of baseToken, transfers it in and returns the corresponding raw amount
+<span class="fstat-no" title="function not covered" >    function intakeNumeraire(int128 _amount) external override returns (uint256 amount_) {</span>
+<span class="cstat-no" title="statement not covered" >        uint256 _rate = getRate();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        amount_ = (_amount.mulu(baseDecimals) * 1e8) / _rate</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        bool _transferSuccess = baseToken.transferFrom(msg.sender, address(this), amount_);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        require(_transferSuccess, 'BaseAssimilator/baseToken-transfer-from-failed')</span>;
+    }
+&nbsp;
+    // takes a numeraire amount, calculates the raw amount of baseToken, transfers it in and returns the corresponding raw amount
+<span class="fstat-no" title="function not covered" >    function intakeNumeraireLPRatio(</span>
+        uint256 _baseWeight,
+        uint256 _quoteWeight,
+        address _addr,
+        int128 _amount
+    ) external override returns (uint256 amount_) {
+<span class="cstat-no" title="statement not covered" >        uint256 _baseTokenBal = baseToken.balanceOf(_addr);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        if (_baseTokenBal &lt;= 0) <span class="cstat-no" title="statement not covered" >return 0;</span></span>
+&nbsp;
+        // base decimals
+<span class="cstat-no" title="statement not covered" >        _baseTokenBal = _baseTokenBal.mul(1e18).div(_baseWeight)</span>;
+&nbsp;
+        // 1e6
+<span class="cstat-no" title="statement not covered" >        uint256 _usdcBal = usdc.balanceOf(_addr).mul(1e18).div(_quoteWeight);</span>
+&nbsp;
+        // Rate is in 1e6
+<span class="cstat-no" title="statement not covered" >        uint256 _rate = _usdcBal.mul(baseDecimals).div(_baseTokenBal);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        amount_ = (_amount.mulu(baseDecimals) * 1e6) / _rate</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        bool _transferSuccess = baseToken.transferFrom(msg.sender, address(this), amount_);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        require(_transferSuccess, 'BaseAssimilator/baseToken-transfer-from-failed')</span>;
+    }
+&nbsp;
+    // takes a raw amount of baseToken and transfers it out, returns numeraire value of the raw amount
+<span class="fstat-no" title="function not covered" >    function outputRawAndGetBalance(address _dst, uint256 _amount)</span>
+        external
+        override
+        returns (int128 amount_, int128 balance_)
+    {
+<span class="cstat-no" title="statement not covered" >        uint256 _rate = getRate();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        uint256 _baseTokenAmount = ((_amount) * _rate) / 1e8;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        bool _transferSuccess = baseToken.transfer(_dst, _baseTokenAmount);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        require(_transferSuccess, 'BaseAssimilator/baseToken-transfer-failed')</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        uint256 _balance = baseToken.balanceOf(address(this));</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        amount_ = _baseTokenAmount.divu(baseDecimals)</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        balance_ = ((_balance * _rate) / 1e8).divu(baseDecimals)</span>;
+    }
+&nbsp;
+    // takes a raw amount of baseToken and transfers it out, returns numeraire value of the raw amount
+<span class="fstat-no" title="function not covered" >    function outputRaw(address _dst, uint256 _amount) external override returns (int128 amount_) {</span>
+<span class="cstat-no" title="statement not covered" >        uint256 _rate = getRate();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        uint256 _baseTokenAmount = (_amount * _rate) / 1e8;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        bool _transferSuccess = baseToken.transfer(_dst, _baseTokenAmount);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        require(_transferSuccess, 'BaseAssimilator/baseToken-transfer-failed')</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        amount_ = _baseTokenAmount.divu(baseDecimals)</span>;
+    }
+&nbsp;
+    // takes a numeraire value of baseToken, figures out the raw amount, transfers raw amount out, and returns raw amount
+<span class="fstat-no" title="function not covered" >    function outputNumeraire(address _dst, int128 _amount) external override returns (uint256 amount_) {</span>
+<span class="cstat-no" title="statement not covered" >        uint256 _rate = getRate();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        amount_ = (_amount.mulu(baseDecimals) * 1e8) / _rate</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        bool _transferSuccess = baseToken.transfer(_dst, amount_);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        require(_transferSuccess, 'BaseAssimilator/baseToken-transfer-failed')</span>;
+    }
+&nbsp;
+    // takes a numeraire amount and returns the raw amount
+    function viewRawAmount(int128 _amount) external view override returns (uint256 amount_) {
+        uint256 _rate = getRate();
+&nbsp;
+        amount_ = (_amount.mulu(baseDecimals) * 1e8) / _rate;
+    }
+&nbsp;
+    function _getBalancesFromVault(
+        address vault,
+        bytes32 poolId,
+        address quoteTokenAddressToCompare
+    ) internal view returns (uint256 baseTokenBal, uint256 quoteTokenBal) {
+        (IERC20[] memory tokens, uint256[] memory balances, ) = IVaultPoolBalances(vault).getPoolTokens(poolId);
+&nbsp;
+        <span class="missing-if-branch" title="else path not taken" >E</span>if (address(tokens[0]) == quoteTokenAddressToCompare) {
+            baseTokenBal = balances[1];
+            quoteTokenBal = balances[0];
+        } else <span class="cstat-no" title="statement not covered" >if (address(tokens[1]) == quoteTokenAddressToCompare) {</span>
+<span class="cstat-no" title="statement not covered" >            baseTokenBal = balances[0]</span>;
+<span class="cstat-no" title="statement not covered" >            quoteTokenBal = balances[1]</span>;
+        } else {
+<span class="cstat-no" title="statement not covered" >            revert('_getBalancesFromVault: usdc is not present in token array returned by Vault.getPoolTokens method')</span>;
+        }
+    }
+&nbsp;
+    function viewRawAmountLPRatio(
+        uint256 _baseWeight,
+        uint256 _quoteWeight,
+        int128 _amount,
+        address vault,
+        bytes32 poolId
+    ) external view override returns (uint256 amount_) {
+        (uint256 baseTokenBal, uint256 usdcBal) = _getBalancesFromVault(vault, poolId, address(usdc));
+&nbsp;
+        <span class="missing-if-branch" title="if path not taken" >I</span>if (baseTokenBal &lt;= 0) <span class="cstat-no" title="statement not covered" >return 0;</span>
+&nbsp;
+        // base decimals
+        baseTokenBal = baseTokenBal.mul(1e18).div(_baseWeight);
+&nbsp;
+        usdcBal = usdcBal.mul(1e18).div(_quoteWeight);
+        uint256 _rate = usdcBal.mul(baseDecimals).div(baseTokenBal);
+&nbsp;
+        amount_ = (_amount.mulu(baseDecimals) * 1e6) / _rate;
+    }
+&nbsp;
+    // takes a raw amount and returns the numeraire amount
+<span class="fstat-no" title="function not covered" >    function viewNumeraireAmount(uint256 _amount) external view override returns (int128 amount_) {</span>
+<span class="cstat-no" title="statement not covered" >        uint256 _rate = getRate();</span>
+<span class="cstat-no" title="statement not covered" >        amount_ = ((_amount * _rate) / 1e8).divu(baseDecimals)</span>;
+    }
+&nbsp;
+    // views the numeraire value of the current balance of the reserve, in this case baseToken
+    function viewNumeraireBalance(address vault, bytes32 poolId) external view override returns (int128 balance_) {
+        uint256 _rate = getRate();
+&nbsp;
+        (uint256 baseTokenBal, ) = _getBalancesFromVault(vault, poolId, address(usdc));
+&nbsp;
+        if (baseTokenBal &lt;= 0) return ABDKMath64x64.fromUInt(0);
+&nbsp;
+        balance_ = ((baseTokenBal * _rate) / 1e8).divu(baseDecimals);
+    }
+&nbsp;
+    // views the numeraire value of the current balance of the reserve, in this case baseToken
+    // called for swaps
+    function viewNumeraireAmountAndBalance(
+        uint256 _amount,
+        address vault,
+        bytes32 poolId
+    ) external view override returns (int128 amount_, int128 balance_) {
+        uint256 _rate = getRate();
+&nbsp;
+        amount_ = ((_amount * _rate) / 1e8).divu(baseDecimals);
+&nbsp;
+        (uint256 baseTokenBal, ) = _getBalancesFromVault(vault, poolId, address(usdc));
+&nbsp;
+        balance_ = ((baseTokenBal * _rate) / 1e8).divu(baseDecimals);
+    }
+&nbsp;
+    // views the numeraire value of the current balance of the reserve, in this case baseToken
+    // instead of calculating with chainlink's "rate" it'll be determined by the existing
+    // token ratio. This is in here to prevent LPs from losing out on future oracle price updates
+    function viewNumeraireBalanceLPRatio(
+        uint256 _baseWeight,
+        uint256 _quoteWeight,
+        // address _addr,
+        address vault,
+        bytes32 poolId
+    ) external view override returns (int128 balance_) {
+        (uint256 baseTokenBal, uint256 usdcBal) = _getBalancesFromVault(vault, poolId, address(usdc));
+&nbsp;
+        if (baseTokenBal &lt;= 0) return ABDKMath64x64.fromUInt(0);
+&nbsp;
+        usdcBal = usdcBal.mul(1e18).div(_quoteWeight);
+        uint256 _rate = usdcBal.mul(1e18).div(baseTokenBal.mul(1e18).div(_baseWeight));
+&nbsp;
+        balance_ = ((baseTokenBal * _rate) / 1e6).divu(1e18);
+    }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Wed Jun 22 2022 11:09:50 GMT+0800 (Philippine Standard Time)
+</div>
+</div>
+<script src="../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../sorter.js"></script>
+</body>
+</html>

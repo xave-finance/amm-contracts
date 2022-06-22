@@ -1,0 +1,884 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for contracts/core/CurveMath.sol</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../prettify.css" />
+    <link rel="stylesheet" href="../../base.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+<body>
+<div class='wrapper'>
+  <div class='pad1'>
+    <h1>
+      <a href="../../index.html">all files</a> / <a href="index.html">contracts/core/</a> CurveMath.sol
+    </h1>
+    <div class='clearfix'>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">56.57% </span>
+        <span class="quiet">Statements</span>
+        <span class='fraction'>56/99</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">39.47% </span>
+        <span class="quiet">Branches</span>
+        <span class='fraction'>15/38</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">87.5% </span>
+        <span class="quiet">Functions</span>
+        <span class='fraction'>7/8</span>
+      </div>
+      <div class='fl pad1y space-right2'>
+        <span class="strong">57.29% </span>
+        <span class="quiet">Lines</span>
+        <span class='fraction'>55/96</span>
+      </div>
+    </div>
+  </div>
+  <div class='status-line medium'></div>
+<pre><table class="coverage">
+<tr><td class="line-count quiet">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274</td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">40×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">40×</span>
+<span class="cline-any cline-yes">80×</span>
+<span class="cline-any cline-yes">80×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">80×</span>
+<span class="cline-any cline-yes">42×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">42×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">38×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">38×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">14×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">13×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">13×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">13×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">13×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10×</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5×</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// SPDX-License-Identifier: MIT
+&nbsp;
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+&nbsp;
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+&nbsp;
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+&nbsp;
+pragma solidity ^0.7.3;
+&nbsp;
+import './Storage.sol';
+&nbsp;
+import './lib/UnsafeMath64x64.sol';
+import './lib/ABDKMath64x64.sol';
+&nbsp;
+library CurveMath {
+    int128 private constant ONE = 0x10000000000000000;
+    int128 private constant MAX = 0x4000000000000000; // .25 in layman's terms
+    int128 private constant MAX_DIFF = -0x10C6F7A0B5EE;
+    int128 private constant ONE_WEI = 0x12;
+&nbsp;
+    using ABDKMath64x64 for int128;
+    using UnsafeMath64x64 for int128;
+    using ABDKMath64x64 for uint256;
+&nbsp;
+    // This is used to prevent stack too deep errors
+    function calculateFee(
+        int128 _gLiq,
+        int128[] memory _bals,
+        Storage.Curve storage curve,
+        int128[] memory _weights
+    ) internal view returns (int128 psi_) {
+        int128 _beta = curve.beta;
+        int128 _delta = curve.delta;
+&nbsp;
+        psi_ = calculateFee(_gLiq, _bals, _beta, _delta, _weights);
+    }
+&nbsp;
+    function calculateFee(
+        int128 _gLiq,
+        int128[] memory _bals,
+        int128 _beta,
+        int128 _delta,
+        int128[] memory _weights
+    ) internal pure returns (int128 psi_) {
+        uint256 _length = _bals.length;
+&nbsp;
+        for (uint256 i = 0; i &lt; _length; i++) {
+            int128 _ideal = _gLiq.mul(_weights[i]);
+            psi_ += calculateMicroFee(_bals[i], _ideal, _beta, _delta);
+        }
+    }
+&nbsp;
+    function calculateMicroFee(
+        int128 _bal,
+        int128 _ideal,
+        int128 _beta,
+        int128 _delta
+    ) private pure returns (int128 fee_) {
+        if (_bal &lt; _ideal) {
+            int128 _threshold = _ideal.mul(ONE - _beta);
+&nbsp;
+            if (_bal &lt; _threshold) {
+                int128 _feeMargin = _threshold - _bal;
+&nbsp;
+                fee_ = _feeMargin.div(_ideal);
+                fee_ = fee_.mul(_delta);
+&nbsp;
+                <span class="missing-if-branch" title="if path not taken" >I</span>if (fee_ &gt; MAX) <span class="cstat-no" title="statement not covered" >fee_ = MAX</span>;
+&nbsp;
+                fee_ = fee_.mul(_feeMargin);
+            } else fee_ = 0;
+        } else {
+            int128 _threshold = _ideal.mul(ONE + _beta);
+&nbsp;
+            <span class="missing-if-branch" title="if path not taken" >I</span>if (_bal &gt; _threshold) {
+<span class="cstat-no" title="statement not covered" >                int128 _feeMargin = _bal - _threshold;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >                fee_ = _feeMargin.div(_ideal)</span>;
+<span class="cstat-no" title="statement not covered" >                fee_ = fee_.mul(_delta)</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >                if (fee_ &gt; MAX) <span class="cstat-no" title="statement not covered" >fee_ = MAX</span>;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >                fee_ = fee_.mul(_feeMargin)</span>;
+            } else fee_ = 0;
+        }
+    }
+&nbsp;
+    function calculateTrade(
+        Storage.Curve storage curve,
+        int128 _oGLiq,
+        int128 _nGLiq,
+        int128[] memory _oBals,
+        int128[] memory _nBals,
+        int128 _inputAmt,
+        uint256 _outputIndex
+    ) internal view returns (int128 outputAmt_, int128 accruedFees_) {
+        outputAmt_ = -_inputAmt;
+&nbsp;
+        // int128 _lambda = curve.lambda;
+        int128[] memory _weights = curve.weights;
+&nbsp;
+        int128 _omega = calculateFee(_oGLiq, _oBals, curve, _weights);
+        int128 _psi;
+&nbsp;
+        for (uint256 i = 0; i &lt; 32; i++) {
+            {
+                _psi = calculateFee(_nGLiq, _nBals, curve, _weights);
+            }
+&nbsp;
+            int128 prevAmount;
+            {
+                prevAmount = outputAmt_;
+                outputAmt_ = _omega &lt; _psi
+                    ? -(_inputAmt + _omega - _psi)
+                    : -(_inputAmt + (curve.lambda).mul(_omega - _psi));
+                accruedFees_ = _omega &lt; _psi ? _omega - _psi : (curve.lambda).mul(_omega - _psi);
+            }
+&nbsp;
+            <span class="missing-if-branch" title="else path not taken" >E</span>if (outputAmt_ / 1e13 == prevAmount / 1e13) {
+                _nGLiq = _oGLiq + _inputAmt + outputAmt_;
+&nbsp;
+                _nBals[_outputIndex] = _oBals[_outputIndex] + outputAmt_;
+&nbsp;
+                enforceHalts(curve, _oGLiq, _nGLiq, _oBals, _nBals, _weights);
+&nbsp;
+                enforceSwapInvariant(_oGLiq, _omega, _nGLiq, _psi);
+&nbsp;
+                return (outputAmt_, accruedFees_);
+            } else {
+<span class="cstat-no" title="statement not covered" >                _nGLiq = _oGLiq + _inputAmt + outputAmt_</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >                _nBals[_outputIndex] = _oBals[_outputIndex].add(outputAmt_)</span>;
+            }
+        }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        revert('CurveMath/swap-convergence-failed')</span>;
+    }
+&nbsp;
+<span class="fstat-no" title="function not covered" >    function calculateLiquidityMembrane(</span>
+        Storage.Curve storage curve,
+        int128 _oGLiq,
+        int128 _nGLiq,
+        int128[] memory _oBals,
+        int128[] memory _nBals
+    ) internal view returns (int128 curves_) {
+<span class="cstat-no" title="statement not covered" >        enforceHalts(curve, _oGLiq, _nGLiq, _oBals, _nBals, curve.weights)</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        int128 _omega;</span>
+<span class="cstat-no" title="statement not covered" >        int128 _psi;</span>
+&nbsp;
+        {
+<span class="cstat-no" title="statement not covered" >            int128 _beta = curve.beta;</span>
+<span class="cstat-no" title="statement not covered" >            int128 _delta = curve.delta;</span>
+<span class="cstat-no" title="statement not covered" >            int128[] memory _weights = curve.weights;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >            _omega = calculateFee(_oGLiq, _oBals, _beta, _delta, _weights)</span>;
+<span class="cstat-no" title="statement not covered" >            _psi = calculateFee(_nGLiq, _nBals, _beta, _delta, _weights)</span>;
+        }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        int128 _feeDiff = _psi.sub(_omega);</span>
+<span class="cstat-no" title="statement not covered" >        int128 _liqDiff = _nGLiq.sub(_oGLiq);</span>
+<span class="cstat-no" title="statement not covered" >        int128 _oUtil = _oGLiq.sub(_omega);</span>
+<span class="cstat-no" title="statement not covered" >        int128 _totalShells = curve.totalSupply.divu(1e18);</span>
+<span class="cstat-no" title="statement not covered" >        int128 _curveMultiplier;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        if (_totalShells == 0) {</span>
+<span class="cstat-no" title="statement not covered" >            curves_ = _nGLiq.sub(_psi)</span>;
+        } else <span class="cstat-no" title="statement not covered" >if (_feeDiff &gt;= 0) {</span>
+<span class="cstat-no" title="statement not covered" >            _curveMultiplier = _liqDiff.sub(_feeDiff).div(_oUtil)</span>;
+        } else {
+<span class="cstat-no" title="statement not covered" >            _curveMultiplier = _liqDiff.sub(curve.lambda.mul(_feeDiff))</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >            _curveMultiplier = _curveMultiplier.div(_oUtil)</span>;
+        }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        if (_totalShells != 0) {</span>
+<span class="cstat-no" title="statement not covered" >            curves_ = _totalShells.mul(_curveMultiplier)</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >            enforceLiquidityInvariant(_totalShells, curves_, _oGLiq, _nGLiq, _omega, _psi)</span>;
+        }
+    }
+&nbsp;
+    function enforceSwapInvariant(
+        int128 _oGLiq,
+        int128 _omega,
+        int128 _nGLiq,
+        int128 _psi
+    ) private pure {
+        int128 _nextUtil = _nGLiq - _psi;
+&nbsp;
+        int128 _prevUtil = _oGLiq - _omega;
+&nbsp;
+        int128 _diff = _nextUtil - _prevUtil;
+&nbsp;
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(0 &lt; _diff || _diff &gt;= MAX_DIFF, 'CurveMath/swap-invariant-violation');
+    }
+&nbsp;
+    function enforceLiquidityInvariant(
+        int128 _totalShells,
+        int128 _newShells,
+        int128 _oGLiq,
+        int128 _nGLiq,
+        int128 _omega,
+        int128 _psi
+    ) internal pure {
+        if (_totalShells == 0 || 0 == _totalShells + _newShells) return;
+&nbsp;
+        int128 _prevUtilPerShell = _oGLiq.sub(_omega).div(_totalShells);
+&nbsp;
+        int128 _nextUtilPerShell = _nGLiq.sub(_psi).div(_totalShells.add(_newShells));
+&nbsp;
+        int128 _diff = _nextUtilPerShell - _prevUtilPerShell;
+&nbsp;
+        <span class="missing-if-branch" title="else path not taken" >E</span>require(0 &lt; _diff || _diff &gt;= MAX_DIFF, 'CurveMath/liquidity-invariant-violation');
+    }
+&nbsp;
+    function enforceHalts(
+        Storage.Curve storage curve,
+        int128 _oGLiq,
+        int128 _nGLiq,
+        int128[] memory _oBals,
+        int128[] memory _nBals,
+        int128[] memory _weights
+    ) private view {
+        uint256 _length = _nBals.length;
+        int128 _alpha = curve.alpha;
+&nbsp;
+        for (uint256 i = 0; i &lt; _length; i++) {
+            int128 _nIdeal = _nGLiq.mul(_weights[i]);
+&nbsp;
+            if (_nBals[i] &gt; _nIdeal) {
+                int128 _upperAlpha = ONE + _alpha;
+&nbsp;
+                int128 _nHalt = _nIdeal.mul(_upperAlpha);
+&nbsp;
+                <span class="missing-if-branch" title="if path not taken" >I</span>if (_nBals[i] &gt; _nHalt) {
+<span class="cstat-no" title="statement not covered" >                    int128 _oHalt = _oGLiq.mul(_weights[i]).mul(_upperAlpha);</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >                    if (_oBals[i] &lt; _oHalt) {</span>
+<span class="cstat-no" title="statement not covered" >                        revert('CurveMath/upper-halt')</span>;
+                    }
+<span class="cstat-no" title="statement not covered" >                    if (_nBals[i] - _nHalt &gt; _oBals[i] - _oHalt) {</span>
+<span class="cstat-no" title="statement not covered" >                        revert('CurveMath/upper-halt')</span>;
+                    }
+                }
+            } else {
+                int128 _lowerAlpha = ONE - _alpha;
+&nbsp;
+                int128 _nHalt = _nIdeal.mul(_lowerAlpha);
+&nbsp;
+                <span class="missing-if-branch" title="if path not taken" >I</span>if (_nBals[i] &lt; _nHalt) {
+<span class="cstat-no" title="statement not covered" >                    int128 _oHalt = _oGLiq.mul(_weights[i]);</span>
+<span class="cstat-no" title="statement not covered" >                    _oHalt = _oHalt.mul(_lowerAlpha)</span>;
+&nbsp;
+<span class="cstat-no" title="statement not covered" >                    if (_oBals[i] &gt; _oHalt) {</span>
+<span class="cstat-no" title="statement not covered" >                        revert('CurveMath/lower-halt')</span>;
+                    }
+<span class="cstat-no" title="statement not covered" >                    if (_nHalt - _nBals[i] &gt; _oHalt - _oBals[i]) {</span>
+<span class="cstat-no" title="statement not covered" >                        revert('CurveMath/lower-halt')</span>;
+                    }
+                }
+            }
+        }
+    }
+}
+&nbsp;</pre></td></tr>
+</table></pre>
+<div class='push'></div><!-- for sticky footer -->
+</div><!-- /wrapper -->
+<div class='footer quiet pad2 space-top1 center small'>
+  Code coverage
+  generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Wed Jun 22 2022 11:09:50 GMT+0800 (Philippine Standard Time)
+</div>
+</div>
+<script src="../../prettify.js"></script>
+<script>
+window.onload = function () {
+        if (typeof prettyPrint === 'function') {
+            prettyPrint();
+        }
+};
+</script>
+<script src="../../sorter.js"></script>
+</body>
+</html>

@@ -20,6 +20,10 @@ Note: use `nvm use` to use the same node version with `.nvmrc`
 - For running local test: `yarn test-local`
 - For running tests against a forked node: `yarn test-fork` (N/A yet)\*\*
 
+## Running test coverage
+
+`npx hardhat coverage --testfiles "tests/local/*.ts"`
+
 ## Verifying smart contracts in bscscan, etherscan, polygonscan and arbiscan
 
 - `@nomiclabs/hardhat-etherscan` version 3.0.0 is used to verify smart contract in multiple chain.
