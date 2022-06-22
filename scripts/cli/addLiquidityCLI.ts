@@ -53,12 +53,16 @@ inquirer
     const vaultAddress = '0xBA12222222228d8Ba445958a75a0704d566BF2C8'
 
     // fxPHP:USDC
-    const poolId = '0x5d5aabcac8aa7288895912588a7b8787ab1fba220002000000000000000008ee'
-    const baseTokenAddress = '0x07bAB1e2D6DCb965d250F376B811ab8c2373AAE0'
+    // const poolId = '0x5d5aabcac8aa7288895912588a7b8787ab1fba220002000000000000000008ee'
+    // const baseTokenAddress = '0x07bAB1e2D6DCb965d250F376B811ab8c2373AAE0'
 
     // EURS:USDC
     // const poolId = '0x4b7315e3336153d54392dcb3f49800594362597b0002000000000000000008f0'
     // const baseTokenAddress = '0xaA64D57E3c781bcFB2e8B1e1C9936C302Db84bCE'
+
+    // CHF:USDC
+    const poolId = '0xaa33da6719a7f9181beeb20a27f4464df461e7e400020000000000000000096d'
+    const baseTokenAddress = '0xE9958574866587c391735b7e7CE0D79432d3b9d0'
 
     const quoteTokenAddress = '0x7e6F38922B59545bB5A6dc3A71039b85dFB1B7cE'
     const frominternalbalance = false
