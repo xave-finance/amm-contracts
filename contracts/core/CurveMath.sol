@@ -204,9 +204,11 @@ library CurveMath {
         console.log('_nGLiq uint: ', ABDKMath64x64.toUInt(_nGLiq));
         console.log('_nGLiq int: ');
         console.logInt(_nGLiq);
+
         console.log('_psi uint: ', ABDKMath64x64.toUInt(_psi));
         console.log('_psi int: ');
         console.logInt(_psi);
+
         console.log('_nextUtil uint: ', ABDKMath64x64.toUInt(_nextUtil));
         console.log('_nextUtil int: ');
         console.logInt(_nextUtil);
@@ -242,12 +244,50 @@ library CurveMath {
         int128 _nGLiq,
         int128 _omega,
         int128 _psi
-    ) internal pure {
+    ) internal view {
         if (_totalShells == 0 || 0 == _totalShells + _newShells) return;
+
+        console.log('_totalShells calculations: ');
+        console.log('_totalShells uint: ', ABDKMath64x64.toUInt(_totalShells));
+        console.log('_totalShells: ');
+        console.logInt(_totalShells);
+
+        console.log('_newShells calculations: ');
+        console.log('_newShells uint: ', ABDKMath64x64.toUInt(_newShells > 0 ? _newShells : _newShells.mul(-1)));
+        console.log('_newShells: ');
+        console.logInt(_newShells);
 
         int128 _prevUtilPerShell = _oGLiq.sub(_omega).div(_totalShells);
 
+        console.log('_prevUtil calculations: ');
+        console.log('_prevUtil uint: ', ABDKMath64x64.toUInt(_prevUtilPerShell));
+        console.log('_prevUtil int: ');
+        console.logInt(_prevUtilPerShell);
+
+        console.log('_oGLiq calculations: ');
+        console.log('_oGLiq uint: ', ABDKMath64x64.toUInt(_oGLiq));
+        console.log('_oGLiq int: ');
+        console.logInt(_oGLiq);
+
+        console.log('_omega uint: ', ABDKMath64x64.toUInt(_omega));
+        console.log('_omega int: ');
+        console.logInt(_omega);
+
         int128 _nextUtilPerShell = _nGLiq.sub(_psi).div(_totalShells.add(_newShells));
+
+        console.log('_nextUtil calculations: ');
+        console.log('_nextUtil uint: ', ABDKMath64x64.toUInt(_nextUtilPerShell));
+        console.log('_nextUtil int: ');
+        console.logInt(_nextUtilPerShell);
+
+        console.log('_nGLiq calculations: ');
+        console.log('_nGLiq uint: ', ABDKMath64x64.toUInt(_nGLiq));
+        console.log('_nGLiq int: ');
+        console.logInt(_nGLiq);
+
+        console.log('_psi uint: ', ABDKMath64x64.toUInt(_psi));
+        console.log('_psi int: ');
+        console.logInt(_psi);
 
         int128 _diff = _nextUtilPerShell - _prevUtilPerShell;
 
