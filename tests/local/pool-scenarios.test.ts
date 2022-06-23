@@ -1,18 +1,14 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
-import { BigNumber, Signer } from 'ethers'
+import { Signer } from 'ethers'
 import { setupEnvironment, TestEnv } from '../common/setupEnvironment'
-import { formatUnits, parseEther, parseUnits } from '@ethersproject/units'
-import { CONTRACT_REVERT } from '../constants'
+import { parseEther, parseUnits } from '@ethersproject/units'
 import { mockToken } from '../constants/mockTokenList'
-import { sortDataLikeVault, orderDataLikeFE } from '../common/helpers/sorter'
-import { calculateOtherTokenIn } from '../common/helpers/frontend'
 import { sortAddresses } from '../../scripts/utils/sortAddresses'
 import * as swaps from '../common/helpers/swap'
 import { FXPool } from '../../typechain/FXPool'
 import { fxPHPUSDCFxPool } from '../constants/mockPoolList'
 import { getFxPoolContract } from '../common/contractGetters'
-import { formatEther } from 'ethers/lib/utils'
 
 describe('FXPool Tests', () => {
   let testEnv: TestEnv
@@ -35,7 +31,6 @@ describe('FXPool Tests', () => {
   const baseWeight = parseUnits('0.5')
   const quoteWeight = parseUnits('0.5')
 
-  const loopCount = 10
   const log = true // do console logging
   const usdcDecimals = mockToken[0].decimal
   const fxPHPDecimals = mockToken[3].decimal
@@ -60,7 +55,6 @@ describe('FXPool Tests', () => {
     sortedAddresses = sortAddresses([testEnv.fxPHP.address, testEnv.USDC.address])
 
     // Step 4 - create a new pool from the FXPool
-
     // CREATE POOL START //
     await testEnv.fxPoolFactory.newFXPool(
       fxPHPUSDCFxPool.name, // change
@@ -112,7 +106,6 @@ describe('FXPool Tests', () => {
     // TODO: Change value for adding liquidity, add more numeraire values
     const baseAmountsIn = ['1000', '2000', '10000', '3333333']
 
-    // Numeraire input
     for (var i = 0; i < baseAmountsIn.length; i++) {
       const beforeLpBalance = await fxPool.balanceOf(adminAddress)
 
@@ -155,12 +148,12 @@ describe('FXPool Tests', () => {
   })
 
   it('Removes Liquidity from the FXPool via the Vault which triggers the onExit hook', async () => {
-    // remove amount per iteration roughly 1,000 USD or ~25k PHP and ~500k USDC
+    // TODO: Change value for removing liquidity, add more token
+    const loopCount = 10 // how many loops will trigger the token in amount below
     const hlptTokenAmountInNumber = 1000
     const hlpTokenAmountInEther = hlptTokenAmountInNumber.toString()
     const hlpTokensToBurninWei = parseEther(hlpTokenAmountInEther)
 
-    // TODO: Change value for removing liquidity, add more token
     for (var i = 1; i < loopCount + 1; i++) {
       console.log('Withdraw #', i, ' with total withdraw amount ', hlptTokenAmountInNumber * i)
       const beforeLpBalance = await fxPool.balanceOf(adminAddress)
