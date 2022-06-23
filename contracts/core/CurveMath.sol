@@ -20,6 +20,8 @@ import './Storage.sol';
 import './lib/UnsafeMath64x64.sol';
 import './lib/ABDKMath64x64.sol';
 
+import 'hardhat/console.sol';
+
 library CurveMath {
     int128 private constant ONE = 0x10000000000000000;
     int128 private constant MAX = 0x4000000000000000; // .25 in layman's terms
@@ -188,17 +190,47 @@ library CurveMath {
         }
     }
 
+    // TODO: change to pure after checking
+
     function enforceSwapInvariant(
         int128 _oGLiq,
         int128 _omega,
         int128 _nGLiq,
         int128 _psi
-    ) private pure {
+    ) private view {
         int128 _nextUtil = _nGLiq - _psi;
 
+        console.log('_nGLiq calculations: ');
+        console.log('_nGLiq uint: ', ABDKMath64x64.toUInt(_nGLiq));
+        console.log('_nGLiq int: ');
+        console.logInt(_nGLiq);
+        console.log('_psi uint: ', ABDKMath64x64.toUInt(_psi));
+        console.log('_psi int: ');
+        console.logInt(_psi);
+        console.log('_nextUtil uint: ', ABDKMath64x64.toUInt(_nextUtil));
+        console.log('_nextUtil int: ');
+        console.logInt(_nextUtil);
+
         int128 _prevUtil = _oGLiq - _omega;
+        console.log('_oGLiq calculations: ');
+        console.log('_oGLiq uint: ', ABDKMath64x64.toUInt(_oGLiq));
+        console.log('_oGLiq int: ');
+        console.logInt(_oGLiq);
+
+        console.log('_omega uint: ', ABDKMath64x64.toUInt(_omega));
+        console.log('_omega int: ');
+        console.logInt(_omega);
+
+        console.log('_prevUtil calculations: ');
+        console.log('_prevUtil uint: ', ABDKMath64x64.toUInt(_prevUtil));
+        console.log('_prevUtil int: ');
+        console.logInt(_prevUtil);
 
         int128 _diff = _nextUtil - _prevUtil;
+        console.log('_diff calculations: ');
+        console.log('_diff uint: ', ABDKMath64x64.toUInt(_nGLiq));
+        console.log('_diff int: ');
+        console.logInt(_nGLiq);
 
         require(0 < _diff || _diff >= MAX_DIFF, 'CurveMath/swap-invariant-violation');
     }

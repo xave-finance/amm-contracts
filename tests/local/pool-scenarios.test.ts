@@ -55,6 +55,7 @@ describe('FXPool Tests', () => {
     sortedAddresses = sortAddresses([testEnv.fxPHP.address, testEnv.USDC.address])
 
     // Step 4 - create a new pool from the FXPool
+
     // CREATE POOL START //
     await testEnv.fxPoolFactory.newFXPool(
       fxPHPUSDCFxPool.name, // change
@@ -149,7 +150,7 @@ describe('FXPool Tests', () => {
 
   it('Removes Liquidity from the FXPool via the Vault which triggers the onExit hook', async () => {
     // TODO: Change value for removing liquidity, add more token
-    const loopCount = 10 // how many loops will trigger the token in amount below
+    const loopCount = 1 // how many loops will trigger the token in amount below
     const hlptTokenAmountInNumber = 1000
     const hlpTokenAmountInEther = hlptTokenAmountInNumber.toString()
     const hlpTokensToBurninWei = parseEther(hlpTokenAmountInEther)
