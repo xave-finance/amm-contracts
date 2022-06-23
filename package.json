@@ -23,6 +23,7 @@
     "test": "npx hardhat test --logs",
     "test-local": "npx hardhat test tests/local/*.test.ts --logs",
     "test-local:only-pool": "hardhat test tests/local/pool.test.ts",
+    "test-local:only-pool-scenarios": "hardhat test tests/local/pool-scenarios.test.ts",
     "typecheck": "yarn compile && tsc --noEmit",
     "recompile": "rm -rf artifacts && rm -rf cache && yarn compile-fix",
     "load-balancer-contracts": "sh scripts/shell/load-balancer-contracts.sh",
