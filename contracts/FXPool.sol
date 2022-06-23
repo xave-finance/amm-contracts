@@ -473,11 +473,11 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
     // INTERNAL LOGIC FUNCTIONS
     /// @dev convert tokens to numeraire value
-    function _convertToNumeraire(uint256 tokenAmount, uint256 tokenPosition) internal view returns (uint256) {
-        int128 numeraireAmount = Assimilators.viewNumeraireAmount(curve.assets[tokenPosition].addr, tokenAmount);
+    // function _convertToNumeraire(uint256 tokenAmount, uint256 tokenPosition) internal view returns (uint256) {
+    //     int128 numeraireAmount = Assimilators.viewNumeraireAmount(curve.assets[tokenPosition].addr, tokenAmount);
 
-        return ABDKMath64x64.toUInt(numeraireAmount);
-    }
+    //     return ABDKMath64x64.toUInt(numeraireAmount);
+    // }
 
     /// @dev get asset arrangement of the token in the vault
     function _getAssetIndex(address _assetAddress) internal view returns (uint256) {
