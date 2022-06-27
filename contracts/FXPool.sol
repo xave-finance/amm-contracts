@@ -460,9 +460,12 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     }
 
     /// @notice view LP tokens and token needed for deposit
-    function viewDeposit(bytes calldata userData) external view whenNotPaused returns (uint256, uint256[] memory) {
-        (uint256 totalDepositNumeraire, ) = abi.decode(userData, (uint256, address[]));
-
+    function viewDeposit(uint256 totalDepositNumeraire)
+        external
+        view
+        whenNotPaused
+        returns (uint256, uint256[] memory)
+    {
         return ProportionalLiquidity.viewProportionalDeposit(curve, totalDepositNumeraire);
     }
 
@@ -481,10 +484,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
     /// @dev get asset arrangement of the token in the vault
     function _getAssetIndex(address _assetAddress) internal view returns (uint256) {
-        require(
-            _assetAddress == derivatives[0] || _assetAddress == derivatives[1],
-            'FXPool: Address is not a derivative'
-        );
+        require(_assetAddress == derivatives[0] || _assetAddress == derivatives[1], 'FXPool/address-not-a-derivative');
 
         if (_assetAddress == derivatives[0]) {
             return 0;

@@ -101,7 +101,7 @@ library CurveMath {
         int128[] memory _nBals,
         int128 _inputAmt,
         uint256 _outputIndex
-    ) internal view returns (int128 outputAmt_, int128 accruedFees_) {
+    ) internal view returns (int128 outputAmt_) {
         outputAmt_ = -_inputAmt;
 
         // int128 _lambda = curve.lambda;
@@ -121,7 +121,6 @@ library CurveMath {
                 outputAmt_ = _omega < _psi
                     ? -(_inputAmt + _omega - _psi)
                     : -(_inputAmt + (curve.lambda).mul(_omega - _psi));
-                accruedFees_ = _omega < _psi ? _omega - _psi : (curve.lambda).mul(_omega - _psi);
             }
 
             if (outputAmt_ / 1e13 == prevAmount / 1e13) {
@@ -133,7 +132,7 @@ library CurveMath {
 
                 enforceSwapInvariant(_oGLiq, _omega, _nGLiq, _psi);
 
-                return (outputAmt_, accruedFees_);
+                return outputAmt_;
             } else {
                 _nGLiq = _oGLiq + _inputAmt + outputAmt_;
 

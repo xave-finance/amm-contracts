@@ -54,10 +54,12 @@ library FXSwaps {
             int128[] memory _oBals
         ) = viewOriginSwapData(curve, _o.ix, _t.ix, _originAmount, _o.addr);
 
-        (_amt, accruedFees_) = CurveMath.calculateTrade(curve, _oGLiq, _nGLiq, _oBals, _nBals, _amt, _t.ix);
+        int128 inputNumeraireAmount = _amt;
+
+        _amt = CurveMath.calculateTrade(curve, _oGLiq, _nGLiq, _oBals, _nBals, _amt, _t.ix);
 
         // negative for origin swap
-        accruedFees_ = -(_calculateFeeInNumeraire(curve, _amt, accruedFees_));
+        accruedFees_ = -(_calculateFeeInNumeraire(_amt, inputNumeraireAmount));
         _amt = _amt.us_mul(ONE - curve.epsilon);
         // total amount gets converted to output token amount
         tAmt_ = Assimilators.viewRawAmount(_t.addr, _amt.abs());
@@ -95,7 +97,9 @@ library FXSwaps {
             int128[] memory _oBals
         ) = viewTargetSwapData(curve, _t.ix, _o.ix, _targetAmount, _t.addr);
 
-        (_amt, accruedFees_) = CurveMath.calculateTrade(curve, _oGLiq, _nGLiq, _oBals, _nBals, _amt, _o.ix);
+        int128 inputNumeraireAmount = _amt;
+
+        _amt = CurveMath.calculateTrade(curve, _oGLiq, _nGLiq, _oBals, _nBals, _amt, _o.ix);
 
         // If the origin is the quote currency (i.e. usdc)
         // we need to make sure to massage the _amt too
@@ -105,8 +109,8 @@ library FXSwaps {
             _amt = _amt.mul(Assimilators.getRate(_t.addr).divu(1e8));
         }
 
-        accruedFees_ = _calculateFeeInNumeraire(curve, _amt, accruedFees_);
         _amt = _amt.us_mul(ONE + curve.epsilon);
+        accruedFees_ = _calculateFeeInNumeraire(_amt, inputNumeraireAmount);
 
         // total amount gets converted to output token amount
         oAmt_ = Assimilators.viewRawAmount(_o.addr, _amt);
@@ -212,14 +216,14 @@ library FXSwaps {
     }
 
     // internal function to avoid stack too deep
-    function _calculateFeeInNumeraire(
-        Storage.Curve storage curve,
-        int128 _amtWithoutEpsilon,
-        int128 lambdaFee
-    ) internal view returns (int128 feeInNumeraire) {
+    function _calculateFeeInNumeraire(int128 _amtWithEpsilon, int128 _amtWithoutEpsilon)
+        internal
+        pure
+        returns (int128 feeInNumeraire)
+    {
         // lambda + (amount w/ epsilon - amount without epsilon) in numeraire
-        int128 _amtWithEpsilon = _amtWithoutEpsilon.us_mul(ONE + curve.epsilon);
+        // int128 _amtWithEpsilon = _amtWithoutEpsilon.us_mul(ONE + curve.epsilon);
 
-        return lambdaFee.add(_amtWithEpsilon.sub(_amtWithoutEpsilon));
+        return _amtWithEpsilon.sub(_amtWithoutEpsilon);
     }
 }

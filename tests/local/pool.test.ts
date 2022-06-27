@@ -143,7 +143,7 @@ describe('FXPool', () => {
         [parseEther(numeraireAmount), sortedAddresses]
       )
 
-      const depositDetails = await fxPool.viewDeposit(payload)
+      const depositDetails = await fxPool.viewDeposit(parseEther(numeraireAmount))
 
       const maxAmountsIn = [ethers.constants.MaxUint256, ethers.constants.MaxUint256]
 
@@ -426,31 +426,8 @@ describe('FXPool', () => {
 
     await expect(fxPool.setPaused()).to.emit(fxPool, 'Paused').withArgs(adminAddress)
 
-    const amountIn0 = TEST_DEPOSIT_PAUSEABLE
-
-    let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
-
-    // Frontend estimation of other token in amount
-    const poolTokens = await testEnv.vault.getPoolTokens(poolId)
-    const balances = orderDataLikeFE(poolTokens.tokens, fxPHPAddress, poolTokens.balances)
-    const otherTokenIn = await calculateOtherTokenIn(
-      amountIn0,
-      0,
-      balances,
-      [fxPHPDecimals, usdcDecimals],
-      [fxPHPAssimilatorAddress, usdcAssimilatorAddress]
-    )
-    const amountIn1 = formatUnits(otherTokenIn, usdcDecimals)
-
-    const sortedAmounts = sortDataLikeVault(sortedAddresses, fxPHPAddress, [
-      parseUnits(amountIn0),
-      parseUnits(amountIn1),
-    ])
-
-    const userData = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [sortedAmounts, sortedAddresses])
-
     // test using view deposit, it will fail if the pool is paused
-    await expect(fxPool.viewDeposit(userData)).to.be.revertedWith(CONTRACT_REVERT.Paused)
+    await expect(fxPool.viewDeposit(parseEther(TEST_DEPOSIT_PAUSEABLE))).to.be.revertedWith(CONTRACT_REVERT.Paused)
   })
 
   it('can unpause pool', async () => {
@@ -460,31 +437,8 @@ describe('FXPool', () => {
 
     await expect(fxPool.setPaused()).to.emit(fxPool, 'Unpaused').withArgs(adminAddress)
 
-    const amountIn0 = TEST_DEPOSIT_PAUSEABLE
-
-    let fxPHPAddress = ethers.utils.getAddress(testEnv.fxPHP.address)
-
-    // Frontend estimation of other token in amount
-    const poolTokens = await testEnv.vault.getPoolTokens(poolId)
-    const balances = orderDataLikeFE(poolTokens.tokens, fxPHPAddress, poolTokens.balances)
-    const otherTokenIn = await calculateOtherTokenIn(
-      amountIn0,
-      0,
-      balances,
-      [fxPHPDecimals, usdcDecimals],
-      [fxPHPAssimilatorAddress, usdcAssimilatorAddress]
-    )
-    const amountIn1 = formatUnits(otherTokenIn, usdcDecimals)
-
-    const sortedAmounts = sortDataLikeVault(sortedAddresses, fxPHPAddress, [
-      parseUnits(amountIn0),
-      parseUnits(amountIn1),
-    ])
-
-    const userData = ethers.utils.defaultAbiCoder.encode(['uint256[]', 'address[]'], [sortedAmounts, sortedAddresses])
-
     // test using view deposit, it will fail if the pool is paused
-    await expect(fxPool.viewDeposit(userData)).to.not.be.reverted
+    await expect(fxPool.viewDeposit(parseEther(TEST_DEPOSIT_PAUSEABLE))).to.not.be.reverted
   })
 
   it('cannot set new collectorAddress if not owner', async () => {
