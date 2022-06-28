@@ -221,8 +221,6 @@ library FXSwaps {
         pure
         returns (int128 feeInNumeraire)
     {
-        // lambda + (amount w/ epsilon - amount without epsilon) in numeraire
-        // int128 _amtWithEpsilon = _amtWithoutEpsilon.us_mul(ONE + curve.epsilon);
 
         return _amtWithEpsilon.sub(_inputNumeraireAmt);
     }
