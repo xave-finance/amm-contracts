@@ -14,8 +14,6 @@ import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {Pausable} from '@openzeppelin/contracts/utils/Pausable.sol';
 import {ReentrancyGuard} from '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
 
-import 'hardhat/console.sol';
-
 // check bptOut
 contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, ReentrancyGuard, Pausable {
     using ABDKMath64x64 for int128;
@@ -336,10 +334,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             totalDepositNumeraire
         );
 
-        console.log('LP tokens: ', lpTokens);
-        console.log('Amount to deposit[0]: ', amountToDeposit[0]);
-        console.log('Amount to deposit[1]: ', amountToDeposit[1]);
-
         {
             amountsIn = new uint256[](2);
             amountsIn[0] = amountToDeposit[_getAssetIndex(assetAddresses[0])];
@@ -504,7 +498,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         require(collectorAddress != address(0), 'FXPool/fee-collector-not-set');
 
         uint256 feesToCollect = totalUnclaimedFeesInNumeraire;
-        console.log('FEES TO COLLECT: ', feesToCollect);
         totalUnclaimedFeesInNumeraire = 0;
         BalancerPoolToken._mintPoolTokens(collectorAddress, feesToCollect);
 

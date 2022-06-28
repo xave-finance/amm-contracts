@@ -20,7 +20,6 @@
     "verify2": "npx hardhat run scripts/verifyTwo.ts --network kovan",
     "reset": "yarn run clean && rm -rf node_modules && yarn install && yarn compile-fix",
     "node": "npx hardhat node",
-    "test": "npx hardhat test --logs",
     "test-local": "npx hardhat test tests/local/*.test.ts --logs",
     "test-local:only-pool": "hardhat test tests/local/pool.test.ts",
     "typecheck": "yarn compile && tsc --noEmit",
