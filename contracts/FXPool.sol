@@ -329,10 +329,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     ) external override whenNotPaused returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts) {
         (uint256 totalDepositNumeraire, address[] memory assetAddresses) = abi.decode(userData, (uint256, address[]));
 
-        // uint256 totalDepositNumeraire = (_convertToNumeraire(tokensIn[0], _getAssetIndex(assetAddresses[0])) +
-        //     _convertToNumeraire(tokensIn[1], _getAssetIndex(assetAddresses[1]))) * 1e18;
-
-        // TODO: reenable
         _enforceCap(totalDepositNumeraire);
 
         (uint256 lpTokens, uint256[] memory amountToDeposit) = ProportionalLiquidity.proportionalDeposit(
@@ -475,12 +471,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     }
 
     // INTERNAL LOGIC FUNCTIONS
-    /// @dev convert tokens to numeraire value
-    // function _convertToNumeraire(uint256 tokenAmount, uint256 tokenPosition) internal view returns (uint256) {
-    //     int128 numeraireAmount = Assimilators.viewNumeraireAmount(curve.assets[tokenPosition].addr, tokenAmount);
-
-    //     return ABDKMath64x64.toUInt(numeraireAmount);
-    // }
 
     /// @dev get asset arrangement of the token in the vault
     function _getAssetIndex(address _assetAddress) internal view returns (uint256) {
@@ -512,7 +502,9 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
     function _mintProtocolFees() private {
         require(collectorAddress != address(0), 'FXPool/fee-collector-not-set');
+
         uint256 feesToCollect = totalUnclaimedFeesInNumeraire;
+        console.log('FEES TO COLLECT: ', feesToCollect);
         totalUnclaimedFeesInNumeraire = 0;
         BalancerPoolToken._mintPoolTokens(collectorAddress, feesToCollect);
 

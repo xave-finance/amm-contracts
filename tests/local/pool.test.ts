@@ -2,11 +2,9 @@ import { expect } from 'chai'
 import { ethers } from 'hardhat'
 import { BigNumber, Signer } from 'ethers'
 import { setupEnvironment, TestEnv } from '../common/setupEnvironment'
-import { formatUnits, parseEther, parseUnits } from '@ethersproject/units'
+import { parseEther, parseUnits } from '@ethersproject/units'
 import { CONTRACT_REVERT } from '../constants'
 import { mockToken } from '../constants/mockTokenList'
-import { sortDataLikeVault, orderDataLikeFE } from '../common/helpers/sorter'
-import { calculateOtherTokenIn } from '../common/helpers/frontend'
 import { sortAddresses } from '../../scripts/utils/sortAddresses'
 import * as swaps from '../common/helpers/swap'
 import { FXPool } from '../../typechain/FXPool'
@@ -33,6 +31,7 @@ describe('FXPool', () => {
   const CAP_DEPOSIT_FAIL_USDC = '2200000'
   const TEST_DEPOSIT_PAUSEABLE = '1000'
   const TEST_DEPOSIT_FEES = '9932' // random
+  const TEST_WITHDRAW_FEES = '212' // random
   const ALPHA = parseUnits('0.8')
   const BETA = parseUnits('0.5')
   const MAX = parseUnits('0.15')
@@ -42,7 +41,7 @@ describe('FXPool', () => {
   const quoteWeight = parseUnits('0.5')
   const EXPECTED_POOLS_CREATED = 4
 
-  const loopCount = 10
+  const loopCount = 3
   const log = true // do console logging
   const usdcDecimals = mockToken[0].decimal
   const fxPHPDecimals = mockToken[3].decimal
@@ -411,12 +410,12 @@ describe('FXPool', () => {
 
   // it('Previews swap caclculation from the onSwap hook using queryBatchSwap() ', async () => {})
   // it('Previews swap caclculation when providing single sided liquidity from the onJoin and onExit hook', async () => {})
-  it('totalUnclaimedFeesInNumeraire must be minted during onJoin or onExit', async () => {
+  it('totalUnclaimedFeesInNumeraire must be minted during onJoin', async () => {
     const previousFeeBalance = await fxPool.totalUnclaimedFeesInNumeraire()
     expect(previousFeeBalance).to.be.not.equals(0)
     console.log('Total unclaimed fees in numeraire before swap: ', formatEther(previousFeeBalance))
 
-    const fxPHPAmountToSwapInEther = 1000
+    const fxPHPAmountToSwapInEtherDeposit = 1000
     const fxPHPDecimals = 18
     const fxPHPAddress = testEnv.fxPHP.address
     const usdcAddress = testEnv.USDC.address
@@ -424,7 +423,7 @@ describe('FXPool', () => {
     await swaps.buildExecute_SingleSwapGivenIn(
       fxPHPAddress, // fxPHP = token in
       usdcAddress, // USDC = token out
-      fxPHPAmountToSwapInEther,
+      fxPHPAmountToSwapInEtherDeposit,
       fxPHPDecimals, // specify token in decimals
       adminAddress,
       adminAddress, // the account swapping should get the output tokens
@@ -433,10 +432,8 @@ describe('FXPool', () => {
       log
     )
 
-    const currentFeeBalanceAfterSwap = await fxPool.totalUnclaimedFeesInNumeraire()
-    console.log(formatEther(currentFeeBalanceAfterSwap.sub(previousFeeBalance)))
-
-    expect(currentFeeBalanceAfterSwap).is.gt(previousFeeBalance)
+    const currentFeeBalanceAfterSwapBeforeDeposit = await fxPool.totalUnclaimedFeesInNumeraire()
+    expect(currentFeeBalanceAfterSwapBeforeDeposit).is.gt(previousFeeBalance)
 
     const payload = ethers.utils.defaultAbiCoder.encode(
       ['uint256', 'address[]'],
@@ -454,13 +451,82 @@ describe('FXPool', () => {
       fromInternalBalance: false,
     }
 
+    const lpTokensBeforeDeposit = await fxPool.balanceOf(adminAddress)
+    console.log(`Fee after swap: ${currentFeeBalanceAfterSwapBeforeDeposit}`)
+    console.log(`Lp tokens before deposit: ${lpTokensBeforeDeposit}`)
+
     await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest))
       .to.emit(fxPool, 'OnJoinPool')
       .withArgs(poolId, depositDetails[0], [depositDetails[1][0], depositDetails[1][1]])
+      .to.emit(fxPool, 'FeesCollected') // Check for _mintProtocolFees() to be trigerred
+      .withArgs(adminAddress, currentFeeBalanceAfterSwapBeforeDeposit)
+      .to.emit(fxPool, 'Transfer') // Check for minting
+      .withArgs(ethers.constants.AddressZero, adminAddress, currentFeeBalanceAfterSwapBeforeDeposit)
 
     const currentFeeBalanceAfterDeposit = await fxPool.totalUnclaimedFeesInNumeraire()
+    const lpTokensAfterDeposit = await fxPool.balanceOf(adminAddress)
 
     expect(currentFeeBalanceAfterDeposit).is.equals(0)
+    expect(lpTokensAfterDeposit).to.equals(
+      lpTokensBeforeDeposit.add(currentFeeBalanceAfterSwapBeforeDeposit).add(depositDetails[0])
+    ) // including LP tokens after deposit
+  })
+
+  it('totalUnclaimedFeesInNumeraire must be minted during onExit', async () => {
+    const previousFeeBalance = await fxPool.totalUnclaimedFeesInNumeraire()
+    console.log(await testEnv.fxPHP.balanceOf(adminAddress))
+
+    const fxPHPAmountToSwapInEtherWithdraw = 1110
+    const fxPHPDecimals = 18
+    const fxPHPAddress = testEnv.fxPHP.address
+    const usdcAddress = testEnv.USDC.address
+    const hlpTokensToBurninWei = parseEther(TEST_WITHDRAW_FEES)
+
+    await swaps.buildExecute_SingleSwapGivenIn(
+      fxPHPAddress, // fxPHP = token in
+      usdcAddress, // USDC = token out
+      fxPHPAmountToSwapInEtherWithdraw,
+      fxPHPDecimals, // specify token in decimals
+      adminAddress,
+      adminAddress, // the account swapping should get the output tokens
+      fxPool,
+      testEnv,
+      log
+    )
+    // TODO: here
+
+    const currentFeeBalanceAfterSwapBeforeWithdraw = await fxPool.totalUnclaimedFeesInNumeraire()
+    expect(currentFeeBalanceAfterSwapBeforeWithdraw).is.gt(previousFeeBalance)
+    const withdrawTokensOut = await fxPool.viewWithdraw(hlpTokensToBurninWei)
+
+    const payload = ethers.utils.defaultAbiCoder.encode(
+      ['uint256', 'address[]'],
+      [hlpTokensToBurninWei, sortedAddresses]
+    )
+    const exitPoolRequest = {
+      assets: sortedAddresses,
+      minAmountsOut: [0, 0], // check token out
+      userData: payload,
+      toInternalBalance: false,
+    }
+
+    const lpTokensBeforeWithdraw = await fxPool.balanceOf(adminAddress)
+
+    await expect(testEnv.vault.exitPool(poolId, adminAddress, adminAddress, exitPoolRequest))
+      .to.emit(fxPool, 'OnExitPool')
+      .withArgs(poolId, hlpTokensToBurninWei, [withdrawTokensOut[0], withdrawTokensOut[1]])
+      .to.emit(fxPool, 'FeesCollected') // Check for _mintProtocolFees() to be trigerred
+      .withArgs(adminAddress, currentFeeBalanceAfterSwapBeforeWithdraw)
+      .to.emit(fxPool, 'Transfer') // Check for minting
+      .withArgs(ethers.constants.AddressZero, adminAddress, currentFeeBalanceAfterSwapBeforeWithdraw)
+
+    const currentFeeBalanceAfterWithdraw = await fxPool.totalUnclaimedFeesInNumeraire()
+    const lpTokensAfterDeposit = await fxPool.balanceOf(adminAddress)
+
+    expect(currentFeeBalanceAfterWithdraw).is.equals(0)
+    expect(lpTokensAfterDeposit).to.equals(
+      lpTokensBeforeWithdraw.add(currentFeeBalanceAfterSwapBeforeWithdraw).sub(hlpTokensToBurninWei)
+    ) // including burned tokens
   })
 
   it('can pause pool', async () => {
