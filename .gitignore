@@ -12,9 +12,11 @@
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
+
+# Generated Files
 crytic-export
 coverage
-
+coverage.json
 # Mono auto generated files
 mono_crash.*
 
