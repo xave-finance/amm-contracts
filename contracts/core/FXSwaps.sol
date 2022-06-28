@@ -224,6 +224,6 @@ library FXSwaps {
         // lambda + (amount w/ epsilon - amount without epsilon) in numeraire
         // int128 _amtWithEpsilon = _amtWithoutEpsilon.us_mul(ONE + curve.epsilon);
 
-        return _amtWithEpsilon.sub(_amtWithoutEpsilon);
+        return _amtWithEpsilon.sub(_inputNumeraireAmt);
     }
 }
