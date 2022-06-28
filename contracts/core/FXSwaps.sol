@@ -216,7 +216,7 @@ library FXSwaps {
     }
 
     // internal function to avoid stack too deep
-    function _calculateFeeInNumeraire(int128 _amtWithEpsilon, int128 _amtWithoutEpsilon)
+    function _calculateFeeInNumeraire(int128 _outputNumeraireAmt, int128 _inputNumeraireAmt)
         internal
         pure
         returns (int128 feeInNumeraire)
