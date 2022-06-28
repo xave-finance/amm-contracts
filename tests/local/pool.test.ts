@@ -234,9 +234,9 @@ describe('FXPool', () => {
     const usdcAmountToSwapInEther = 1000
     const usdcDecimals = 6
 
-    const fxPHPAddress = await testEnv.fxPHP.address
+    const fxPHPAddress = testEnv.fxPHP.address
     console.log('fxPHP Address: ', fxPHPAddress)
-    const usdcAddress = await testEnv.USDC.address
+    const usdcAddress = testEnv.USDC.address
     console.log('usdc Address: ', usdcAddress)
 
     const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
@@ -275,9 +275,9 @@ describe('FXPool', () => {
 
     const fxPHPAmountToSwapInEther = 5000
 
-    const fxPHPAddress = await testEnv.fxPHP.address
+    const fxPHPAddress = testEnv.fxPHP.address
     console.log('fxPHP Address: ', fxPHPAddress)
-    const usdcAddress = await testEnv.USDC.address
+    const usdcAddress = testEnv.USDC.address
     console.log('usdc Address: ', usdcAddress)
 
     await swaps.buildExecute_BatchSwapGivenOut(
@@ -307,9 +307,9 @@ describe('FXPool', () => {
   it('originSwap: User batch swaps token A (fxPHP) for token B (USDC) calling the vault and triggering the onSwap hook', async () => {
     const fxPHPAmountToSwapInEther = 1000
 
-    const fxPHPAddress = await testEnv.fxPHP.address
+    const fxPHPAddress = testEnv.fxPHP.address
     console.log('fxPHP Address: ', fxPHPAddress)
-    const usdcAddress = await testEnv.USDC.address
+    const usdcAddress = testEnv.USDC.address
     console.log('usdc Address: ', usdcAddress)
 
     const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
@@ -348,9 +348,9 @@ describe('FXPool', () => {
 
     const usdcAmountToSwapInEther = 1000
 
-    const fxPHPAddress = await testEnv.fxPHP.address
+    const fxPHPAddress = testEnv.fxPHP.address
     console.log('fxPHP Address: ', fxPHPAddress)
-    const usdcAddress = await testEnv.USDC.address
+    const usdcAddress = testEnv.USDC.address
     console.log('usdc Address: ', usdcAddress)
 
     await swaps.buildExecute_SingleSwapGivenIn(
@@ -385,9 +385,9 @@ describe('FXPool', () => {
     const fxPHPAmountToSwapInEther = 1000
     const fxPHPDecimals = 18
 
-    const fxPHPAddress = await testEnv.fxPHP.address
+    const fxPHPAddress = testEnv.fxPHP.address
     console.log('fxPHP Address: ', fxPHPAddress)
-    const usdcAddress = await testEnv.USDC.address
+    const usdcAddress = testEnv.USDC.address
     console.log('usdc Address: ', usdcAddress)
 
     await swaps.buildExecute_SingleSwapGivenIn(
@@ -417,8 +417,31 @@ describe('FXPool', () => {
   // it('Previews swap caclculation from the onSwap hook using queryBatchSwap() ', async () => {})
   // it('Previews swap caclculation when providing single sided liquidity from the onJoin and onExit hook', async () => {})
   it('totalUnclaimedFeesInNumeraire must be minted during onJoin or onExit', async () => {
-    expect(await fxPool.totalUnclaimedFeesInNumeraire()).to.be.not.equals(0)
-    console.log('Total unclaimed fees in numeraire: ', formatEther(await fxPool.totalUnclaimedFeesInNumeraire()))
+    const previousFeeBalance = await fxPool.totalUnclaimedFeesInNumeraire()
+    expect(previousFeeBalance).to.be.not.equals(0)
+    console.log('Total unclaimed fees in numeraire before swap: ', formatEther(previousFeeBalance))
+
+    const fxPHPAmountToSwapInEther = 1000
+    const fxPHPDecimals = 18
+    const fxPHPAddress = testEnv.fxPHP.address
+    const usdcAddress = testEnv.USDC.address
+
+    await swaps.buildExecute_SingleSwapGivenIn(
+      fxPHPAddress, // fxPHP = token in
+      usdcAddress, // USDC = token out
+      fxPHPAmountToSwapInEther,
+      fxPHPDecimals, // specify token in decimals
+      adminAddress,
+      adminAddress, // the account swapping should get the output tokens
+      fxPool,
+      testEnv,
+      log
+    )
+
+    const currentFeeBalance = await fxPool.totalUnclaimedFeesInNumeraire()
+    console.log(formatEther(currentFeeBalance.sub(previousFeeBalance)))
+
+    expect(currentFeeBalance).is.gt(previousFeeBalance)
   })
 
   it('can pause pool', async () => {
