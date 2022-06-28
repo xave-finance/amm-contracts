@@ -32,6 +32,7 @@ describe('FXPool', () => {
   const NEW_CAP_FAIL = parseEther('1000')
   const CAP_DEPOSIT_FAIL_USDC = '2200000'
   const TEST_DEPOSIT_PAUSEABLE = '1000'
+  const TEST_DEPOSIT_FEES = '9932' // random
   const ALPHA = parseUnits('0.8')
   const BETA = parseUnits('0.5')
   const MAX = parseUnits('0.15')
@@ -218,16 +219,10 @@ describe('FXPool', () => {
   })
 
   it('Checks liquidity in the FXPool', async () => {
-    // const THRESHOLD = BigNumber.from(0.5)
-    // expectedLiquidity = prior numeraire balance
-    // actualLiquidity = test.env.vault.liquidity()
     const liquidity = (await fxPool.liquidity())[0]
     console.log('liquidity number', await ethers.utils.formatEther(liquidity))
     console.log('liquidity BigNumber', liquidity.toString())
-    //  expect(await ethers.utils.formatEther(liquidity)).to.be.equals(EXPECTED_LIQUIDITY)
-    // await expect(liquidity, 'unexpected liquidity() result')
-    //   .to.be.greaterThan(BigNumber.from(10000))
-    //   .lessThan(BigNumber.from(10001))
+    expect(liquidity).to.not.equals(0)
   })
 
   it('originSwap: User batch swaps token A (USDC) for token B (fxPHP) calling the vault and triggering the onSwap hook', async () => {
@@ -438,10 +433,34 @@ describe('FXPool', () => {
       log
     )
 
-    const currentFeeBalance = await fxPool.totalUnclaimedFeesInNumeraire()
-    console.log(formatEther(currentFeeBalance.sub(previousFeeBalance)))
+    const currentFeeBalanceAfterSwap = await fxPool.totalUnclaimedFeesInNumeraire()
+    console.log(formatEther(currentFeeBalanceAfterSwap.sub(previousFeeBalance)))
 
-    expect(currentFeeBalance).is.gt(previousFeeBalance)
+    expect(currentFeeBalanceAfterSwap).is.gt(previousFeeBalance)
+
+    const payload = ethers.utils.defaultAbiCoder.encode(
+      ['uint256', 'address[]'],
+      [parseEther(TEST_DEPOSIT_FEES), sortedAddresses]
+    )
+
+    const depositDetails = await fxPool.viewDeposit(parseEther(TEST_DEPOSIT_FEES))
+
+    const maxAmountsIn = [ethers.constants.MaxUint256, ethers.constants.MaxUint256]
+
+    const joinPoolRequest = {
+      assets: sortedAddresses,
+      maxAmountsIn,
+      userData: payload,
+      fromInternalBalance: false,
+    }
+
+    await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest))
+      .to.emit(fxPool, 'OnJoinPool')
+      .withArgs(poolId, depositDetails[0], [depositDetails[1][0], depositDetails[1][1]])
+
+    const currentFeeBalanceAfterDeposit = await fxPool.totalUnclaimedFeesInNumeraire()
+
+    expect(currentFeeBalanceAfterDeposit).is.equals(0)
   })
 
   it('can pause pool', async () => {
