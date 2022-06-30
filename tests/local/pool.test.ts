@@ -83,6 +83,9 @@ describe('FXPool', () => {
     fxPool = await getFxPoolContract(fxPoolAddress, testEnv.proportionalLiquidity.address, testEnv.fxSwaps.address)
     poolId = await fxPool.getPoolId() // get balance poolId
     await expect(fxPool.setCollectorAddress(adminAddress)).to.emit(fxPool, 'ChangeCollectorAddress')
+
+    console.log('Admin address: ', adminAddress)
+    console.log('FxPoolAddress: ', fxPoolAddress)
   })
 
   it('FXPool is registered on the vault', async () => {
@@ -413,6 +416,10 @@ describe('FXPool', () => {
   it('totalUnclaimedFeesInNumeraire must be minted during onJoin', async () => {
     const previousFeeBalance = await fxPool.totalUnclaimedFeesInNumeraire()
     expect(previousFeeBalance).to.be.not.equals(0)
+    console.log(
+      'Total Fees accrued from totalUnclaimedFeesInNumeraire must be minted during onJoin: ',
+      previousFeeBalance
+    )
     console.log('Total unclaimed fees in numeraire before swap: ', formatEther(previousFeeBalance))
 
     const fxPHPAmountToSwapInEtherDeposit = 1000
@@ -474,6 +481,7 @@ describe('FXPool', () => {
 
   it('totalUnclaimedFeesInNumeraire must be minted during onExit', async () => {
     const previousFeeBalance = await fxPool.totalUnclaimedFeesInNumeraire()
+    expect(previousFeeBalance).is.equals(0)
     console.log(await testEnv.fxPHP.balanceOf(adminAddress))
 
     const fxPHPAmountToSwapInEtherWithdraw = 1110

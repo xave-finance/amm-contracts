@@ -58,9 +58,11 @@ library FXSwaps {
 
         _amt = CurveMath.calculateTrade(curve, _oGLiq, _nGLiq, _oBals, _nBals, _amt, _t.ix);
 
+        _amt = _amt.us_mul(ONE - curve.epsilon);
+
         // negative for origin swap
         accruedFees_ = -(_calculateFeeInNumeraire(_amt, inputNumeraireAmount));
-        _amt = _amt.us_mul(ONE - curve.epsilon);
+
         // total amount gets converted to output token amount
         tAmt_ = Assimilators.viewRawAmount(_t.addr, _amt.abs());
     }
@@ -221,6 +223,17 @@ library FXSwaps {
         pure
         returns (int128 feeInNumeraire)
     {
+        // console.log('Current');
+        // console.logInt(_outputNumeraireAmt.sub(_inputNumeraireAmt));
+        // console.log(ABDKMath64x64.toUInt(_outputNumeraireAmt.sub(_inputNumeraireAmt)));
+        // console.log('From chris: ');
+        // console.logInt(_inputNumeraireAmt.sub(_outputNumeraireAmt));
+        // console.log(ABDKMath64x64.toUInt(_inputNumeraireAmt.sub(_outputNumeraireAmt)));
+        // console.log(ABDKMath64x64.toUInt(_outputNumeraireAmt));
+        // console.log(ABDKMath64x64.toUInt(_inputNumeraireAmt));
+
         return _outputNumeraireAmt.sub(_inputNumeraireAmt);
+
+        // return _inputNumeraireAmt.sub(_outputNumeraireAmt);
     }
 }
