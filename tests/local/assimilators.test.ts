@@ -34,7 +34,7 @@ describe('XSGD-USDC Assimilator Tests', () => {
     await testEnv.fxPoolFactory.newFXPool(
       XSGDUSDCFxPool.name,
       XSGDUSDCFxPool.symbol,
-      XSGDUSDCFxPool.percentFee,
+      XSGDUSDCFxPool.protocolPercentFee,
       testEnv.vault.address,
       sortedAddresses
     )
@@ -214,7 +214,7 @@ describe('EURS-USD Assimilator Tests', () => {
     await testEnv.fxPoolFactory.newFXPool(
       EURSUSDCFxPool.name,
       EURSUSDCFxPool.symbol,
-      EURSUSDCFxPool.percentFee,
+      EURSUSDCFxPool.protocolPercentFee,
       testEnv.vault.address,
       sortedAddresses
     )
@@ -396,7 +396,7 @@ describe('FxPHP-USDC Assimilator and USDC-USD Assimilator tests', () => {
     await testEnv.fxPoolFactory.newFXPool(
       fxPHPUSDCFxPool.name,
       fxPHPUSDCFxPool.symbol,
-      fxPHPUSDCFxPool.percentFee,
+      fxPHPUSDCFxPool.protocolPercentFee,
       testEnv.vault.address,
       sortedAddresses
     )

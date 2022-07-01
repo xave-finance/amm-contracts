@@ -13,16 +13,16 @@ import './core/FXSwaps.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {Pausable} from '@openzeppelin/contracts/utils/Pausable.sol';
 import {ReentrancyGuard} from '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
+import './core/lib/OZSafeMath.sol';
 
 import 'hardhat/console.sol';
 
-// check bptOut
 contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, ReentrancyGuard, Pausable {
     using ABDKMath64x64 for int128;
     using ABDKMath64x64 for uint256;
+    using OZSafeMath for uint256;
 
-    // The percent of each trade's implied yield to collect as LP fee
-    uint256 public immutable percentFee;
+    uint256 public protocolPercentFee;
     int128 private constant ONE_WEI = 0x12;
     address public collectorAddress = address(0);
     uint256 public totalUnclaimedFeesInNumeraire = 0;
@@ -57,6 +57,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     );
     event FeesCollected(address recipient, uint256 feesCollected);
     event FeesAccrued(uint256 feesCollected);
+    event ProtocolFeeShareUpdated(address updater, uint256 newProtocolPercentage);
 
     modifier deadline(uint256 _deadline) {
         require(block.timestamp < _deadline, 'FXPool/tx-deadline-passed');
@@ -66,14 +67,14 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     constructor(
         address[] memory _assetsToRegister,
         IVault vault,
-        uint256 _percentFee,
+        uint256 _protocolPercentFee,
         // uint256 _percentFeeGov,
         // address _governance,
         string memory _name,
         string memory _symbol
     ) BalancerPoolToken(_name, _symbol) {
         // Initialization on the vault
-        percentFee = _percentFee;
+        protocolPercentFee = _protocolPercentFee;
         curve.vault = vault;
 
         bytes32 poolId = vault.registerPool(IVault.PoolSpecialization.TWO_TOKEN);
@@ -436,6 +437,13 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         emit ChangeCollectorAddress(_collectorAddress);
     }
 
+    /// @notice Change protocol percentage in fees
+    /// @param _protocolPercentFee collector's new address
+    function setProtocolPercentFee(uint256 _protocolPercentFee) external onlyOwner {
+        protocolPercentFee = _protocolPercentFee;
+        emit ProtocolFeeShareUpdated(msg.sender, protocolPercentFee);
+    }
+
     // UTILITY VIEW FUNCTIONS
 
     /// @notice views the total amount of liquidity in the curve in numeraire value and format - 18 decimals
@@ -490,8 +498,13 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     function _calculateAndStorePoolFee(int128 fees) private {
         // added 1e18 to convert to wei
         uint256 feesToAdd = ABDKMath64x64.toUInt(fees * 1e18);
+        uint256 origFees = feesToAdd;
+        // fees to
+        console.log('Original fees: ', feesToAdd);
+        feesToAdd = feesToAdd.div(1e2).mul(protocolPercentFee);
 
         console.log('Fees to add in totalUnclaimedNumeraire (wei value): ', feesToAdd);
+        console.log('Difference between orig fee : ', origFees.sub(feesToAdd));
 
         totalUnclaimedFeesInNumeraire += feesToAdd;
 

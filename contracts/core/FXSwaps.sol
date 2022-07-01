@@ -61,7 +61,7 @@ library FXSwaps {
         _amt = _amt.us_mul(ONE - curve.epsilon);
 
         // negative for origin swap
-        accruedFees_ = -(_calculateFeeInNumeraire(_amt, inputNumeraireAmount));
+        accruedFees_ = _calculateFeeInNumeraire(_amt, inputNumeraireAmount, true);
 
         // total amount gets converted to output token amount
         tAmt_ = Assimilators.viewRawAmount(_t.addr, _amt.abs());
@@ -112,7 +112,7 @@ library FXSwaps {
         }
 
         _amt = _amt.us_mul(ONE + curve.epsilon);
-        accruedFees_ = _calculateFeeInNumeraire(_amt, inputNumeraireAmount);
+        accruedFees_ = _calculateFeeInNumeraire(_amt, inputNumeraireAmount, false);
 
         // total amount gets converted to output token amount
         oAmt_ = Assimilators.viewRawAmount(_o.addr, _amt);
@@ -218,22 +218,11 @@ library FXSwaps {
     }
 
     // internal function to avoid stack too deep
-    function _calculateFeeInNumeraire(int128 _outputNumeraireAmt, int128 _inputNumeraireAmt)
-        internal
-        pure
-        returns (int128 feeInNumeraire)
-    {
-        // console.log('Current');
-        // console.logInt(_outputNumeraireAmt.sub(_inputNumeraireAmt));
-        // console.log(ABDKMath64x64.toUInt(_outputNumeraireAmt.sub(_inputNumeraireAmt)));
-        // console.log('From chris: ');
-        // console.logInt(_inputNumeraireAmt.sub(_outputNumeraireAmt));
-        // console.log(ABDKMath64x64.toUInt(_inputNumeraireAmt.sub(_outputNumeraireAmt)));
-        // console.log(ABDKMath64x64.toUInt(_outputNumeraireAmt));
-        // console.log(ABDKMath64x64.toUInt(_inputNumeraireAmt));
-
-        return _outputNumeraireAmt.sub(_inputNumeraireAmt);
-
-        // return _inputNumeraireAmt.sub(_outputNumeraireAmt);
+    function _calculateFeeInNumeraire(
+        int128 _outputNumeraireAmt,
+        int128 _inputNumeraireAmt,
+        bool isOriginSwap
+    ) internal pure returns (int128 feeInNumeraire) {
+        return isOriginSwap ? _inputNumeraireAmt.sub(_outputNumeraireAmt) : _outputNumeraireAmt.sub(_inputNumeraireAmt);
     }
 }
