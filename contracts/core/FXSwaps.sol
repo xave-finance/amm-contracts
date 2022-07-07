@@ -54,14 +54,11 @@ library FXSwaps {
             int128[] memory _oBals
         ) = viewOriginSwapData(curve, _o.ix, _t.ix, _originAmount, _o.addr);
 
-        int128 inputNumeraireAmount = _amt;
-
         _amt = CurveMath.calculateTrade(curve, _oGLiq, _nGLiq, _oBals, _nBals, _amt, _t.ix);
 
         _amt = _amt.us_mul(ONE - curve.epsilon);
 
-        // negative for origin swap
-        accruedFees_ = _calculateFeeInNumeraire(_amt, inputNumeraireAmount, true);
+        accruedFees_ = _amt.us_mul(curve.epsilon).abs();
 
         // total amount gets converted to output token amount
         tAmt_ = Assimilators.viewRawAmount(_t.addr, _amt.abs());
@@ -99,8 +96,6 @@ library FXSwaps {
             int128[] memory _oBals
         ) = viewTargetSwapData(curve, _t.ix, _o.ix, _targetAmount, _t.addr);
 
-        int128 inputNumeraireAmount = _amt;
-
         _amt = CurveMath.calculateTrade(curve, _oGLiq, _nGLiq, _oBals, _nBals, _amt, _o.ix);
 
         // If the origin is the quote currency (i.e. usdc)
@@ -112,7 +107,8 @@ library FXSwaps {
         }
 
         _amt = _amt.us_mul(ONE + curve.epsilon);
-        accruedFees_ = _calculateFeeInNumeraire(_amt, inputNumeraireAmount, false);
+
+        accruedFees_ = _amt.us_mul(curve.epsilon);
 
         // total amount gets converted to output token amount
         oAmt_ = Assimilators.viewRawAmount(_o.addr, _amt);
@@ -215,14 +211,5 @@ library FXSwaps {
         uint256 _amt
     ) internal view returns (int128 amt_, int128 bal_) {
         return Assimilators.viewNumeraireAmountAndBalance(_assim, _amt, address(curve.vault), curve.poolId);
-    }
-
-    // internal function to avoid stack too deep
-    function _calculateFeeInNumeraire(
-        int128 _outputNumeraireAmt,
-        int128 _inputNumeraireAmt,
-        bool isOriginSwap
-    ) internal pure returns (int128 feeInNumeraire) {
-        return isOriginSwap ? _inputNumeraireAmt.sub(_outputNumeraireAmt) : _outputNumeraireAmt.sub(_inputNumeraireAmt);
     }
 }

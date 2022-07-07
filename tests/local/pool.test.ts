@@ -413,8 +413,6 @@ describe('FXPool', () => {
     expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.gt(afterTradeUSDCPoolBalance)
   })
 
-  // it('Previews swap caclculation from the onSwap hook using queryBatchSwap() ', async () => {})
-  // it('Previews swap caclculation when providing single sided liquidity from the onJoin and onExit hook', async () => {})
   it('totalUnclaimedFeesInNumeraire must be minted during onJoin', async () => {
     // expect that await fxPool.totalUnclaimedFeesInNumeraire() returns an expected value (console log the value at this point before we do anything)
     const previousFeeBalance = await fxPool.totalUnclaimedFeesInNumeraire()
@@ -481,14 +479,9 @@ describe('FXPool', () => {
     // expect that await fxPool.totalUnclaimedFeesInNumeraire() is 0
     expect(currentFeeBalanceAfterDeposit).is.equals(0)
     // expect that LP tokens were minted
-    // @todo anticipate soliidty rounding up
-    // expect(lpTokensAfterDeposit).to.equals(
-    //   lpTokensBeforeDeposit
-    //     .add(currentFeeBalanceAfterSwapBeforeDeposit)
-    //     .add(depositDetails[0])
-    //     .div(ONE_HUNDRED)
-    //     .mul(protocolPercentFee)
-    // ) // including LP tokens after deposit
+    expect(lpTokensAfterDeposit, 'lpTokens are not the same').to.equals(
+      lpTokensBeforeDeposit.add(currentFeeBalanceAfterSwapBeforeDeposit).add(depositDetails[0])
+    ) // including LP tokens after deposit
   })
 
   it('totalUnclaimedFeesInNumeraire must be minted during onExit', async () => {
@@ -504,6 +497,7 @@ describe('FXPool', () => {
     const hlpTokensToBurninWei = parseEther(TEST_WITHDRAW_FEES)
 
     // trigger a swap
+    // @todo check target swap
     await swaps.buildExecute_SingleSwapGivenIn(
       fxPHPAddress, // fxPHP = token in
       usdcAddress, // USDC = token out
@@ -544,19 +538,15 @@ describe('FXPool', () => {
       .withArgs(ethers.constants.AddressZero, adminAddress, currentFeeBalanceAfterSwapBeforeWithdraw)
 
     const currentFeeBalanceAfterWithdraw = await fxPool.totalUnclaimedFeesInNumeraire()
-    const lpTokensAfterDeposit = await fxPool.balanceOf(adminAddress)
+    const lpTokensAfterWithdraw = await fxPool.balanceOf(adminAddress)
 
     // expect that await fxPool.totalUnclaimedFeesInNumeraire() is 0
     expect(currentFeeBalanceAfterWithdraw).is.equals(0)
     // expect that LP tokens were minted
-    // TODO: Anticipate solidity a rounding up
-    // expect(lpTokensAfterDeposit).to.equals(
-    //   lpTokensBeforeWithdraw
-    //     .add(currentFeeBalanceAfterSwapBeforeWithdraw)
-    //     .sub(hlpTokensToBurninWei)
-    //     .div(ONE_HUNDRED)
-    //     .mul(protocolPercentFee)
-    // ) // including burned tokens
+    console.log('currentFeeBalanceAfterSwapBeforeWithdraw', currentFeeBalanceAfterSwapBeforeWithdraw)
+    expect(lpTokensAfterWithdraw).to.equals(
+      lpTokensBeforeWithdraw.add(currentFeeBalanceAfterSwapBeforeWithdraw).sub(hlpTokensToBurninWei)
+    ) // including burned tokens
   })
 
   it('can pause pool', async () => {

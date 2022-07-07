@@ -14,11 +14,13 @@ import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {Pausable} from '@openzeppelin/contracts/utils/Pausable.sol';
 import {ReentrancyGuard} from '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
 import './core/lib/OZSafeMath.sol';
+import './core/lib/ABDKMathQuad.sol';
 
 import 'hardhat/console.sol';
 
 contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, ReentrancyGuard, Pausable {
     using ABDKMath64x64 for int128;
+    using ABDKMathQuad for int128;
     using ABDKMath64x64 for uint256;
     using OZSafeMath for uint256;
 
@@ -498,14 +500,9 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     function _calculateAndStorePoolFee(int128 fees) private {
         // added 1e18 to convert to wei
         uint256 feesToAdd = ABDKMath64x64.toUInt(fees * 1e18);
-        uint256 origFees = feesToAdd;
+
         // fees to
-        console.log('Original fees: ', feesToAdd);
         feesToAdd = feesToAdd.div(1e2).mul(protocolPercentFee);
-
-        console.log('Fees to add in totalUnclaimedNumeraire (wei value): ', feesToAdd);
-        console.log('Difference between orig fee : ', origFees.sub(feesToAdd));
-
         totalUnclaimedFeesInNumeraire += feesToAdd;
 
         emit FeesAccrued(feesToAdd);
