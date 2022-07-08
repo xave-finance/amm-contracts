@@ -35,8 +35,6 @@ library ProportionalLiquidity {
 
         uint256 _length = curve.assets.length;
 
-        // uint256[] memory deposits_ = new uint256[](_length);
-        // int128[] memory intDepositAmounts = new int128[](_length);
         JoinExitData memory depositData = JoinExitData(new uint256[](_length), new int128[](_length));
 
         (int128 _oGLiq, int128[] memory _oBals) = getGrossLiquidityAndBalancesForDeposit(curve);

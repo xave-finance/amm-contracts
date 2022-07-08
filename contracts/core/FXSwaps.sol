@@ -39,11 +39,12 @@ library FXSwaps {
         address _origin,
         address _target,
         uint256 _originAmount
-    ) external view returns (uint256 tAmt_) {
+    ) external view returns (uint256 tAmt_, int128 accruedFees_) {
         (Storage.Assimilator memory _o, Storage.Assimilator memory _t) = getOriginAndTarget(curve, _origin, _target);
 
+        // TODO: discuss placement of zero. explanation: no additional fees since fee calculation is in line 57
         if (_o.ix == _t.ix)
-            return Assimilators.viewRawAmount(_t.addr, Assimilators.viewNumeraireAmount(_o.addr, _originAmount));
+            return (Assimilators.viewRawAmount(_t.addr, Assimilators.viewNumeraireAmount(_o.addr, _originAmount)), 0);
 
         (
             int128 _amt,
@@ -57,6 +58,9 @@ library FXSwaps {
 
         _amt = _amt.us_mul(ONE - curve.epsilon);
 
+        accruedFees_ = _amt.us_mul(curve.epsilon).abs();
+
+        // total amount gets converted to output token amount
         tAmt_ = Assimilators.viewRawAmount(_t.addr, _amt.abs());
     }
 
@@ -65,11 +69,11 @@ library FXSwaps {
         address _origin,
         address _target,
         uint256 _targetAmount
-    ) external view returns (uint256 oAmt_) {
+    ) external view returns (uint256 oAmt_, int128 accruedFees_) {
         (Storage.Assimilator memory _o, Storage.Assimilator memory _t) = getOriginAndTarget(curve, _origin, _target);
-
+        // TODO: discuss placement of zero. explanation: no additional fees since fee calculation is in line 73
         if (_o.ix == _t.ix)
-            return Assimilators.viewRawAmount(_o.addr, Assimilators.viewNumeraireAmount(_t.addr, _targetAmount));
+            return (Assimilators.viewRawAmount(_o.addr, Assimilators.viewNumeraireAmount(_t.addr, _targetAmount)), 0);
 
         // If the origin is the quote currency (i.e. usdc)
         // we need to make sure to massage the _targetAmount
@@ -104,6 +108,9 @@ library FXSwaps {
 
         _amt = _amt.us_mul(ONE + curve.epsilon);
 
+        accruedFees_ = _amt.us_mul(curve.epsilon);
+
+        // total amount gets converted to output token amount
         oAmt_ = Assimilators.viewRawAmount(_o.addr, _amt);
     }
 

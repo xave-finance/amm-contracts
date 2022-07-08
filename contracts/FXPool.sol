@@ -13,15 +13,19 @@ import './core/FXSwaps.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 import {Pausable} from '@openzeppelin/contracts/utils/Pausable.sol';
 import {ReentrancyGuard} from '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
+import './core/lib/OZSafeMath.sol';
+import './core/lib/ABDKMathQuad.sol';
 
-// check bptOut
 contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, ReentrancyGuard, Pausable {
     using ABDKMath64x64 for int128;
+    using ABDKMathQuad for int128;
     using ABDKMath64x64 for uint256;
+    using OZSafeMath for uint256;
 
-    // The percent of each trade's implied yield to collect as LP fee
-    uint256 public immutable percentFee;
+    uint256 public protocolPercentFee;
     int128 private constant ONE_WEI = 0x12;
+    address public collectorAddress = address(0);
+    uint256 public totalUnclaimedFeesInNumeraire = 0;
 
     struct SwapData {
         address originAddress;
@@ -41,6 +45,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         address assimilator
     );
     event EmergencyAlarm(bool isEmergency);
+    event ChangeCollectorAddress(address newCollector);
     event OnJoinPool(bytes32 poolId, uint256 lptAmountMinted, uint256[] amountsDeposited);
     event OnExitPool(bytes32 poolId, uint256 lptAmountBurned, uint256[] amountsWithdrawn);
     event Trade(
@@ -50,6 +55,9 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256 originAmount,
         uint256 targetAmount
     );
+    event FeesCollected(address recipient, uint256 feesCollected);
+    event FeesAccrued(uint256 feesCollected);
+    event ProtocolFeeShareUpdated(address updater, uint256 newProtocolPercentage);
 
     modifier deadline(uint256 _deadline) {
         require(block.timestamp < _deadline, 'FXPool/tx-deadline-passed');
@@ -59,14 +67,14 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     constructor(
         address[] memory _assetsToRegister,
         IVault vault,
-        uint256 _percentFee,
+        uint256 _protocolPercentFee,
         // uint256 _percentFeeGov,
         // address _governance,
         string memory _name,
         string memory _symbol
     ) BalancerPoolToken(_name, _symbol) {
         // Initialization on the vault
-        percentFee = _percentFee;
+        protocolPercentFee = _protocolPercentFee;
         curve.vault = vault;
 
         bytes32 poolId = vault.registerPool(IVault.PoolSpecialization.TWO_TOKEN);
@@ -258,6 +266,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
         bool isTargetSwap = swapRequest.kind == IVault.SwapKind.GIVEN_OUT;
         SwapData memory data;
+        int128 fees;
 
         if (isTargetSwap) {
             // unpack swapRequest from external caller (FE or another contract)
@@ -269,7 +278,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
                 0
             );
 
-            data.outputAmount = FXSwaps.viewTargetSwap(
+            (data.outputAmount, fees) = FXSwaps.viewTargetSwap(
                 curve,
                 data.originAddress,
                 data.targetAddress,
@@ -285,7 +294,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
                 0
             );
 
-            data.outputAmount = FXSwaps.viewOriginSwap(
+            (data.outputAmount, fees) = FXSwaps.viewOriginSwap(
                 curve,
                 data.originAddress,
                 data.targetAddress,
@@ -293,6 +302,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             );
         }
 
+        _calculateAndStorePoolFee(fees);
         emit Trade(msg.sender, data.originAddress, data.targetAddress, data.originAmount, data.outputAmount);
         return data.outputAmount;
     }
@@ -305,7 +315,6 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     /// @param recipient The address which will receive lp tokens.
     /// @param currentBalances The current pool balances, sorted by address low to high.  length 2
     // @param latestBlockNumberUsed last block number unused in this pool
-    /// @param protocolSwapFee no fee is collected on join only when they are paid to governance
     /// @param userData Abi encoded fixed length 2 array containing max inputs also sorted by
     ///                 address low to high
     /// @return amountsIn The actual amounts of token the vault should move to this pool
@@ -316,13 +325,10 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         address recipient,
         uint256[] memory currentBalances, // @todo for vault transfers
         uint256,
-        uint256 protocolSwapFee,
+        uint256,
         bytes calldata userData
     ) external override whenNotPaused returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts) {
-        (uint256[] memory tokensIn, address[] memory assetAddresses) = abi.decode(userData, (uint256[], address[]));
-
-        uint256 totalDepositNumeraire = (_convertToNumeraire(tokensIn[0], _getAssetIndex(assetAddresses[0])) +
-            _convertToNumeraire(tokensIn[1], _getAssetIndex(assetAddresses[1]))) * 1e18;
+        (uint256 totalDepositNumeraire, address[] memory assetAddresses) = abi.decode(userData, (uint256, address[]));
 
         _enforceCap(totalDepositNumeraire);
 
@@ -330,6 +336,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             curve,
             totalDepositNumeraire
         );
+
         {
             amountsIn = new uint256[](2);
             amountsIn[0] = amountToDeposit[_getAssetIndex(assetAddresses[0])];
@@ -338,13 +345,12 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         curve.totalSupply = curve.totalSupply += lpTokens;
 
         BalancerPoolToken._mintPoolTokens(recipient, lpTokens);
-        // @todo mintLPFee() & check fee calculation
         {
             dueProtocolFeeAmounts = new uint256[](2);
             dueProtocolFeeAmounts[0] = 0;
             dueProtocolFeeAmounts[1] = 0;
         }
-
+        _mintProtocolFees();
         emit OnJoinPool(poolId, lpTokens, amountToDeposit);
     }
 
@@ -356,7 +362,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     // @param recipient Unused by this pool but in interface
     /// @param currentBalances The current pool balances, sorted by address low to high.  length 2
     // @param latestBlockNumberUsed last block number unused in this pool
-    /// @param protocolSwapFee The percent of pool fees to be paid to the Balancer Protocol
+    // @param protocolSwapFee The percent of pool fees to be paid to the Balancer Protocol
     /// @param userData Abi encoded uint256 which is the number of LP tokens the user wants to
     ///                 withdraw
     /// @return amountsOut The number of each token to send to the caller
@@ -367,7 +373,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         address,
         uint256[] memory currentBalances, // @todo for vault transfers
         uint256,
-        uint256 protocolSwapFee,
+        uint256,
         bytes calldata userData
     ) external override returns (uint256[] memory amountsOut, uint256[] memory dueProtocolFeeAmounts) {
         (uint256 tokensToBurn, address[] memory assetAddresses) = abi.decode(userData, (uint256, address[]));
@@ -385,19 +391,20 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
             amountsOut[1] = amountToWithdraw[_getAssetIndex(assetAddresses[1])];
         }
 
-        // @todo check fee calculation
         {
             dueProtocolFeeAmounts = new uint256[](2);
             dueProtocolFeeAmounts[0] = 0;
             dueProtocolFeeAmounts[1] = 0;
         }
 
+        _mintProtocolFees();
         emit OnExitPool(poolId, tokensToBurn, amountToWithdraw);
     }
 
     // ADMIN AND ACCESS CONTROL FUNCTIONS
     /// @notice Governance sets someone's pause status, enable only withdraw
 
+    // SETTERS
     function setPaused() external onlyOwner {
         bool currentStatus = paused();
 
@@ -419,10 +426,25 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     /// @notice Set emergency alarm
     /// @param _emergency turn on or off
     function setEmergency(bool _emergency) external onlyOwner {
-        emit EmergencyAlarm(_emergency);
-
         emergency = _emergency;
+        emit EmergencyAlarm(_emergency);
     }
+
+    /// @notice Change collector address
+    /// @param _collectorAddress collector's new address
+    function setCollectorAddress(address _collectorAddress) external onlyOwner {
+        collectorAddress = _collectorAddress;
+        emit ChangeCollectorAddress(_collectorAddress);
+    }
+
+    /// @notice Change protocol percentage in fees
+    /// @param _protocolPercentFee collector's new address
+    function setProtocolPercentFee(uint256 _protocolPercentFee) external onlyOwner {
+        protocolPercentFee = _protocolPercentFee;
+        emit ProtocolFeeShareUpdated(msg.sender, protocolPercentFee);
+    }
+
+    // UTILITY VIEW FUNCTIONS
 
     /// @notice views the total amount of liquidity in the curve in numeraire value and format - 18 decimals
     /// @return total_ the total value in the curve
@@ -431,13 +453,19 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         return ProportionalLiquidity.viewLiquidity(curve);
     }
 
+    /// @notice view the assimilator address for a derivative
+    /// @return assimilator_ the assimilator address
+    function assimilator(address _derivative) public view returns (address assimilator_) {
+        assimilator_ = curve.assimilators[_derivative].addr;
+    }
+
     /// @notice view LP tokens and token needed for deposit
-    function viewDeposit(bytes calldata userData) external view whenNotPaused returns (uint256, uint256[] memory) {
-        (uint256[] memory tokensIn, address[] memory assetAddresses) = abi.decode(userData, (uint256[], address[]));
-
-        uint256 totalDepositNumeraire = (_convertToNumeraire(tokensIn[0], _getAssetIndex(assetAddresses[0])) +
-            _convertToNumeraire(tokensIn[1], _getAssetIndex(assetAddresses[1]))) * 1e18;
-
+    function viewDeposit(uint256 totalDepositNumeraire)
+        external
+        view
+        whenNotPaused
+        returns (uint256, uint256[] memory)
+    {
         return ProportionalLiquidity.viewProportionalDeposit(curve, totalDepositNumeraire);
     }
 
@@ -446,19 +474,11 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         return ProportionalLiquidity.viewProportionalWithdraw(curve, _curvesToBurn, address(curve.vault), curve.poolId);
     }
 
-    /// @dev convert tokens to numeraire value
-    function _convertToNumeraire(uint256 tokenAmount, uint256 tokenPosition) internal view returns (uint256) {
-        int128 numeraireAmount = Assimilators.viewNumeraireAmount(curve.assets[tokenPosition].addr, tokenAmount);
-
-        return ABDKMath64x64.toUInt(numeraireAmount);
-    }
+    // INTERNAL LOGIC FUNCTIONS
 
     /// @dev get asset arrangement of the token in the vault
     function _getAssetIndex(address _assetAddress) internal view returns (uint256) {
-        require(
-            _assetAddress == derivatives[0] || _assetAddress == derivatives[1],
-            'FXPool: Address is not a derivative'
-        );
+        require(_assetAddress == derivatives[0] || _assetAddress == derivatives[1], 'FXPool/address-not-a-derivative');
 
         if (_assetAddress == derivatives[0]) {
             return 0;
@@ -475,9 +495,24 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         require(total + _amount < curve.cap, 'FXPool/amount-beyond-set-cap');
     }
 
-    /// @notice view the assimilator address for a derivative
-    /// @return assimilator_ the assimilator address
-    function assimilator(address _derivative) public view returns (address assimilator_) {
-        assimilator_ = curve.assimilators[_derivative].addr;
+    function _calculateAndStorePoolFee(int128 fees) private {
+        // added 1e18 to convert to wei
+        uint256 feesToAdd = ABDKMath64x64.toUInt(fees * 1e18);
+
+        // fees to
+        feesToAdd = feesToAdd.div(1e2).mul(protocolPercentFee);
+        totalUnclaimedFeesInNumeraire += feesToAdd;
+
+        emit FeesAccrued(feesToAdd);
+    }
+
+    function _mintProtocolFees() private {
+        require(collectorAddress != address(0), 'FXPool/fee-collector-not-set');
+
+        uint256 feesToCollect = totalUnclaimedFeesInNumeraire;
+        totalUnclaimedFeesInNumeraire = 0;
+        BalancerPoolToken._mintPoolTokens(collectorAddress, feesToCollect);
+
+        emit FeesCollected(collectorAddress, feesToCollect);
     }
 }

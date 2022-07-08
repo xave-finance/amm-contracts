@@ -198,10 +198,8 @@ contract BaseToUsdAssimilator is IAssimilator {
 
         // base decimals
         baseTokenBal = baseTokenBal.mul(1e18).div(_baseWeight);
-
         usdcBal = usdcBal.mul(1e18).div(_quoteWeight);
         uint256 _rate = usdcBal.mul(baseDecimals).div(baseTokenBal);
-
         amount_ = (_amount.mulu(baseDecimals) * 1e6) / _rate;
     }
 
