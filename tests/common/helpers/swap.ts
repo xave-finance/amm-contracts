@@ -18,12 +18,12 @@ export const buildExecute_BatchSwapGivenIn = async (
   testEnv: TestEnv,
   log: boolean
 ) => {
-  if (log) {
-    const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(sender_address)
-    const beforeTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(sender_address)
-    const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
-    const beforeTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+  const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(sender_address)
+  const beforeTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(sender_address)
+  const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+  const beforeTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
+  if (log) {
     console.log(
       'Batch Swap Given In: afterTradeUserUsdcBalance: ',
       await ethers.utils.formatUnits(beforeTradeUserUsdcBalance, 6)
@@ -88,12 +88,12 @@ export const buildExecute_BatchSwapGivenIn = async (
     fxPool,
     'FeesAccrued'
   )
+  const afterTradeUserUsdcBalance = await testEnv.USDC.balanceOf(sender_address)
+  const afterTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(sender_address)
+  const afterTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+  const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
   if (log) {
-    const afterTradeUserUsdcBalance = await testEnv.USDC.balanceOf(sender_address)
-    const afterTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(sender_address)
-    const afterTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
-    const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
     console.log(
       'Batch Swap Given In: afterTradeUserUsdcBalance: ',
       await ethers.utils.formatUnits(afterTradeUserUsdcBalance, 6)
@@ -124,12 +124,12 @@ export const buildExecute_BatchSwapGivenOut = async (
   fxPool: FXPool,
   log: boolean
 ) => {
-  if (log) {
-    const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(sender_address)
-    const beforeTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(sender_address)
-    const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
-    const beforeTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+  const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(sender_address)
+  const beforeTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(sender_address)
+  const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+  const beforeTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
+  if (log) {
     console.log('Batch Swap Given Out: beforeTradeUserUsdcBalance: ', beforeTradeUserUsdcBalance)
     console.log('Batch Swap Given Out: beforeTradeUserfxPHPBalance: ', beforeTradeUserfxPHPBalance)
     console.log('Batch Swap Given Out: beforeTradefxPHPPoolBalance: ', beforeTradefxPHPPoolBalance)
@@ -175,16 +175,16 @@ export const buildExecute_BatchSwapGivenOut = async (
   const deadline = ethers.constants.MaxUint256
 
   //dev.balancer.fi/guides/swaps/batch-swaps
+  // @todo add exact values
   await expect(testEnv.vault.batchSwap(SWAP_KIND, swaps, swapAssets, fund_struct, limits, deadline)).to.emit(
     fxPool,
     'FeesAccrued'
   )
-
+  const afterTradeUserUsdcBalance = await testEnv.USDC.balanceOf(sender_address)
+  const afterTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(sender_address)
+  const afterTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+  const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
   if (log) {
-    const afterTradeUserUsdcBalance = await testEnv.USDC.balanceOf(sender_address)
-    const afterTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(sender_address)
-    const afterTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
-    const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
     console.log(
       'Batch Swap Given Out: afterTradeUserUsdcBalance: ',
       await ethers.utils.formatUnits(afterTradeUserUsdcBalance, 6)
@@ -215,12 +215,12 @@ export const buildExecute_SingleSwapGivenIn = async (
   testEnv: TestEnv,
   log: boolean
 ) => {
-  if (log) {
-    const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(sender_address)
-    const beforeTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(sender_address)
-    const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
-    const beforeTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+  const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(sender_address)
+  const beforeTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(sender_address)
+  const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+  const beforeTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
+  if (log) {
     console.log('Single Swap Given Out: beforeTradeUserUsdcBalance: ', beforeTradeUserUsdcBalance)
     console.log('Single Swap Given Out: beforeTradeUserfxPHPBalance: ', beforeTradeUserfxPHPBalance)
     console.log('Single Swap Given Out: beforeTradefxPHPPoolBalance: ', beforeTradefxPHPPoolBalance)
@@ -261,11 +261,12 @@ export const buildExecute_SingleSwapGivenIn = async (
   const limit = '0' // max limit to receive
   await expect(testEnv.vault.swap(singleSwap[0], fund_struct, limit, deadline)).to.emit(fxPool, 'FeesAccrued')
 
+  const afterTradeUserUsdcBalance = await testEnv.USDC.balanceOf(sender_address)
+  const afterTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(sender_address)
+  const afterTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+  const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
+
   if (log) {
-    const afterTradeUserUsdcBalance = await testEnv.USDC.balanceOf(sender_address)
-    const afterTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(sender_address)
-    const afterTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
-    const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
     console.log(
       'Single Swap Given Out: afterTradeUserUsdcBalance: ',
       await ethers.utils.formatUnits(afterTradeUserUsdcBalance, 6)

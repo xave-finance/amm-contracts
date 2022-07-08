@@ -16,6 +16,7 @@ describe('FXPool', () => {
   let testEnv: TestEnv
   let admin: Signer
   let notOwner: Signer
+  let owner2: Signer
   let fxPool: FXPool
   let fxPoolAddress: string
   let adminAddress: string
@@ -50,7 +51,7 @@ describe('FXPool', () => {
 
   before('build test env', async () => {
     testEnv = await setupEnvironment()
-    ;[admin, notOwner] = await ethers.getSigners()
+    ;[admin, notOwner, owner2] = await ethers.getSigners()
     adminAddress = await admin.getAddress()
 
     // 1 - deploy assimilators
@@ -297,6 +298,7 @@ describe('FXPool', () => {
     const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
     // initial asserts, to be improved
+    // @todo
     expect(beforeTradeUserfxPHPBalance, 'Unexpected fxPHP User Balance').to.be.lt(afterTradeUserfxPHPBalance)
     expect(beforeTradeUserUsdcBalance, 'Unexpected USDC User Balance').to.be.gt(afterTradeUserUsdcBalance)
     expect(beforeTradefxPHPPoolBalance, 'Unexpected fxPHP Vault Balance').to.be.gt(afterTradefxPHPPoolBalance)
@@ -573,6 +575,15 @@ describe('FXPool', () => {
     await expect(fxPool.connect(notOwner).setCollectorAddress(await notOwner.getAddress())).to.be.revertedWith(
       CONTRACT_REVERT.Ownable
     )
+  })
+
+  it('cannot set new collectorAddress to zero if owner', async () => {
+    await expect(fxPool.setCollectorAddress(ethers.constants.AddressZero)).to.not.be.reverted
+  })
+
+  it('cannot set new collectorAddress to a new collector address if owner', async () => {
+    const owner2Address = await owner2.getAddress()
+    await expect(fxPool.setCollectorAddress(owner2Address)).to.not.be.reverted
   })
 
   it('can trigger emergency alarm', async () => {
