@@ -298,7 +298,7 @@ describe('FXPool', () => {
     const afterTradeUSDCPoolBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
     // initial asserts, to be improved
-    // @todo
+
     expect(beforeTradeUserfxPHPBalance, 'Unexpected fxPHP User Balance').to.be.lt(afterTradeUserfxPHPBalance)
     expect(beforeTradeUserUsdcBalance, 'Unexpected USDC User Balance').to.be.gt(afterTradeUserUsdcBalance)
     expect(beforeTradefxPHPPoolBalance, 'Unexpected fxPHP Vault Balance').to.be.gt(afterTradefxPHPPoolBalance)
@@ -444,7 +444,6 @@ describe('FXPool', () => {
     )
     // expect that await fxPool.totalUnclaimedFeesInNumeraire() returns the previous value + the new fees generated
     const currentFeeBalanceAfterSwapBeforeDeposit = await fxPool.totalUnclaimedFeesInNumeraire()
-    // @todo expect a constant
     expect(currentFeeBalanceAfterSwapBeforeDeposit).is.gt(previousFeeBalance)
 
     const payload = ethers.utils.defaultAbiCoder.encode(
@@ -499,7 +498,6 @@ describe('FXPool', () => {
     const hlpTokensToBurninWei = parseEther(TEST_WITHDRAW_FEES)
 
     // trigger a swap
-    // @todo check target swap
     await swaps.buildExecute_SingleSwapGivenIn(
       fxPHPAddress, // fxPHP = token in
       usdcAddress, // USDC = token out

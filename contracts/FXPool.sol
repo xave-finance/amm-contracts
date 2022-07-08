@@ -16,8 +16,6 @@ import {ReentrancyGuard} from '@openzeppelin/contracts/utils/ReentrancyGuard.sol
 import './core/lib/OZSafeMath.sol';
 import './core/lib/ABDKMathQuad.sol';
 
-import 'hardhat/console.sol';
-
 contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, ReentrancyGuard, Pausable {
     using ABDKMath64x64 for int128;
     using ABDKMathQuad for int128;
