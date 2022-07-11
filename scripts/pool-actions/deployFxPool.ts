@@ -15,9 +15,9 @@ declare const ethers: any
 
 export default async (taskArgs: any) => {
   const ALPHA = ethers.utils.parseUnits('0.8')
-  const BETA = ethers.utils.parseUnits('0.5')
-  const MAX = ethers.utils.parseUnits('0.15')
-  const EPSILON = ethers.utils.parseUnits('0.0004')
+  const BETA = ethers.utils.parseUnits('0.48')
+  const MAX = ethers.utils.parseUnits('0.175')
+  const EPSILON = ethers.utils.parseUnits('0.0005')
   const LAMBDA = ethers.utils.parseUnits('0.3')
 
   const network = taskArgs.to
@@ -177,17 +177,15 @@ export default async (taskArgs: any) => {
     unitSeconds: ethers.utils.parseUnits('100'),
     vault: vaultAddress,
     percentFee: ethers.utils.parseUnits('0.01'),
-    name: `HALO ${baseToken}USDC FXPool`,
-    symbol: `HFX-${baseToken}USDC`,
+    name: `XAVE ${baseToken}USDC FXPool`,
+    symbol: `FX-${baseToken}USDC`,
   })
   const fxPool: FXPool = await FXPoolFactory.deploy(
     sortedAssets,
-    deadline,
-    ethers.utils.parseUnits('100'),
     vaultAddress,
     ethers.utils.parseUnits('0.01'),
-    `HALO ${baseToken}USDC FXPool`,
-    `HFX-${baseToken}USDC`
+    `XAVE ${baseToken}USDC FXPool`,
+    `FX-${baseToken}USDC`
   )
   await fxPool.deployed()
   console.log(`> FxPool successfully deployed at: ${fxPool.address}`)

@@ -4,7 +4,7 @@ const haloContractAddresses = require('@halodao/xave-contract-addresses')
 
 const runNpmCommand = (command: string) => childProcess.execSync(command, { stdio: [0, 1, 2] })
 
-const baseTokens = ['fxPHP', 'XSGD', 'EURS']
+const baseTokens = ['fxPHP', 'XSGD', 'EURS', 'CHF']
 
 inquirer
   .prompt([
