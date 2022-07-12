@@ -8,8 +8,7 @@ import {
 } from '../utils/addresses'
 import { AssimilatorFactory } from '../../typechain/AssimilatorFactory'
 import { FXPool } from '../../typechain/FXPool'
-import { fxPHPUSDCFxPool } from '../../tests/constants/mockPoolList'
-import swaps from '../swaps'
+import { FXPoolFactory } from '../../typechain/FXPoolFactory'
 
 declare const ethers: any
 
@@ -23,6 +22,9 @@ export default async (taskArgs: any) => {
   const network = taskArgs.to
   const baseToken = taskArgs.basetoken
   const freshDeploy = taskArgs.fresh ? taskArgs.fresh === 'true' : false
+  const name = taskArgs.name
+  const symbol = taskArgs.symbol
+  const fee = taskArgs.fee
 
   console.log(`Deploying ${baseToken}:USDC pool to ${network}...`)
 
@@ -161,36 +163,29 @@ export default async (taskArgs: any) => {
     swapContract = swapContractFactory.attach(swapLibAddress)
   }
 
-  const FXPoolFactory = await ethers.getContractFactory('FXPool', {
+  console.log(`> Deploying FxPoolFactory...`)
+  const FXPoolFactoryFactory = await ethers.getContractFactory('FXPoolFactory', {
     libraries: {
       ProportionalLiquidity: proportionalLiquidity.address,
       FXSwaps: swapContract.address,
     },
   })
 
+  const fxPoolFactory: FXPoolFactory = await FXPoolFactoryFactory.deploy()
+  await fxPoolFactory.deployed()
+
   const sortedAssets = [baseTokenAddress, quoteTokenAddress].sort()
-  const deadline = new Date().getTime() + 60 * 5 * 1000 // 5 minutes from now
   console.log(`> Deploying FxPool...`)
   console.table({
-    assets: sortedAssets.join(', '),
-    expiration: deadline,
-    unitSeconds: ethers.utils.parseUnits('100'),
-    vault: vaultAddress,
-    percentFee: ethers.utils.parseUnits('0.01'),
-    name: `XAVE ${baseToken}USDC FXPool`,
-    symbol: `FX-${baseToken}USDC`,
-  })
-  const fxPool: FXPool = await FXPoolFactory.deploy(
-    sortedAssets,
+    name,
+    symbol,
+    fee,
     vaultAddress,
-    ethers.utils.parseUnits('0.01'),
-    `XAVE ${baseToken}USDC FXPool`,
-    `FX-${baseToken}USDC`
-  )
-  await fxPool.deployed()
-  console.log(`> FxPool successfully deployed at: ${fxPool.address}`)
-
-  const poolId = await fxPool.getPoolId()
+    sortedAssets,
+  })
+  const poolId = await fxPoolFactory.newFXPool(name, symbol, ethers.utils.parseUnits(fee), vaultAddress, sortedAssets)
+  const fxPoolAddress = await fxPoolFactory.getActiveFxPool(sortedAssets)
+  console.log(`> FxPool successfully deployed at: ${fxPoolAddress}`)
   console.log(`> Balancer vault pool id: ${poolId}`)
 
   /**
@@ -216,6 +211,16 @@ export default async (taskArgs: any) => {
     assets: assets.toString(),
     assetsWeights: assetsWeights.toString(),
   })
+
+  const FXPoolFactory = await ethers.getContractFactory('FXPool', {
+    libraries: {
+      ProportionalLiquidity: proportionalLiquidity.address,
+      FXSwaps: swapContract.address,
+    },
+  })
+
+  const fxPool: FXPool = FXPoolFactory.attach(fxPoolAddress)
+
   await fxPool.initialize(assets, assetsWeights)
   console.log(`> FxPool initialized!`)
 

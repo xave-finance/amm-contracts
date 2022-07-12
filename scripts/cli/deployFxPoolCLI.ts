@@ -21,15 +21,37 @@ inquirer
       choices: baseTokens,
     },
     {
+      type: 'input',
+      name: 'name',
+      message: 'LP token name',
+    },
+    {
+      type: 'input',
+      name: 'symbol',
+      message: 'LP token symbol',
+    },
+    {
+      type: 'input',
+      name: 'fee',
+      message: 'Protocol fee (ETH units)',
+    },
+    {
       type: 'confirm',
       name: 'fresh',
       message: 'Fresh deploy?',
     },
   ])
   .then((answers: any) => {
-    const { network, baseToken, fresh } = answers
+    const { network, baseToken, name, symbol, fee, fresh } = answers
 
     return runNpmCommand(
-      `npx hardhat deploy-fx-pool --to ${network} --basetoken ${baseToken} --fresh ${fresh} --network ${network}`
+      `npx hardhat deploy-fx-pool ` +
+        `--to ${network} ` +
+        `--basetoken ${baseToken} ` +
+        `--name ${name} ` +
+        `--symbol ${symbol} ` +
+        `--fee ${fee} ` +
+        `--fresh ${fresh} ` +
+        `--network ${network}`
     )
   })
