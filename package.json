@@ -71,7 +71,7 @@
     "ethereum-waffle": "^3.4.0",
     "ethers": "^5.5.1",
     "hardhat": "^2.6.7",
-    "hardhat-tracer": "^1.0.0-alpha.6",
+    "hardhat-tracer": "^1.1.0-rc.6",
     "inquirer": "^8.2.0",
     "lodash": "^4.17.21",
     "open": "^8.3.0",
