@@ -507,12 +507,12 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     }
 
     function _mintProtocolFees() private {
-        require(collectorAddress != address(0), 'FXPool/fee-collector-not-set');
+        if (collectorAddress != address(0)) {
+            uint256 feesToCollect = totalUnclaimedFeesInNumeraire;
+            totalUnclaimedFeesInNumeraire = 0;
+            BalancerPoolToken._mintPoolTokens(collectorAddress, feesToCollect);
 
-        uint256 feesToCollect = totalUnclaimedFeesInNumeraire;
-        totalUnclaimedFeesInNumeraire = 0;
-        BalancerPoolToken._mintPoolTokens(collectorAddress, feesToCollect);
-
-        emit FeesCollected(collectorAddress, feesToCollect);
+            emit FeesCollected(collectorAddress, feesToCollect);
+        }
     }
 }
