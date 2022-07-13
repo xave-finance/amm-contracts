@@ -9,8 +9,12 @@ import {
 import { AssimilatorFactory } from '../../typechain/AssimilatorFactory'
 import { FXPool } from '../../typechain/FXPool'
 import { FXPoolFactory } from '../../typechain/FXPoolFactory'
+import verifyContract from '../utils/verify'
+import { getFastGasPrice } from '../utils/gas'
+import { formatEther } from 'ethers/lib/utils'
 
 declare const ethers: any
+declare const hre: any
 
 export default async (taskArgs: any) => {
   const ALPHA = ethers.utils.parseUnits('0.8')
@@ -27,6 +31,9 @@ export default async (taskArgs: any) => {
   const fee = taskArgs.fee
 
   console.log(`Deploying ${baseToken}:USDC pool to ${network}...`)
+
+  const gasPrice = await getFastGasPrice()
+  console.log('Using gas price (gwei): ', gasPrice.toString())
 
   /** Step# - identify baseToken address */
   const baseTokenAddress = getTokenAddress(network, baseToken)
@@ -101,7 +108,9 @@ export default async (taskArgs: any) => {
       oracle: quoteTokenOracleAddress,
       quote: quoteTokenAddress,
     })
-    assimilatorFactory = await AssimilatorFactoryFactory.deploy(quoteTokenOracleAddress, quoteTokenAddress)
+    assimilatorFactory = await AssimilatorFactoryFactory.deploy(quoteTokenOracleAddress, quoteTokenAddress, {
+      gasPrice,
+    })
     await assimilatorFactory.deployed()
     console.log(`> AssimilatorFactory deployed at: ${assimilatorFactory.address}`)
   } else {
@@ -147,11 +156,11 @@ export default async (taskArgs: any) => {
   const swapContractFactory = await ethers.getContractFactory('FXSwaps')
 
   if (freshDeploy) {
-    proportionalLiquidity = await ProportionalLiquidityFactory.deploy()
+    proportionalLiquidity = await ProportionalLiquidityFactory.deploy({ gasPrice })
     await proportionalLiquidity.deployed()
     console.log('> ProportionalLiquidity deployed at:', proportionalLiquidity.address)
 
-    swapContract = await swapContractFactory.deploy()
+    swapContract = await swapContractFactory.deploy({ gasPrice })
     await swapContract.deployed()
     console.log('> Swap Library deployed at:', swapContract.address)
   } else {
@@ -171,10 +180,11 @@ export default async (taskArgs: any) => {
     },
   })
 
-  const fxPoolFactory: FXPoolFactory = await FXPoolFactoryFactory.deploy()
+  const fxPoolFactory: FXPoolFactory = await FXPoolFactoryFactory.deploy({ gasPrice })
   await fxPoolFactory.deployed()
 
   const sortedAssets = [baseTokenAddress, quoteTokenAddress].sort()
+  const fxPoolCtrArgs = [name, symbol, ethers.utils.parseUnits(fee), vaultAddress, sortedAssets] as const
   console.log(`> Deploying FxPool...`)
   console.table({
     name,
@@ -183,7 +193,7 @@ export default async (taskArgs: any) => {
     vaultAddress,
     sortedAssets,
   })
-  const poolId = await fxPoolFactory.newFXPool(name, symbol, ethers.utils.parseUnits(fee), vaultAddress, sortedAssets)
+  const poolId = await fxPoolFactory.newFXPool(...fxPoolCtrArgs, { gasPrice })
   const fxPoolAddress = await fxPoolFactory.getActiveFxPool(sortedAssets)
   console.log(`> FxPool successfully deployed at: ${fxPoolAddress}`)
   console.log(`> Balancer vault pool id: ${poolId}`)
@@ -221,13 +231,27 @@ export default async (taskArgs: any) => {
 
   const fxPool: FXPool = FXPoolFactory.attach(fxPoolAddress)
 
-  await fxPool.initialize(assets, assetsWeights)
+  await fxPool.initialize(assets, assetsWeights, { gasPrice })
   console.log(`> FxPool initialized!`)
 
   /**
    * Step# - set pool/curve params
    **/
   console.log(`> Setting FxPool params...`)
-  await fxPool.setParams(ALPHA, BETA, MAX, EPSILON, LAMBDA)
+  await fxPool.setParams(ALPHA, BETA, MAX, EPSILON, LAMBDA, { gasPrice })
   console.log(`> FxPool params set!`)
+
+  /**
+   * Step# - set collector address
+   **/
+  console.log(`> Setting collector address...`)
+  const signers = await ethers.getSigners()
+  await fxPool.setCollectorAddress(await signers[0].getAddress(), { gasPrice })
+  console.log(`> Collector address set!`)
+
+  /**
+   * Step# - verify FxPool contract
+   */
+  console.log(`> Verifying FxPool...`)
+  await verifyContract(hre, fxPool.address, fxPoolCtrArgs)
 }
