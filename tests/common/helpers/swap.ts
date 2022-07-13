@@ -83,6 +83,7 @@ export const buildExecute_BatchSwapGivenIn = async (
   if (log) console.log('swapAssets: ', swapAssets)
   const limits = [parseUnits('999999999', asset_in_decimals), parseUnits('999999999')]
   const deadline = ethers.constants.MaxUint256
+  // making this static call in an isolated environment only. not to be used in production to prevent sandwich attacks
   const expectedDeltas = await testEnv.vault.callStatic.queryBatchSwap(SWAP_KIND, swaps, swapAssets, fund_struct)
   const expectedOutput1 = expectedDeltas[1].abs() // since in the test we only do one way. will end just incase
 
@@ -101,17 +102,14 @@ export const buildExecute_BatchSwapGivenIn = async (
 
   expect(
     afterTradeUserfxPHPBalance,
-    'After trade user fxPHP balance is equal to previous balance minus inputAmount'
+    'Batch Swap Given In: After trade user fxPHP balance is not accurate'
   ).to.be.equals(
     asset_in_address === testEnv.fxPHP.address
       ? beforeTradeUserfxPHPBalance.sub(inputAmount)
       : beforeTradeUserfxPHPBalance.add(expectedOutput1)
   )
 
-  expect(
-    afterTradeUserUsdcBalance,
-    'After trade user balance is equal to previous balance minus inputAmount'
-  ).to.be.equals(
+  expect(afterTradeUserUsdcBalance, 'Batch Swap Given In: After trade user balance is not accurate').to.be.equals(
     asset_in_address === testEnv.USDC.address
       ? beforeTradeUserUsdcBalance.sub(inputAmount)
       : beforeTradeUserUsdcBalance.add(expectedOutput1)
@@ -119,17 +117,14 @@ export const buildExecute_BatchSwapGivenIn = async (
 
   expect(
     afterTradefxPHPPoolBalance,
-    'After trade pool fxPHP balance is equal to previous balance minus inputAmount'
+    'Batch Swap Given In: After trade pool fxPHP balance is not accurate'
   ).to.be.equals(
     asset_in_address === testEnv.fxPHP.address
       ? beforeTradefxPHPPoolBalance.add(inputAmount)
       : beforeTradefxPHPPoolBalance.sub(expectedOutput1)
   )
 
-  expect(
-    afterTradeUSDCPoolBalance,
-    'After trade pool usdc balance is equal to previous balance minus inputAmount'
-  ).to.be.equals(
+  expect(afterTradeUSDCPoolBalance, 'Batch Swap Given In: After trade pool usdc balance is not accurate').to.be.equals(
     asset_in_address === testEnv.USDC.address
       ? beforeTradeUSDCPoolBalance.add(inputAmount)
       : beforeTradeUSDCPoolBalance.sub(expectedOutput1)
@@ -216,6 +211,7 @@ export const buildExecute_BatchSwapGivenOut = async (
   if (log) console.log('swapAssets: ', swapAssets)
   const limits = [parseUnits('999999999', asset_out_decimals), parseUnits('999999999')]
   const deadline = ethers.constants.MaxUint256
+  // making this static call in an isolated environment only. not to be used in production to prevent sandwich attacks
   const expectedDeltas = await testEnv.vault.callStatic.queryBatchSwap(SWAP_KIND, swaps, swapAssets, fund_struct)
   const expectedInput1 = expectedDeltas[0].abs() // since in the test we only do one way. will end just incase
 
@@ -235,17 +231,14 @@ export const buildExecute_BatchSwapGivenOut = async (
 
   expect(
     afterTradeUserfxPHPBalance,
-    'After trade user fxPHP balance is equal to previous balance minus inputAmount'
+    'Batch Swap Given Out: After trade user fxPHP balance is not accurate'
   ).to.be.equals(
     asset_in_address === testEnv.fxPHP.address
       ? beforeTradeUserfxPHPBalance.sub(expectedInput1)
       : beforeTradeUserfxPHPBalance.add(outputAmount)
   )
 
-  expect(
-    afterTradeUserUsdcBalance,
-    'After trade user balance is equal to previous balance minus inputAmount'
-  ).to.be.equals(
+  expect(afterTradeUserUsdcBalance, 'Batch Swap Given Out: After trade user balance is not accurate').to.be.equals(
     asset_in_address === testEnv.USDC.address
       ? beforeTradeUserUsdcBalance.sub(expectedInput1)
       : beforeTradeUserUsdcBalance.add(outputAmount)
@@ -253,17 +246,14 @@ export const buildExecute_BatchSwapGivenOut = async (
 
   expect(
     afterTradefxPHPPoolBalance,
-    'After trade pool fxPHP balance is equal to previous balance minus inputAmount'
+    'Batch Swap Given Out: After trade pool fxPHP balance is not accurate'
   ).to.be.equals(
     asset_in_address === testEnv.fxPHP.address
       ? beforeTradefxPHPPoolBalance.add(expectedInput1)
       : beforeTradefxPHPPoolBalance.sub(outputAmount)
   )
 
-  expect(
-    afterTradeUSDCPoolBalance,
-    'After trade pool usdc balance is equal to previous balance minus inputAmount'
-  ).to.be.equals(
+  expect(afterTradeUSDCPoolBalance, 'Batch Swap Given Out: After trade pool usdc balance is not accurate').to.be.equals(
     asset_in_address === testEnv.USDC.address
       ? beforeTradeUSDCPoolBalance.add(expectedInput1)
       : beforeTradeUSDCPoolBalance.sub(outputAmount)
@@ -346,6 +336,7 @@ export const buildExecute_SingleSwapGivenIn = async (
   if (log) console.log('singleSwap: ', singleSwap)
 
   const limit = '0' // max limit to receive
+  // making this static call in an isolated environment only. not to be used in production to prevent sandwich attacks
   const expectedOutputAmount = await testEnv.vault.callStatic.swap(singleSwap[0], fund_struct, limit, deadline)
 
   await expect(testEnv.vault.swap(singleSwap[0], fund_struct, limit, deadline))
@@ -362,17 +353,14 @@ export const buildExecute_SingleSwapGivenIn = async (
 
   expect(
     afterTradeUserfxPHPBalance,
-    'After trade user fxPHP balance is equal to previous balance minus inputAmount'
+    'Single Swap Given Out: After trade user fxPHP balance is not accurate'
   ).to.be.equals(
     asset_in_address === testEnv.fxPHP.address
       ? beforeTradeUserfxPHPBalance.sub(inputAmount)
       : beforeTradeUserfxPHPBalance.add(expectedOutputAmount)
   )
 
-  expect(
-    afterTradeUserUsdcBalance,
-    'After trade user balance is equal to previous balance minus inputAmount'
-  ).to.be.equals(
+  expect(afterTradeUserUsdcBalance, 'Single Swap Given Out: After trade user balance is not accurate').to.be.equals(
     asset_in_address === testEnv.USDC.address
       ? beforeTradeUserUsdcBalance.sub(inputAmount)
       : beforeTradeUserUsdcBalance.add(expectedOutputAmount)
@@ -380,17 +368,14 @@ export const buildExecute_SingleSwapGivenIn = async (
 
   expect(
     afterTradefxPHPPoolBalance,
-    'After trade pool fxPHP balance is equal to previous balance minus inputAmount'
+    'Single Swap Given Out: After trade pool fxPHP balance is not accurate'
   ).to.be.equals(
     asset_in_address === testEnv.fxPHP.address
       ? beforeTradefxPHPPoolBalance.add(inputAmount)
       : beforeTradefxPHPPoolBalance.sub(expectedOutputAmount)
   )
 
-  expect(
-    afterTradeUSDCPoolBalance,
-    'After trade pool usdc balance is equal to previous balance minus inputAmount'
-  ).to.be.equals(
+  expect(afterTradeUSDCPoolBalance, 'After trade pool usdc balance is not accurate').to.be.equals(
     asset_in_address === testEnv.USDC.address
       ? beforeTradeUSDCPoolBalance.add(inputAmount)
       : beforeTradeUSDCPoolBalance.sub(expectedOutputAmount)
