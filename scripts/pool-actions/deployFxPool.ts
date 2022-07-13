@@ -11,7 +11,6 @@ import { FXPool } from '../../typechain/FXPool'
 import { FXPoolFactory } from '../../typechain/FXPoolFactory'
 import verifyContract from '../utils/verify'
 import { getFastGasPrice } from '../utils/gas'
-import { formatEther } from 'ethers/lib/utils'
 
 declare const ethers: any
 declare const hre: any
@@ -182,9 +181,9 @@ export default async (taskArgs: any) => {
 
   const fxPoolFactory: FXPoolFactory = await FXPoolFactoryFactory.deploy({ gasPrice })
   await fxPoolFactory.deployed()
+  console.log(`> FxPoolFactory successfully deployed at: ${fxPoolFactory.address}`)
 
   const sortedAssets = [baseTokenAddress, quoteTokenAddress].sort()
-  const fxPoolCtrArgs = [name, symbol, ethers.utils.parseUnits(fee), vaultAddress, sortedAssets] as const
   console.log(`> Deploying FxPool...`)
   console.table({
     name,
@@ -193,10 +192,13 @@ export default async (taskArgs: any) => {
     vaultAddress,
     sortedAssets,
   })
-  const poolId = await fxPoolFactory.newFXPool(...fxPoolCtrArgs, { gasPrice })
+  const poolId = await fxPoolFactory.newFXPool(name, symbol, ethers.utils.parseUnits(fee), vaultAddress, sortedAssets, {
+    gasPrice,
+  })
   const fxPoolAddress = await fxPoolFactory.getActiveFxPool(sortedAssets)
   console.log(`> FxPool successfully deployed at: ${fxPoolAddress}`)
   console.log(`> Balancer vault pool id: ${poolId}`)
+  //console.log('> Balancer vault pool id: ', toUtf8String(poolId as any))
 
   /**
    * Step# - initialize pool
@@ -253,5 +255,5 @@ export default async (taskArgs: any) => {
    * Step# - verify FxPool contract
    */
   console.log(`> Verifying FxPool...`)
-  await verifyContract(hre, fxPool.address, fxPoolCtrArgs)
+  await verifyContract(hre, fxPoolAddress, [sortedAssets, vaultAddress, ethers.utils.parseUnits(fee), name, symbol])
 }
