@@ -1,6 +1,5 @@
 const inquirer = require('inquirer')
 const childProcess = require('child_process')
-const haloContractAddresses = require('@halodao/xave-contract-addresses')
 
 const runNpmCommand = (command: string) => childProcess.execSync(command, { stdio: [0, 1, 2] })
 

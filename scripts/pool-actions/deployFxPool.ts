@@ -5,6 +5,7 @@ import {
   getVaultAddress,
   getProportionalLiquidityAddress,
   getSwapLibAddress,
+  getFxPoolFactoryAddress,
 } from '../utils/addresses'
 import { AssimilatorFactory } from '../../typechain/AssimilatorFactory'
 import { FXPool } from '../../typechain/FXPool'
@@ -32,7 +33,7 @@ export default async (taskArgs: any) => {
   console.log(`Deploying ${baseToken}:USDC pool to ${network}...`)
 
   const gasPrice = await getFastGasPrice()
-  console.log('Using gas price (gwei): ', gasPrice.toString())
+  console.log('Using gas price: ', gasPrice.toString())
 
   /** Step# - identify baseToken address */
   const baseTokenAddress = getTokenAddress(network, baseToken)
@@ -73,10 +74,11 @@ export default async (taskArgs: any) => {
     return
   }
 
-  /** Step# - get ProportionalLiquidity, Swap Library, AssimilatorFactory address */
+  /** Step# - get ProportionalLiquidity, Swap Library, AssimilatorFactory, S address */
   let assimilatorFactoryAddress: string | undefined
   let proportionalLiquidityAddress: string | undefined
   let swapLibAddress: string | undefined
+  let fxPoolFactoryAddress: string | undefined
   if (!freshDeploy) {
     assimilatorFactoryAddress = getAssimilatorFactoryAddress(network)
     if (!assimilatorFactoryAddress) {
@@ -90,6 +92,11 @@ export default async (taskArgs: any) => {
     }
     swapLibAddress = getSwapLibAddress(network)
     if (!swapLibAddress) {
+      console.error(`Address for Swap Library not available on ${network}!`)
+      return
+    }
+    fxPoolFactoryAddress = getFxPoolFactoryAddress(network)
+    if (!fxPoolFactoryAddress) {
       console.error(`Address for Swap Library not available on ${network}!`)
       return
     }
@@ -146,7 +153,7 @@ export default async (taskArgs: any) => {
   }
 
   /**
-   * Step# - deploy pool
+   * Step# - deploy or get libs
    **/
   let proportionalLiquidity
   const ProportionalLiquidityFactory = await ethers.getContractFactory('ProportionalLiquidity')
@@ -171,7 +178,11 @@ export default async (taskArgs: any) => {
     swapContract = swapContractFactory.attach(swapLibAddress)
   }
 
+  /**
+   * Step# - deploy or get FxPoolFactory
+   **/
   console.log(`> Deploying FxPoolFactory...`)
+  let fxPoolFactory: FXPoolFactory
   const FXPoolFactoryFactory = await ethers.getContractFactory('FXPoolFactory', {
     libraries: {
       ProportionalLiquidity: proportionalLiquidity.address,
@@ -179,10 +190,18 @@ export default async (taskArgs: any) => {
     },
   })
 
-  const fxPoolFactory: FXPoolFactory = await FXPoolFactoryFactory.deploy({ gasPrice })
-  await fxPoolFactory.deployed()
-  console.log(`> FxPoolFactory successfully deployed at: ${fxPoolFactory.address}`)
+  if (freshDeploy) {
+    fxPoolFactory = await FXPoolFactoryFactory.deploy({ gasPrice })
+    await fxPoolFactory.deployed()
+    console.log(`> FxPoolFactory successfully deployed at: ${fxPoolFactory.address}`)
+  } else {
+    console.log(`> Reusing FXPoolFactory at `, fxPoolFactoryAddress)
+    fxPoolFactory = FXPoolFactoryFactory.attach(fxPoolFactoryAddress)
+  }
 
+  /**
+   * Step# - deploy FXPool
+   **/
   const sortedAssets = [baseTokenAddress, quoteTokenAddress].sort()
   console.log(`> Deploying FxPool...`)
   console.table({

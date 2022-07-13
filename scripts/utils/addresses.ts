@@ -1,4 +1,4 @@
-import { mainnet, kovan, rinkeby, matic, arb, arbTestnet } from '@halodao/xave-contract-addresses'
+import { mainnet, kovan, rinkeby, matic, arb, arbTestnet } from '@halodao/halodao-contract-addresses'
 
 const USE_TEST_TOKENS = true
 
@@ -48,41 +48,38 @@ export const getTokenAddress = (network: string, baseToken: string) => {
 export const getTokenOracleAddress = (network: string, baseToken: string) => {
   const haloAddresses = getHaloAddresses(network)
   if (!haloAddresses) return undefined
-  return haloAddresses.amm.oracles[baseToken as keyof typeof haloAddresses.amm.oracles]
+  return haloAddresses.ammV2.oracles[baseToken as keyof typeof haloAddresses.ammV2.oracles]
 }
 
 export const getAssimilatorFactoryAddress = (network: string) => {
-  // return '0xB474537769c335BC96cB86DeC70E6C7F36b39b1e'
   const haloAddresses = getHaloAddresses(network)
   if (!haloAddresses) return undefined
-  return haloAddresses.amm.assimilatorFactory
+  return haloAddresses.ammV2.assimilatorFactory
 }
 
 export const getProportionalLiquidityAddress = (network: string) => {
-  // return '0x3af74d19F50f24C75e4000Fe665d718387b1DA74'
   const haloAddresses = getHaloAddresses(network)
   if (!haloAddresses) return undefined
-  return haloAddresses.amm.proportionalLiquidity
+  return haloAddresses.ammV2.proportionalLiquidity
 }
 
-// need to add haloAddresses.amm.swapLib to @halodao/xave-contract-addresses package
+// need to add haloAddresses.ammV2.swapLib to @halodao/xave-contract-addresses package
 export const getSwapLibAddress = (network: string) => {
-  // return '0xF82fd35163D1383e76ceD09c605DF5DB81439014'
   const haloAddresses = getHaloAddresses(network)
   if (!haloAddresses) return undefined
-  return haloAddresses.amm.swapLibrary
+  return haloAddresses.ammV2.swapLibrary
 }
 
 export const getVaultAddress = (network: string) => {
   const haloAddresses = getHaloAddresses(network)
   if (!haloAddresses) return undefined
-  return haloAddresses.amm.vault
+  return haloAddresses.ammV2.vault
 }
 
 export const getEnabledPools = (network: string) => {
   const haloAddresses = getHaloAddresses(network)
   if (!haloAddresses) return undefined
-  return haloAddresses.amm.pools.enabled
+  return haloAddresses.ammV2.pools.enabled
 }
 
 export const getAllTokenAddresses = (network: string) => {
@@ -94,5 +91,11 @@ export const getAllTokenAddresses = (network: string) => {
 export const getVaultAddresses = (network: string) => {
   const haloAddresses = getHaloAddresses(network)
   if (!haloAddresses) return undefined
-  return haloAddresses.amm.vault
+  return haloAddresses.ammV2.vault
+}
+
+export const getFxPoolFactoryAddress = (network: string) => {
+  const haloAddresses = getHaloAddresses(network)
+  if (!haloAddresses) return undefined
+  return haloAddresses.ammV2.fxPoolFactory
 }
