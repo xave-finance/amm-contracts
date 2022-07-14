@@ -133,7 +133,7 @@ describe('FXPool', () => {
     await testEnv.fxPHP.approve(testEnv.vault.address, ethers.constants.MaxUint256)
     await testEnv.USDC.approve(testEnv.vault.address, ethers.constants.MaxUint256)
 
-    const baseAmountsIn = ['3550355032000000000000', '887590000000000000000', '1100000000000000000000']
+    const baseAmountsIn = ['3549999999248290000000', '887499999812074000000', '1100000000000000000000']
 
     // Numeraire input
     for (var i = 0; i < baseAmountsIn.length; i++) {
@@ -191,6 +191,12 @@ describe('FXPool', () => {
       // expect(afterVaultUsdcBalance, 'Current USDC Balance not expected').to.be.equals(
       //   beforeVaultUsdcBalance.add(depositDetails[1][1])
       // )
+
+      if (i > 1) {
+        await testEnv.fxPHPOracle.setAnswer('1782600') // 1782600
+        console.log('Oracle price updated..')
+      }
+
       console.log(`Deposit [${i}] Done`)
     }
   })

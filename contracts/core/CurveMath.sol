@@ -216,15 +216,15 @@ library CurveMath {
 
         int128 _prevUtilPerShell = _oGLiq.sub(_omega).div(_totalShells);
 
-        console.log('_prevUtilPerShell: ', ABDKMath64x64.toUInt(_prevUtilPerShell.abs()));
+        console.log('_prevUtilPerShell: ', ABDKMath64x64.toUInt(_prevUtilPerShell.abs() * 1e18));
 
         int128 _nextUtilPerShell = _nGLiq.sub(_psi).div(_totalShells.add(_newShells));
 
-        console.log('_nextUtilPerShell: ', ABDKMath64x64.toUInt(_nextUtilPerShell.abs()));
+        console.log('_nextUtilPerShell: ', ABDKMath64x64.toUInt(_nextUtilPerShell.abs() * 1e18));
 
         int128 _diff = _nextUtilPerShell - _prevUtilPerShell;
 
-        console.log('_diff: ', ABDKMath64x64.toUInt(_diff.abs()));
+        console.log('_diff: ', ABDKMath64x64.toUInt(_diff.abs() * 1e18));
 
         require(0 < _diff || _diff >= MAX_DIFF, 'CurveMath/liquidity-invariant-violation');
     }
