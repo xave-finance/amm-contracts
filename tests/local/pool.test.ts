@@ -575,13 +575,56 @@ describe('FXPool', () => {
     )
   })
 
-  it('cannot set new collectorAddress to zero if owner', async () => {
+  it('can set new collectorAddress to zero if owner', async () => {
     await expect(fxPool.setCollectorAddress(ethers.constants.AddressZero)).to.not.be.reverted
   })
 
-  it('cannot set new collectorAddress to a new collector address if owner', async () => {
+  it('can set new collectorAddress to a new collector address if owner', async () => {
     const owner2Address = await owner2.getAddress()
     await expect(fxPool.setCollectorAddress(owner2Address)).to.not.be.reverted
+  })
+
+  it('can still deposit of collectorAddress is zero', async () => {
+    await expect(fxPool.setCollectorAddress(ethers.constants.AddressZero)).to.not.be.reverted
+
+    expect(await fxPool.collectorAddress()).to.be.equals(ethers.constants.AddressZero)
+
+    const payload = ethers.utils.defaultAbiCoder.encode(
+      ['uint256', 'address[]'],
+      [parseEther(TEST_DEPOSIT_FEES), sortedAddresses]
+    )
+
+    const maxAmountsIn = [ethers.constants.MaxUint256, ethers.constants.MaxUint256]
+
+    const joinPoolRequest = {
+      assets: sortedAddresses,
+      maxAmountsIn,
+      userData: payload,
+      fromInternalBalance: false,
+    }
+
+    await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.not.be.reverted
+  })
+
+  it('can still withdraw if collectorAddress is zero', async () => {
+    await expect(fxPool.setCollectorAddress(ethers.constants.AddressZero)).to.not.be.reverted
+
+    expect(await fxPool.collectorAddress()).to.be.equals(ethers.constants.AddressZero)
+
+    const hlpTokensToBurninWei = parseEther(TEST_WITHDRAW_FEES)
+
+    const payload = ethers.utils.defaultAbiCoder.encode(
+      ['uint256', 'address[]'],
+      [hlpTokensToBurninWei, sortedAddresses]
+    )
+    const exitPoolRequest = {
+      assets: sortedAddresses,
+      minAmountsOut: [0, 0], // check token out
+      userData: payload,
+      toInternalBalance: false,
+    }
+
+    await expect(testEnv.vault.exitPool(poolId, adminAddress, adminAddress, exitPoolRequest)).to.be.not.reverted
   })
 
   it('can trigger emergency alarm', async () => {

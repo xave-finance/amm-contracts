@@ -1,7 +1,7 @@
 import { BigNumberish } from 'ethers'
 import { parseUnits } from 'ethers/lib/utils'
 
-const PROTOCOL_PERCENTAGE_FEE = '9'
+const PROTOCOL_PERCENTAGE_FEE = '0'
 
 export interface FXPoolConstructorParams {
   assetWeights: BigNumberish[] // LP weights
