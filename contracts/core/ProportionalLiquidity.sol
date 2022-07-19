@@ -43,12 +43,12 @@ library ProportionalLiquidity {
         // Needed to calculate liquidity invariant
         (int128 _oGLiqProp, int128[] memory _oBalsProp) = getGrossLiquidityAndBalances(curve);
 
-        console.log('Before intake oGLiq: ', ABDKMath64x64.toUInt(_oGLiq.abs()));
-        console.log('Before intake oBals[0]: ', ABDKMath64x64.toUInt(_oBals[0]));
-        console.log('Before intake oBals[1]: ', ABDKMath64x64.toUInt(_oBals[1]));
-        console.log('Before intake oGLiqProp: ', ABDKMath64x64.toUInt(_oGLiqProp.abs()));
-        console.log('Before intake oBalsProp[0]: ', ABDKMath64x64.toUInt(_oBalsProp[0]));
-        console.log('Before intake oBalsProp[1]: ', ABDKMath64x64.toUInt(_oBalsProp[1]));
+        console.log('Before intake oGLiq: ', ABDKMath64x64.toUInt(_oGLiq * 1e15));
+        console.log('Before intake oBals[0]: ', ABDKMath64x64.toUInt(_oBals[0] * 1e15));
+        console.log('Before intake oBals[1]: ', ABDKMath64x64.toUInt(_oBals[1] * 1e15));
+        console.log('Before intake oGLiqProp: ', ABDKMath64x64.toUInt(_oGLiqProp * 1e15));
+        console.log('Before intake oBalsProp[0]: ', ABDKMath64x64.toUInt(_oBalsProp[0] * 1e15));
+        console.log('Before intake oBalsProp[1]: ', ABDKMath64x64.toUInt(_oBalsProp[1] * 1e15));
 
         // No liquidity, oracle sets the ratio
         if (_oGLiq == 0) {
@@ -332,9 +332,9 @@ library ProportionalLiquidity {
 
         // 'simulate' the deposit/withdrawal of token balances
         for (uint256 i = 0; i < _nBals.length; i++) {
-            // console.log('liqInvariant: before adding intDepositAmounts:', ABDKMath64x64.toUInt(_nBals[i]));
+            console.log('liqInvariant: before adding intDepositAmounts:', ABDKMath64x64.toUInt(_nBals[i] * 1e15));
             _nBals[i] = _nBals[i].add(intDepositAmounts[i]);
-            // console.log('liqInvariant: after adding intDepositAmounts:', ABDKMath64x64.toUInt(_nBals[i]));
+            console.log('liqInvariant: after adding intDepositAmounts:', ABDKMath64x64.toUInt(_nBals[i] * 1e15));
         }
 
         // add to nGliq cause Vault does transfers after onJoin
@@ -352,12 +352,12 @@ library ProportionalLiquidity {
 
         console.log('_psi: ', ABDKMath64x64.toUInt(_psi));
 
-        console.log('LiqInvariant  oGLiq: ', ABDKMath64x64.toUInt(_oGLiq));
-        console.log('LiqInvariant oBals[0]: ', ABDKMath64x64.toUInt(_oBals[0]));
-        console.log('LiqInvariant oBals[1]: ', ABDKMath64x64.toUInt(_oBals[1]));
+        console.log('LiqInvariant  oGLiq: ', ABDKMath64x64.toUInt(_oGLiq * 1e15));
+        console.log('LiqInvariant oBals[0]: ', ABDKMath64x64.toUInt(_oBals[0] * 1e15));
+        console.log('LiqInvariant oBals[1]: ', ABDKMath64x64.toUInt(_oBals[1] * 1e15));
         console.log('LiqInvariant nGLiq: ', ABDKMath64x64.toUInt(_nGLiq));
-        console.log('LiqInvariant nBals[0]: ', ABDKMath64x64.toUInt(_nBals[0]));
-        console.log('LiqInvariant nBals[1]: ', ABDKMath64x64.toUInt(_nBals[1]));
+        console.log('LiqInvariant nBals[0]: ', ABDKMath64x64.toUInt(_nBals[0] * 1e15));
+        console.log('LiqInvariant nBals[1]: ', ABDKMath64x64.toUInt(_nBals[1] * 1e15));
 
         CurveMath.enforceLiquidityInvariant(_curves, _newShells, _oGLiq, _nGLiq, _omega, _psi);
     }

@@ -22,6 +22,7 @@ import '../core/interfaces/IAssimilator.sol';
 import '../core/interfaces/IOracle.sol';
 
 import '../interfaces/IVaultPoolBalances.sol';
+import 'hardhat/console.sol';
 
 contract BaseToUsdAssimilator is IAssimilator {
     using ABDKMath64x64 for int128;
@@ -214,7 +215,10 @@ contract BaseToUsdAssimilator is IAssimilator {
         uint256 _rate = getRate();
 
         (uint256 baseTokenBal, ) = _getBalancesFromVault(vault, poolId, address(usdc));
-
+        // if isAfterIntake == True , add uint amount to the baseTokenBal. Simulate intakeNumeraire
+        // if (isAfterIntake) {
+        //     baseTokenBal += intakeAmount;
+        // }
         if (baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
 
         balance_ = ((baseTokenBal * _rate) / 1e8).divu(baseDecimals);

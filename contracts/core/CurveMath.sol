@@ -222,25 +222,25 @@ library CurveMath {
         console.log('==============================================');
 
         int128 _prevUtilPerShell = _oGLiq.sub(_omega).div(_totalShells);
-        console.log('enforceLiquidityInvariant-oGLiq: ', ABDKMath64x64.toUInt(_oGLiq));
-        console.log('enforceLiquidityInvariant-omega: ', ABDKMath64x64.toUInt(_omega) * 1e18);
-        console.log('_prevUtilPerShell: ', ABDKMath64x64.toUInt(_prevUtilPerShell.abs() * 1e18));
+        console.log('enforceLiquidityInvariant-oGLiq: ', ABDKMath64x64.toUInt(_oGLiq) * 1e15);
+        console.log('enforceLiquidityInvariant-omega: ', ABDKMath64x64.toUInt(_omega));
+        console.log('_prevUtilPerShell: ', ABDKMath64x64.toUInt(_prevUtilPerShell.abs() * 1e15));
         console.log('==============================================');
         console.log('==============================================');
 
         int128 _nextUtilPerShell = _nGLiq.sub(_psi).div(_totalShells.add(_newShells));
-        console.log('enforceLiquidityInvariant-nGLiq: ', ABDKMath64x64.toUInt(_nGLiq));
-        console.log('enforceLiquidityInvariant-psi: ', ABDKMath64x64.toUInt(_psi) * 1e18);
-        console.log('_nextUtilPerShell: ', ABDKMath64x64.toUInt(_nextUtilPerShell.abs() * 1e18));
+        console.log('enforceLiquidityInvariant-nGLiq: ', ABDKMath64x64.toUInt(_nGLiq) * 1e15);
+        console.log('enforceLiquidityInvariant-psi: ', ABDKMath64x64.toUInt(_psi));
+        console.log('_nextUtilPerShell: ', ABDKMath64x64.toUInt(_nextUtilPerShell.abs() * 1e15));
         console.log('==============================================');
         console.log('==============================================');
 
         int128 _diff = _nextUtilPerShell - _prevUtilPerShell;
-        console.log('Padding 18 zeroes');
+        console.log('Padding 15 zeroes');
         console.log(0 < _diff ? '+' : '-');
         console.log(
             '_diff: ',
-            0 < _diff ? ABDKMath64x64.toUInt(_diff * 1e18) : ABDKMath64x64.toUInt(_diff.abs() * 1e18)
+            0 < _diff ? ABDKMath64x64.toUInt(_diff * 1e15) : ABDKMath64x64.toUInt(_diff.abs() * 1e15)
         );
         console.log('0 < _diff: ', 0 < _diff);
         console.log(' _diff >= MAX_DIFF: ', _diff >= MAX_DIFF);
