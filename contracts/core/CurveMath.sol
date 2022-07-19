@@ -213,18 +213,37 @@ library CurveMath {
         int128 _psi
     ) internal view {
         if (_totalShells == 0 || 0 == _totalShells + _newShells) return;
+        console.log('==============================================');
+        console.log('==============================================');
+        console.log('enforceLiquidityInvariant-_totalShells: ', ABDKMath64x64.toUInt(_totalShells));
+        console.log('enforceLiquidityInvariant-_newShells: ', ABDKMath64x64.toUInt(_newShells));
+        console.log('enforceLiquidityInvariant-sumOfShells: ', ABDKMath64x64.toUInt(_newShells.add(_totalShells)));
+        console.log('==============================================');
+        console.log('==============================================');
 
         int128 _prevUtilPerShell = _oGLiq.sub(_omega).div(_totalShells);
-
+        console.log('enforceLiquidityInvariant-oGLiq: ', ABDKMath64x64.toUInt(_oGLiq));
+        console.log('enforceLiquidityInvariant-omega: ', ABDKMath64x64.toUInt(_omega) * 1e18);
         console.log('_prevUtilPerShell: ', ABDKMath64x64.toUInt(_prevUtilPerShell.abs() * 1e18));
+        console.log('==============================================');
+        console.log('==============================================');
 
         int128 _nextUtilPerShell = _nGLiq.sub(_psi).div(_totalShells.add(_newShells));
-
+        console.log('enforceLiquidityInvariant-nGLiq: ', ABDKMath64x64.toUInt(_nGLiq));
+        console.log('enforceLiquidityInvariant-psi: ', ABDKMath64x64.toUInt(_psi) * 1e18);
         console.log('_nextUtilPerShell: ', ABDKMath64x64.toUInt(_nextUtilPerShell.abs() * 1e18));
+        console.log('==============================================');
+        console.log('==============================================');
 
         int128 _diff = _nextUtilPerShell - _prevUtilPerShell;
-
-        console.log('_diff: ', ABDKMath64x64.toUInt(_diff.abs() * 1e18));
+        console.log('Padding 18 zeroes');
+        console.log(0 < _diff ? '+' : '-');
+        console.log(
+            '_diff: ',
+            0 < _diff ? ABDKMath64x64.toUInt(_diff * 1e18) : ABDKMath64x64.toUInt(_diff.abs() * 1e18)
+        );
+        console.log('0 < _diff: ', 0 < _diff);
+        console.log(' _diff >= MAX_DIFF: ', _diff >= MAX_DIFF);
 
         require(0 < _diff || _diff >= MAX_DIFF, 'CurveMath/liquidity-invariant-violation');
     }

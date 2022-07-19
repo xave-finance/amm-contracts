@@ -29,7 +29,7 @@ export const mockToken: mockTokenInfo[] = [
     name: 'Xfers SGD',
     symbol: TokenSymbol.XSGD,
     decimal: 6,
-    mockOraclePrice: '74217020', // XSGD/USD
+    mockOraclePrice: '74376600', // XSGD/USD 74376600 74217020
     addressInMainnetFork: '0x70e8de73ce538da2beed35d14187f6959a8eca96',
     minterInMainnetFork: '0x8c3b0cAeC968b2e640D96Ff0B4c929D233B25982',
   },

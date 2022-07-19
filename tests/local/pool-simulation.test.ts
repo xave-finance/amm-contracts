@@ -8,7 +8,7 @@ import { mockToken } from '../constants/mockTokenList'
 import { sortAddresses } from '../../scripts/utils/sortAddresses'
 import * as swaps from '../common/helpers/swap'
 import { FXPool } from '../../typechain/FXPool'
-import { fxPHPUSDCFxPool } from '../constants/mockPoolList'
+import { XSGDUSDCFxPool } from '../constants/mockPoolList'
 import { getFxPoolContract } from '../common/contractGetters'
 import { formatEther } from 'ethers/lib/utils'
 
@@ -22,7 +22,7 @@ describe('FXPool', () => {
   let adminAddress: string
   let poolId: string
 
-  let fxPHPAssimilatorAddress: string
+  let XSGDAssimilatorAddress: string
   let usdcAssimilatorAddress: string
   let sortedAddresses: string[]
 
@@ -47,7 +47,7 @@ describe('FXPool', () => {
   const loopCount = 3
   const log = true // do console logging
   const usdcDecimals = mockToken[0].decimal
-  const fxPHPDecimals = mockToken[3].decimal
+  const XSGDDecimals = mockToken[3].decimal
 
   before('build test env', async () => {
     testEnv = await setupEnvironment()
@@ -56,25 +56,25 @@ describe('FXPool', () => {
 
     // 1 - deploy assimilators
     await testEnv.assimilatorFactory.newBaseAssimilator(
-      testEnv.fxPHP.address,
+      testEnv.XSGD.address,
       parseUnits('1', `${mockToken[3].decimal}`),
-      testEnv.fxPHPOracle.address
+      testEnv.XSGDOracle.address
     )
 
     // 2 - getAssimilators
-    fxPHPAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.fxPHP.address)
+    XSGDAssimilatorAddress = await testEnv.assimilatorFactory.getAssimilator(testEnv.XSGD.address)
     usdcAssimilatorAddress = await testEnv.assimilatorFactory.usdcAssimilator()
 
     // 3 - sortedAddress references
-    sortedAddresses = sortAddresses([testEnv.fxPHP.address, testEnv.USDC.address])
+    sortedAddresses = sortAddresses([testEnv.XSGD.address, testEnv.USDC.address])
   })
 
   it('Creates a new FXPool using the FXPoolFactory', async () => {
     await expect(
       testEnv.fxPoolFactory.newFXPool(
-        fxPHPUSDCFxPool.name,
-        fxPHPUSDCFxPool.symbol,
-        fxPHPUSDCFxPool.protocolPercentFee,
+        XSGDUSDCFxPool.name,
+        XSGDUSDCFxPool.symbol,
+        XSGDUSDCFxPool.protocolPercentFee,
         testEnv.vault.address,
         sortedAddresses
       )
@@ -109,11 +109,11 @@ describe('FXPool', () => {
     await expect(
       fxPool.initialize(
         [
-          testEnv.fxPHP.address,
-          fxPHPAssimilatorAddress,
-          testEnv.fxPHP.address,
-          fxPHPAssimilatorAddress,
-          testEnv.fxPHP.address,
+          testEnv.XSGD.address,
+          XSGDAssimilatorAddress,
+          testEnv.XSGD.address,
+          XSGDAssimilatorAddress,
+          testEnv.XSGD.address,
           testEnv.USDC.address,
           usdcAssimilatorAddress,
           testEnv.USDC.address,
@@ -130,16 +130,21 @@ describe('FXPool', () => {
   })
 
   it('Adds liquidity to the FXPool via the Vault which triggers the onJoin hook', async () => {
-    await testEnv.fxPHP.approve(testEnv.vault.address, ethers.constants.MaxUint256)
+    await testEnv.XSGD.approve(testEnv.vault.address, ethers.constants.MaxUint256)
     await testEnv.USDC.approve(testEnv.vault.address, ethers.constants.MaxUint256)
 
-    const baseAmountsIn = ['3549999999248290000000', '887499999812074000000', '1100000000000000000000']
+    const baseAmountsIn = [
+      '3549999999248290000000',
+      '887499999812074000000',
+      '2100000000000000000000',
+      '5105000000000000000000',
+    ]
 
     // Numeraire input
     for (var i = 0; i < baseAmountsIn.length; i++) {
       console.log(`Deposit [${i}]: ${baseAmountsIn[i]}`)
       const beforeLpBalance = await fxPool.balanceOf(adminAddress)
-      const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+      const beforeVaultfxPhpBalance = await testEnv.XSGD.balanceOf(testEnv.vault.address)
       const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
       console.log(`
@@ -175,7 +180,7 @@ describe('FXPool', () => {
         .withArgs(poolId, depositDetails[0], [depositDetails[1][0], depositDetails[1][1]])
 
       const afterLpBalance = await fxPool.balanceOf(adminAddress)
-      const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+      const afterVaultfxPhpBalance = await testEnv.XSGD.balanceOf(testEnv.vault.address)
       const afterVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
       console.log(`
@@ -185,15 +190,16 @@ describe('FXPool', () => {
       `)
 
       // expect(afterLpBalance, 'Current LP Balance not expected').to.be.equals(beforeLpBalance.add(depositDetails[0]))
-      // expect(afterVaultfxPhpBalance, 'Current fxPHP Balance not expected').to.be.equals(
+      // expect(afterVaultfxPhpBalance, 'Current XSGD Balance not expected').to.be.equals(
       //   beforeVaultfxPhpBalance.add(depositDetails[1][0])
       // )
       // expect(afterVaultUsdcBalance, 'Current USDC Balance not expected').to.be.equals(
       //   beforeVaultUsdcBalance.add(depositDetails[1][1])
       // )
 
-      if (i > 1) {
-        await testEnv.fxPHPOracle.setAnswer('1782600') // 1782600
+      if (i > 0) {
+        // trying lower
+        // await testEnv.XSGDOracle.setAnswer('74377600') // 1775177, 1782600, 1775100
         console.log('Oracle price updated..')
       }
 
@@ -210,7 +216,7 @@ describe('FXPool', () => {
   //   for (var i = 1; i < loopCount + 1; i++) {
   //     console.log('Withdraw #', i, ' with total withdraw amount ', hlptTokenAmountInNumber * i)
   //     const beforeLpBalance = await fxPool.balanceOf(adminAddress)
-  //     const beforeVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+  //     const beforeVaultfxPhpBalance = await testEnv.XSGD.balanceOf(testEnv.vault.address)
   //     const beforeVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
   //     const withdrawTokensOut = await fxPool.viewWithdraw(hlpTokensToBurninWei)
@@ -234,11 +240,11 @@ describe('FXPool', () => {
   //       .withArgs(poolId, hlpTokensToBurninWei, [withdrawTokensOut[0], withdrawTokensOut[1]])
 
   //     const afterLpBalance = await fxPool.balanceOf(adminAddress)
-  //     const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
+  //     const afterVaultfxPhpBalance = await testEnv.XSGD.balanceOf(testEnv.vault.address)
   //     const afterVaultUsdcBalance = await testEnv.USDC.balanceOf(testEnv.vault.address)
 
   //     expect(afterLpBalance, 'Current LP Balance not expected').to.be.equals(beforeLpBalance.sub(hlpTokensToBurninWei))
-  //     expect(afterVaultfxPhpBalance, 'Current fxPHP Balance not expected').to.be.equals(
+  //     expect(afterVaultfxPhpBalance, 'Current XSGD Balance not expected').to.be.equals(
   //       beforeVaultfxPhpBalance.sub(withdrawTokensOut[0])
   //     )
   //     expect(afterVaultUsdcBalance, 'Current USDC Balance not expected').to.be.equals(
