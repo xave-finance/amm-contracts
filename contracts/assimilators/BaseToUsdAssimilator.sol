@@ -22,6 +22,7 @@ import '../core/interfaces/IAssimilator.sol';
 import '../core/interfaces/IOracle.sol';
 
 import '../interfaces/IVaultPoolBalances.sol';
+import 'hardhat/console.sol';
 
 contract BaseToUsdAssimilator is IAssimilator {
     using ABDKMath64x64 for int128;
@@ -162,9 +163,13 @@ contract BaseToUsdAssimilator is IAssimilator {
 
     // takes a numeraire amount and returns the raw amount
     function viewRawAmount(int128 _amount) external view override returns (uint256 amount_) {
+        console.log('Inside viewRawAmount');
         uint256 _rate = getRate();
 
         amount_ = (_amount.mulu(baseDecimals) * 1e8) / _rate;
+        console.log('amount in (int): ');
+        console.logInt(_amount);
+        console.log('amount in: ', ABDKMath64x64.toUInt(_amount));
     }
 
     function _getBalancesFromVault(
@@ -214,6 +219,40 @@ contract BaseToUsdAssimilator is IAssimilator {
         uint256 _rate = getRate();
 
         (uint256 baseTokenBal, ) = _getBalancesFromVault(vault, poolId, address(usdc));
+
+        if (baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
+
+        balance_ = ((baseTokenBal * _rate) / 1e8).divu(baseDecimals);
+    }
+
+    // views the numeraire value of the current balance of the reserve, in this case baseToken
+    // adds intakeAmount to baseTokenBal to simulate LP deposit
+    function virtualViewNumeraireBalanceIntake(
+        address vault,
+        bytes32 poolId,
+        uint256 intakeAmount
+    ) external view override returns (int128 balance_) {
+        uint256 _rate = getRate();
+
+        (uint256 baseTokenBal, ) = _getBalancesFromVault(vault, poolId, address(usdc));
+        baseTokenBal += intakeAmount;
+
+        if (baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
+
+        balance_ = ((baseTokenBal * _rate) / 1e8).divu(baseDecimals);
+    }
+
+    // views the numeraire value of the current balance of the reserve, in this case baseToken
+    // subtracts outputAmount to baseTokenBal to simulate LP deposit
+    function virtualViewNumeraireBalanceOutput(
+        address vault,
+        bytes32 poolId,
+        uint256 outputAmount
+    ) external view override returns (int128 balance_) {
+        uint256 _rate = getRate();
+
+        (uint256 baseTokenBal, ) = _getBalancesFromVault(vault, poolId, address(usdc));
+        baseTokenBal = baseTokenBal - outputAmount;
 
         if (baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
 
