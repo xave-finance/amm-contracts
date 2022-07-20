@@ -21,7 +21,7 @@ export const mockToken: mockTokenInfo[] = [
     name: 'USDC',
     symbol: TokenSymbol.USDC,
     decimal: 6,
-    mockOraclePrice: '100000000',
+    mockOraclePrice: '100007102',
     addressInMainnetFork: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
     minterInMainnetFork: '0xfcb19e6a322b27c06842a71e8c725399f049ae3a',
   },

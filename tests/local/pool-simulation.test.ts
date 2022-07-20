@@ -57,7 +57,7 @@ describe('FXPool', () => {
     // 1 - deploy assimilators
     await testEnv.assimilatorFactory.newBaseAssimilator(
       testEnv.XSGD.address,
-      parseUnits('1', `${mockToken[3].decimal}`),
+      parseUnits('1', `${mockToken[1].decimal}`),
       testEnv.XSGDOracle.address
     )
 
