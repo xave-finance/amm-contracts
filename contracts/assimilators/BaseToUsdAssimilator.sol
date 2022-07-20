@@ -163,9 +163,13 @@ contract BaseToUsdAssimilator is IAssimilator {
 
     // takes a numeraire amount and returns the raw amount
     function viewRawAmount(int128 _amount) external view override returns (uint256 amount_) {
+        console.log('Inside viewRawAmount');
         uint256 _rate = getRate();
 
         amount_ = (_amount.mulu(baseDecimals) * 1e8) / _rate;
+        console.log('amount in (int): ');
+        console.logInt(_amount);
+        console.log('amount in: ', ABDKMath64x64.toUInt(_amount));
     }
 
     function _getBalancesFromVault(
