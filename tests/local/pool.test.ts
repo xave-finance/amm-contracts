@@ -159,10 +159,9 @@ describe('FXPool', () => {
         userData: payload,
         fromInternalBalance: false,
       }
-      // await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest))
-      //   .to.emit(fxPool, 'OnJoinPool')
-      //   .withArgs(poolId, depositDetails[0], [depositDetails[1][0], depositDetails[1][1]])
-      await testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)
+      await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest))
+        .to.emit(fxPool, 'OnJoinPool')
+        .withArgs(poolId, depositDetails[0], [depositDetails[1][0], depositDetails[1][1]])
 
       const afterLpBalance = await fxPool.balanceOf(adminAddress)
       const afterVaultfxPhpBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
@@ -178,7 +177,7 @@ describe('FXPool', () => {
     }
   })
 
-  it.skip('Removes Liquidity from the FXPool via the Vault which triggers the onExit hook', async () => {
+  it('Removes Liquidity from the FXPool via the Vault which triggers the onExit hook', async () => {
     // remove amount per iteration roughly 1,000 USD or ~25k PHP and ~500k USDC
     const hlptTokenAmountInNumber = 1000
     const hlpTokenAmountInEther = hlptTokenAmountInNumber.toString()
@@ -224,14 +223,14 @@ describe('FXPool', () => {
     }
   })
 
-  it.skip('Checks liquidity in the FXPool', async () => {
+  it('Checks liquidity in the FXPool', async () => {
     const liquidity = (await fxPool.liquidity())[0]
     console.log('liquidity number', await ethers.utils.formatEther(liquidity))
     console.log('liquidity BigNumber', liquidity.toString())
     expect(liquidity).to.not.equals(0)
   })
 
-  it.skip('originSwap: User batch swaps token A (USDC) for token B (fxPHP) calling the vault and triggering the onSwap hook', async () => {
+  it('originSwap: User batch swaps token A (USDC) for token B (fxPHP) calling the vault and triggering the onSwap hook', async () => {
     const usdcAmountToSwapInEther = 1000
     const usdcDecimals = 6
 
@@ -268,7 +267,7 @@ describe('FXPool', () => {
     expect(beforeTradefxPHPPoolBalance, 'Unexpected fxPHP Vault Balance').to.be.gt(afterTradefxPHPPoolBalance)
     expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.lt(afterTradeUSDCPoolBalance)
   })
-  it.skip('targetSwap: User batch swaps token A (USDC) for token B (fxPHP) calling the vault and triggering the onSwap hook', async () => {
+  it('targetSwap: User batch swaps token A (USDC) for token B (fxPHP) calling the vault and triggering the onSwap hook', async () => {
     const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
     const beforeTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
     const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
@@ -306,7 +305,7 @@ describe('FXPool', () => {
     expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.lt(afterTradeUSDCPoolBalance)
   })
 
-  it.skip('originSwap: User batch swaps token A (fxPHP) for token B (USDC) calling the vault and triggering the onSwap hook', async () => {
+  it('originSwap: User batch swaps token A (fxPHP) for token B (USDC) calling the vault and triggering the onSwap hook', async () => {
     const fxPHPAmountToSwapInEther = 1000
 
     const fxPHPAddress = testEnv.fxPHP.address
@@ -342,7 +341,7 @@ describe('FXPool', () => {
     expect(beforeTradefxPHPPoolBalance, 'Unexpected fxPHP Vault Balance').to.be.lt(afterTradefxPHPPoolBalance)
     expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.gt(afterTradeUSDCPoolBalance)
   })
-  it.skip('originSwap: User single swaps token A (USDC) for token B (fxPHP) calling the vault and triggering onSwap hook', async () => {
+  it('originSwap: User single swaps token A (USDC) for token B (fxPHP) calling the vault and triggering onSwap hook', async () => {
     const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
     const beforeTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
     const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
@@ -378,7 +377,7 @@ describe('FXPool', () => {
     expect(beforeTradefxPHPPoolBalance, 'Unexpected fxPHP Vault Balance').to.be.gt(afterTradefxPHPPoolBalance)
     expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.lt(afterTradeUSDCPoolBalance)
   })
-  it.skip('originSwap: User single swaps token A (fxPHP) and token B (USDC) calling the vault and triggering onSwap hook', async () => {
+  it('originSwap: User single swaps token A (fxPHP) and token B (USDC) calling the vault and triggering onSwap hook', async () => {
     const beforeTradeUserUsdcBalance = await testEnv.USDC.balanceOf(adminAddress)
     const beforeTradeUserfxPHPBalance = await testEnv.fxPHP.balanceOf(adminAddress)
     const beforeTradefxPHPPoolBalance = await testEnv.fxPHP.balanceOf(testEnv.vault.address)
@@ -416,7 +415,7 @@ describe('FXPool', () => {
     expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.gt(afterTradeUSDCPoolBalance)
   })
 
-  it.skip('totalUnclaimedFeesInNumeraire must be minted during onJoin', async () => {
+  it('totalUnclaimedFeesInNumeraire must be minted during onJoin', async () => {
     // expect that await fxPool.totalUnclaimedFeesInNumeraire() returns an expected value (console log the value at this point before we do anything)
     const previousFeeBalance = await fxPool.totalUnclaimedFeesInNumeraire()
     expect(previousFeeBalance).to.be.not.equals(0)
@@ -486,7 +485,7 @@ describe('FXPool', () => {
     ) // including LP tokens after deposit
   })
 
-  it.skip('totalUnclaimedFeesInNumeraire must be minted during onExit', async () => {
+  it('totalUnclaimedFeesInNumeraire must be minted during onExit', async () => {
     // expect that await fxPool.totalUnclaimedFeesInNumeraire() is 0
     const previousFeeBalance = await fxPool.totalUnclaimedFeesInNumeraire()
     expect(previousFeeBalance).is.equals(0)
@@ -550,7 +549,7 @@ describe('FXPool', () => {
     ) // including burned tokens
   })
 
-  it.skip('can pause pool', async () => {
+  it('can pause pool', async () => {
     expect(await fxPool.paused()).to.be.equals(false)
 
     await expect(fxPool.setPaused()).to.emit(fxPool, 'Paused').withArgs(adminAddress)
@@ -559,7 +558,7 @@ describe('FXPool', () => {
     await expect(fxPool.viewDeposit(parseEther(TEST_DEPOSIT_PAUSEABLE))).to.be.revertedWith(CONTRACT_REVERT.Paused)
   })
 
-  it.skip('can unpause pool', async () => {
+  it('can unpause pool', async () => {
     expect(await fxPool.paused()).to.be.equals(true)
 
     await expect(fxPool.connect(notOwner).setPaused()).to.be.revertedWith(CONTRACT_REVERT.Ownable)
@@ -570,22 +569,22 @@ describe('FXPool', () => {
     await expect(fxPool.viewDeposit(parseEther(TEST_DEPOSIT_PAUSEABLE))).to.not.be.reverted
   })
 
-  it.skip('cannot set new collectorAddress if not owner', async () => {
+  it('cannot set new collectorAddress if not owner', async () => {
     await expect(fxPool.connect(notOwner).setCollectorAddress(await notOwner.getAddress())).to.be.revertedWith(
       CONTRACT_REVERT.Ownable
     )
   })
 
-  it.skip('can set new collectorAddress to zero if owner', async () => {
+  it('can set new collectorAddress to zero if owner', async () => {
     await expect(fxPool.setCollectorAddress(ethers.constants.AddressZero)).to.not.be.reverted
   })
 
-  it.skip('can set new collectorAddress to a new collector address if owner', async () => {
+  it('can set new collectorAddress to a new collector address if owner', async () => {
     const owner2Address = await owner2.getAddress()
     await expect(fxPool.setCollectorAddress(owner2Address)).to.not.be.reverted
   })
 
-  it.skip('can still deposit of collectorAddress is zero', async () => {
+  it('can still deposit of collectorAddress is zero', async () => {
     await expect(fxPool.setCollectorAddress(ethers.constants.AddressZero)).to.not.be.reverted
 
     expect(await fxPool.collectorAddress()).to.be.equals(ethers.constants.AddressZero)
@@ -607,7 +606,7 @@ describe('FXPool', () => {
     await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.not.be.reverted
   })
 
-  it.skip('can still withdraw if collectorAddress is zero', async () => {
+  it('can still withdraw if collectorAddress is zero', async () => {
     await expect(fxPool.setCollectorAddress(ethers.constants.AddressZero)).to.not.be.reverted
 
     expect(await fxPool.collectorAddress()).to.be.equals(ethers.constants.AddressZero)
@@ -628,7 +627,7 @@ describe('FXPool', () => {
     await expect(testEnv.vault.exitPool(poolId, adminAddress, adminAddress, exitPoolRequest)).to.be.not.reverted
   })
 
-  it.skip('can trigger emergency alarm', async () => {
+  it('can trigger emergency alarm', async () => {
     expect(await fxPool.emergency()).to.be.equals(false)
     expect(await fxPool.setEmergency(true))
       .to.emit(fxPool, 'EmergencyAlarm')
@@ -645,7 +644,7 @@ describe('FXPool', () => {
     // @todo add emergency withdraw case from calcualted test cases
   })
 
-  it.skip('can set cap when owner', async () => {
+  it('can set cap when owner', async () => {
     const currentLiq = await fxPool.liquidity()
     NEW_CAP = currentLiq.total_.add(parseEther('1'))
     const curveDetails = await fxPool.curve()
