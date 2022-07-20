@@ -213,27 +213,27 @@ library CurveMath {
         int128 _psi
     ) internal view {
         if (_totalShells == 0 || 0 == _totalShells + _newShells) return;
-        console.log('==============================================');
-        console.log('==============================================');
-        console.log('enforceLiquidityInvariant-_totalShells: ', ABDKMath64x64.toUInt(_totalShells));
-        console.log('enforceLiquidityInvariant-_newShells: ', ABDKMath64x64.toUInt(_newShells));
-        console.log('enforceLiquidityInvariant-sumOfShells: ', ABDKMath64x64.toUInt(_newShells.add(_totalShells)));
-        console.log('==============================================');
-        console.log('==============================================');
+        // console.log('==============================================');
+        // console.log('==============================================');
+        // console.log('enforceLiquidityInvariant-_totalShells: ', ABDKMath64x64.toUInt(_totalShells));
+        // console.log('enforceLiquidityInvariant-_newShells: ', ABDKMath64x64.toUInt(_newShells));
+        // console.log('enforceLiquidityInvariant-sumOfShells: ', ABDKMath64x64.toUInt(_newShells.add(_totalShells)));
+        // console.log('==============================================');
+        // console.log('==============================================');
 
         int128 _prevUtilPerShell = _oGLiq.sub(_omega).div(_totalShells);
-        console.log('enforceLiquidityInvariant-oGLiq: ', ABDKMath64x64.toUInt(_oGLiq) * 1e15);
-        console.log('enforceLiquidityInvariant-omega: ', ABDKMath64x64.toUInt(_omega));
-        console.log('_prevUtilPerShell: ', ABDKMath64x64.toUInt(_prevUtilPerShell.abs() * 1e15));
-        console.log('==============================================');
-        console.log('==============================================');
+        // console.log('enforceLiquidityInvariant-oGLiq: ', ABDKMath64x64.toUInt(_oGLiq) * 1e15);
+        // console.log('enforceLiquidityInvariant-omega: ', ABDKMath64x64.toUInt(_omega));
+        // console.log('_prevUtilPerShell: ', ABDKMath64x64.toUInt(_prevUtilPerShell.abs() * 1e15));
+        // console.log('==============================================');
+        // console.log('==============================================');
 
         int128 _nextUtilPerShell = _nGLiq.sub(_psi).div(_totalShells.add(_newShells));
-        console.log('enforceLiquidityInvariant-nGLiq: ', ABDKMath64x64.toUInt(_nGLiq) * 1e15);
-        console.log('enforceLiquidityInvariant-psi: ', ABDKMath64x64.toUInt(_psi));
-        console.log('_nextUtilPerShell: ', ABDKMath64x64.toUInt(_nextUtilPerShell.abs() * 1e15));
-        console.log('==============================================');
-        console.log('==============================================');
+        // console.log('enforceLiquidityInvariant-nGLiq: ', ABDKMath64x64.toUInt(_nGLiq) * 1e15);
+        // console.log('enforceLiquidityInvariant-psi: ', ABDKMath64x64.toUInt(_psi));
+        // console.log('_nextUtilPerShell: ', ABDKMath64x64.toUInt(_nextUtilPerShell.abs() * 1e15));
+        // console.log('==============================================');
+        // console.log('==============================================');
 
         int128 _diff = _nextUtilPerShell - _prevUtilPerShell;
         console.log('Padding 15 zeroes');

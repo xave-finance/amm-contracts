@@ -43,12 +43,12 @@ library ProportionalLiquidity {
         // Needed to calculate liquidity invariant
         (int128 _oGLiqProp, int128[] memory _oBalsProp) = getGrossLiquidityAndBalances(curve);
 
-        console.log('Before intake oGLiq: ', ABDKMath64x64.toUInt(_oGLiq * 1e15));
-        console.log('Before intake oBals[0]: ', ABDKMath64x64.toUInt(_oBals[0] * 1e15));
-        console.log('Before intake oBals[1]: ', ABDKMath64x64.toUInt(_oBals[1] * 1e15));
-        console.log('Before intake oGLiqProp: ', ABDKMath64x64.toUInt(_oGLiqProp * 1e15));
-        console.log('Before intake oBalsProp[0]: ', ABDKMath64x64.toUInt(_oBalsProp[0] * 1e15));
-        console.log('Before intake oBalsProp[1]: ', ABDKMath64x64.toUInt(_oBalsProp[1] * 1e15));
+        // console.log('Before intake oGLiq: ', ABDKMath64x64.toUInt(_oGLiq * 1e15));
+        // console.log('Before intake oBals[0]: ', ABDKMath64x64.toUInt(_oBals[0] * 1e15));
+        // console.log('Before intake oBals[1]: ', ABDKMath64x64.toUInt(_oBals[1] * 1e15));
+        // console.log('Before intake oGLiqProp: ', ABDKMath64x64.toUInt(_oGLiqProp * 1e15));
+        // console.log('Before intake oBalsProp[0]: ', ABDKMath64x64.toUInt(_oBalsProp[0] * 1e15));
+        // console.log('Before intake oBalsProp[1]: ', ABDKMath64x64.toUInt(_oBalsProp[1] * 1e15));
 
         // No liquidity, oracle sets the ratio
         if (_oGLiq == 0) {
@@ -317,7 +317,7 @@ library ProportionalLiquidity {
             grossLiquidity_ += _bal;
         }
 
-        console.log('getGrossLiquidityAndBalancesDeposit: ', ABDKMath64x64.toUInt(grossLiquidity_.abs()));
+        // console.log('getGrossLiquidityAndBalancesDeposit: ', ABDKMath64x64.toUInt(grossLiquidity_.abs()));
 
         return (grossLiquidity_, balances_);
     }
@@ -336,7 +336,7 @@ library ProportionalLiquidity {
             balances_[i] = _bal;
             grossLiquidity_ += _bal;
         }
-        console.log('getGrossLiquidityAndBalances: ', ABDKMath64x64.toUInt(grossLiquidity_.abs()));
+        // console.log('getGrossLiquidityAndBalances: ', ABDKMath64x64.toUInt(grossLiquidity_.abs()));
         return (grossLiquidity_, balances_);
     }
 
@@ -359,7 +359,7 @@ library ProportionalLiquidity {
             balances_[i] = _bal;
             grossLiquidity_ += _bal;
         }
-        console.log('getGrossLiquidityAndBalances: ', ABDKMath64x64.toUInt(grossLiquidity_.abs()));
+        // console.log('getVirtualGrossLiquidityAndBalancesAfterIntake: ', ABDKMath64x64.toUInt(grossLiquidity_.abs()));
         return (grossLiquidity_, balances_);
     }
 
@@ -381,7 +381,7 @@ library ProportionalLiquidity {
             balances_[i] = _bal;
             grossLiquidity_ += _bal;
         }
-        console.log('getGrossLiquidityAndBalances: ', ABDKMath64x64.toUInt(grossLiquidity_.abs()));
+        // console.log('getVirtualGrossLiquidityAndBalancesAfterOuttake: ', ABDKMath64x64.toUInt(grossLiquidity_.abs()));
         return (grossLiquidity_, balances_);
     }
 
@@ -416,12 +416,12 @@ library ProportionalLiquidity {
 
         console.log('_psi: ', ABDKMath64x64.toUInt(_psi));
 
-        console.log('LiqInvariant  oGLiq: ', ABDKMath64x64.toUInt(_oGLiq * 1e15));
-        console.log('LiqInvariant oBals[0]: ', ABDKMath64x64.toUInt(_oBals[0] * 1e15));
-        console.log('LiqInvariant oBals[1]: ', ABDKMath64x64.toUInt(_oBals[1] * 1e15));
-        console.log('LiqInvariant nGLiq: ', ABDKMath64x64.toUInt(_nGLiq));
-        console.log('LiqInvariant nBals[0]: ', ABDKMath64x64.toUInt(_nBals[0] * 1e15));
-        console.log('LiqInvariant nBals[1]: ', ABDKMath64x64.toUInt(_nBals[1] * 1e15));
+        // console.log('LiqInvariant  oGLiq: ', ABDKMath64x64.toUInt(_oGLiq * 1e15));
+        // console.log('LiqInvariant oBals[0]: ', ABDKMath64x64.toUInt(_oBals[0] * 1e15));
+        // console.log('LiqInvariant oBals[1]: ', ABDKMath64x64.toUInt(_oBals[1] * 1e15));
+        // console.log('LiqInvariant nGLiq: ', ABDKMath64x64.toUInt(_nGLiq));
+        // console.log('LiqInvariant nBals[0]: ', ABDKMath64x64.toUInt(_nBals[0] * 1e15));
+        // console.log('LiqInvariant nBals[1]: ', ABDKMath64x64.toUInt(_nBals[1] * 1e15));
 
         CurveMath.enforceLiquidityInvariant(_curves, _newShells, _oGLiq, _nGLiq, _omega, _psi);
     }
