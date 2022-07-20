@@ -390,29 +390,15 @@ library ProportionalLiquidity {
         uint256[] memory depositAmounts,
         bool isDeposit
     ) private view {
-        // getGrossLiquidityAndBalances needs to simulate the balances after transfer/intake
-        // this is the only time its called after an intake
-        // which means that this is the only place we need to simulate _nGLiq and _nBals after intake
-        // (int128 _nGLiq, int128[] memory _nBals) = getGrossLiquidityAndBalances(curve);
-
         int128 _nGLiq;
         int128[] memory _nBals;
 
+        // replaced getGrossLiquidityAndBalances with these virtual functions to simulate the Vault balances after transfer/intake is expected in original code
         if (isDeposit) {
             (_nGLiq, _nBals) = getVirtualGrossLiquidityAndBalancesAfterIntake(curve, depositAmounts);
         } else {
             (_nGLiq, _nBals) = getVirtualGrossLiquidityAndBalancesAfterOuttake(curve, depositAmounts);
         }
-
-        // 'simulate' the deposit/withdrawal of token balances
-        // for (uint256 i = 0; i < _nBals.length; i++) {
-        //     console.log('liqInvariant: before adding intDepositAmounts:', ABDKMath64x64.toUInt(_nBals[i] * 1e15));
-        //     _nBals[i] = _nBals[i].add(intDepositAmounts[i]);
-        //     console.log('liqInvariant: after adding intDepositAmounts:', ABDKMath64x64.toUInt(_nBals[i] * 1e15));
-        // }
-
-        // add to nGliq cause Vault does transfers after onJoin
-        // _nGLiq = _nGLiq.add(_newShells);
 
         int128 _beta = curve.beta;
         int128 _delta = curve.delta;
