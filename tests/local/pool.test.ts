@@ -44,7 +44,7 @@ describe('FXPool', () => {
   const protocolPercentFee = BigNumber.from('10') // 10%
   const ONE_HUNDRED = BigNumber.from('100')
 
-  const loopCount = 3
+  const loopCount = 10
   const log = true // do console logging
   const usdcDecimals = mockToken[0].decimal
   const fxPHPDecimals = mockToken[3].decimal
@@ -135,7 +135,7 @@ describe('FXPool', () => {
     await testEnv.fxPHP.approve(testEnv.vault.address, ethers.constants.MaxUint256)
     await testEnv.USDC.approve(testEnv.vault.address, ethers.constants.MaxUint256)
 
-    const baseAmountsIn = ['1000', '2000', '10000', '3333333']
+    const baseAmountsIn = ['1000', '2000', '10000', '3333333', '100000000']
 
     // Numeraire input
     for (var i = 0; i < baseAmountsIn.length; i++) {
@@ -417,7 +417,7 @@ describe('FXPool', () => {
     expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.gt(afterTradeUSDCPoolBalance)
   })
 
-  it('totalUnclaimedFeesInNumeraire must be minted during onJoin', async () => {
+  it.skip('totalUnclaimedFeesInNumeraire must be minted during onJoin', async () => {
     // expect that await fxPool.totalUnclaimedFeesInNumeraire() returns an expected value (console log the value at this point before we do anything)
     const previousFeeBalance = await fxPool.totalUnclaimedFeesInNumeraire()
     expect(previousFeeBalance).to.be.not.equals(0)
@@ -487,7 +487,7 @@ describe('FXPool', () => {
     ) // including LP tokens after deposit
   })
 
-  it('totalUnclaimedFeesInNumeraire must be minted during onExit', async () => {
+  it.skip('totalUnclaimedFeesInNumeraire must be minted during onExit', async () => {
     // expect that await fxPool.totalUnclaimedFeesInNumeraire() is 0
     const previousFeeBalance = await fxPool.totalUnclaimedFeesInNumeraire()
     expect(previousFeeBalance).is.equals(0)
@@ -661,11 +661,11 @@ describe('FXPool', () => {
     )
   })
 
-  it.skip('cannot set cap when desired cap value is less than total liquidity', async () => {
+  it('cannot set cap when desired cap value is less than total liquidity', async () => {
     await expect(fxPool.setCap(NEW_CAP_FAIL)).to.be.revertedWith(CONTRACT_REVERT.CapLessThanLiquidity)
   })
 
-  it.skip('reverts when  deposit numeraire + current liquidity value is greater than cap limit given numeraire input', async () => {
+  it('reverts when  deposit numeraire + current liquidity value is greater than cap limit given numeraire input', async () => {
     const numeraireAmoutnsIn = [CAP_DEPOSIT_FAIL_USDC]
 
     for (var i = 0; i < numeraireAmoutnsIn.length; i++) {
@@ -690,7 +690,7 @@ describe('FXPool', () => {
     }
   })
 
-  it.skip('creates new pools and use the last pool in the array as the active fxpool ', async () => {
+  it('creates new pools and use the last pool in the array as the active fxpool ', async () => {
     // new pool #1 is the previously created pool
 
     // new pool #2
