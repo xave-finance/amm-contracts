@@ -417,9 +417,10 @@ describe('FXPool', () => {
     expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.gt(afterTradeUSDCPoolBalance)
   })
 
-  it.skip('totalUnclaimedFeesInNumeraire must be minted during onJoin', async () => {
+  it('totalUnclaimedFeesInNumeraire must be minted during onJoin', async () => {
     // expect that await fxPool.totalUnclaimedFeesInNumeraire() returns an expected value (console log the value at this point before we do anything)
     const previousFeeBalance = await fxPool.totalUnclaimedFeesInNumeraire()
+    console.log(previousFeeBalance)
     expect(previousFeeBalance).to.be.not.equals(0)
     console.log(
       'Total Fees accrued from totalUnclaimedFeesInNumeraire must be minted during onJoin: ',
@@ -487,7 +488,7 @@ describe('FXPool', () => {
     ) // including LP tokens after deposit
   })
 
-  it.skip('totalUnclaimedFeesInNumeraire must be minted during onExit', async () => {
+  it('totalUnclaimedFeesInNumeraire must be minted during onExit', async () => {
     // expect that await fxPool.totalUnclaimedFeesInNumeraire() is 0
     const previousFeeBalance = await fxPool.totalUnclaimedFeesInNumeraire()
     expect(previousFeeBalance).is.equals(0)
