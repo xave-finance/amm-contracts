@@ -129,7 +129,7 @@ contract BaseToUsdAssimilator is IAssimilator {
     }
 
     // views the numeraire value of the current balance of the reserve, in this case baseToken
-    // subtracts outputAmount to baseTokenBal to simulate LP deposit
+    // subtracts outputAmount to baseTokenBal to simulate LP withdrawal
     function virtualViewNumeraireBalanceOutput(
         address vault,
         bytes32 poolId,
