@@ -189,7 +189,7 @@ contract UsdcToUsdAssimilator is IAssimilator {
     }
 
     // adds intakeAmount to baseTokenBal to simulate LP deposit
-    function virtualViewNumeraireBalance(
+    function virtualViewNumeraireBalanceIntake(
         address vault,
         bytes32 poolId,
         uint256 intakeAmount
@@ -198,6 +198,22 @@ contract UsdcToUsdAssimilator is IAssimilator {
 
         uint256 quoteBalance = _getBalancesFromVault(vault, poolId, address(usdc));
         quoteBalance += intakeAmount;
+
+        if (quoteBalance <= 0) return ABDKMath64x64.fromUInt(0);
+
+        balance_ = ((quoteBalance * _rate) / 1e8).divu(DECIMALS);
+    }
+
+    // adds outputAmount to baseTokenBal to simulate LP deposit
+    function virtualViewNumeraireBalanceOutput(
+        address vault,
+        bytes32 poolId,
+        uint256 outputAmount
+    ) external view override returns (int128 balance_) {
+        uint256 _rate = getRate();
+
+        uint256 quoteBalance = _getBalancesFromVault(vault, poolId, address(usdc));
+        quoteBalance = quoteBalance - outputAmount;
 
         if (quoteBalance <= 0) return ABDKMath64x64.fromUInt(0);
 

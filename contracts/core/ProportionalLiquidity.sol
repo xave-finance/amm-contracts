@@ -106,7 +106,15 @@ library ProportionalLiquidity {
             * within requireLiquidityInvariant, need to update new gross liquidity (_nGliq var) to reflect the new higher or lower pool liquidity
                 by adding _newShells to _nGLiq
          */
-        requireLiquidityInvariant(curve, _totalShells, _newShells, _oGLiqProp, _oBalsProp, depositData.uintAmounts);
+        requireLiquidityInvariant(
+            curve,
+            _totalShells,
+            _newShells,
+            _oGLiqProp,
+            _oBalsProp,
+            depositData.uintAmounts,
+            true
+        );
 
         // assign return value to curves_ instead of the original mint(curve, msg.sender, curves_ = _newShells.mulu(1e18));
         curves_ = _newShells.mulu(1e18);
@@ -220,7 +228,15 @@ library ProportionalLiquidity {
             withdrawData.uintAmounts[i] = Assimilators.viewRawAmount(curve.assets[i].addr, amount);
         }
 
-        requireLiquidityInvariant(curve, _totalShells, __withdrawal.neg(), _oGLiq, _oBals, withdrawData.uintAmounts);
+        requireLiquidityInvariant(
+            curve,
+            _totalShells,
+            __withdrawal.neg(),
+            _oGLiq,
+            _oBals,
+            withdrawData.uintAmounts,
+            false
+        );
 
         //   burn(curve, msg.sender, _withdrawal);
 
@@ -330,11 +346,33 @@ library ProportionalLiquidity {
         int128[] memory balances_ = new int128[](_length);
 
         for (uint256 i = 0; i < _length; i++) {
-            int128 _bal = Assimilators.virtualViewNumeraireBalance(
+            int128 _bal = Assimilators.virtualViewNumeraireBalanceIntake(
                 curve.assets[i].addr,
                 address(curve.vault),
                 curve.poolId,
                 intakeAmounts[i]
+            );
+            balances_[i] = _bal;
+            grossLiquidity_ += _bal;
+        }
+        console.log('getGrossLiquidityAndBalances: ', ABDKMath64x64.toUInt(grossLiquidity_.abs()));
+        return (grossLiquidity_, balances_);
+    }
+
+    function getVirtualGrossLiquidityAndBalancesAfterOuttake(
+        Storage.Curve storage curve,
+        uint256[] memory outputAmounts
+    ) internal view returns (int128 grossLiquidity_, int128[] memory) {
+        uint256 _length = curve.assets.length;
+
+        int128[] memory balances_ = new int128[](_length);
+
+        for (uint256 i = 0; i < _length; i++) {
+            int128 _bal = Assimilators.virtualViewNumeraireBalanceOutput(
+                curve.assets[i].addr,
+                address(curve.vault),
+                curve.poolId,
+                outputAmounts[i]
             );
             balances_[i] = _bal;
             grossLiquidity_ += _bal;
@@ -349,13 +387,22 @@ library ProportionalLiquidity {
         int128 _newShells,
         int128 _oGLiq,
         int128[] memory _oBals,
-        uint256[] memory depositAmounts
+        uint256[] memory depositAmounts,
+        bool isDeposit
     ) private view {
         // getGrossLiquidityAndBalances needs to simulate the balances after transfer/intake
         // this is the only time its called after an intake
         // which means that this is the only place we need to simulate _nGLiq and _nBals after intake
-        // (int128 _nGLiq, int128[] memory _nBals) = getGrossLiquidityAndBalances(curve);getVirtualGrossLiquidityAndBalancesAfterIntake
-        (int128 _nGLiq, int128[] memory _nBals) = getVirtualGrossLiquidityAndBalancesAfterIntake(curve, depositAmounts);
+        // (int128 _nGLiq, int128[] memory _nBals) = getGrossLiquidityAndBalances(curve);
+
+        int128 _nGLiq;
+        int128[] memory _nBals;
+
+        if (isDeposit) {
+            (_nGLiq, _nBals) = getVirtualGrossLiquidityAndBalancesAfterIntake(curve, depositAmounts);
+        } else {
+            (_nGLiq, _nBals) = getVirtualGrossLiquidityAndBalancesAfterOuttake(curve, depositAmounts);
+        }
 
         // 'simulate' the deposit/withdrawal of token balances
         // for (uint256 i = 0; i < _nBals.length; i++) {
