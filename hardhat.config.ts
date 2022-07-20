@@ -15,7 +15,7 @@ import initializeSwapTasks from './scripts/swaps/'
 import initializeRelayerTasks from './scripts/relayers/'
 
 const INFURA_PROJECT_ID = process.env.INFURA_PROJECT_ID || ''
-const MNEMONIC_SEED = process.env.MNEMONIC_SEED || ''
+const MNEMONIC = process.env.MNEMONIC || ''
 const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || ''
 const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY || ''
 const TENDERLY_USERNAME = process.env.TENDERLY_USERNAME || ''
@@ -103,21 +103,21 @@ export default {
     hardhat: {
       chainId: 1337,
       accounts: {
-        mnemonic: MNEMONIC_SEED,
+        mnemonic: MNEMONIC,
       },
       allowUnlimitedContractSize: true,
     },
     kovan: {
       url: `https://kovan.infura.io/v3/${INFURA_PROJECT_ID}`,
       accounts: {
-        mnemonic: MNEMONIC_SEED,
+        mnemonic: MNEMONIC,
       },
       blockGasLimit: 20000000,
     },
     rinkeby: {
       url: `https://rinkeby.infura.io/v3/${INFURA_PROJECT_ID}`,
       accounts: {
-        mnemonic: MNEMONIC_SEED,
+        mnemonic: MNEMONIC,
       },
       blockGasLimit: 20000000,
     },
@@ -125,7 +125,7 @@ export default {
       chainId: 137,
       url: `https://polygon-mainnet.infura.io/v3/${INFURA_PROJECT_ID}`,
       accounts: {
-        mnemonic: MNEMONIC_SEED,
+        mnemonic: MNEMONIC,
       },
       gasPrice: 8000000000,
     },
@@ -133,14 +133,14 @@ export default {
       chainId: 42161,
       url: `https://arbitrum-mainnet.infura.io/v3/${INFURA_PROJECT_ID}`,
       accounts: {
-        mnemonic: MNEMONIC_SEED,
+        mnemonic: MNEMONIC,
       },
     },
     localhost: {
       chainId: 1337,
       url: 'http://127.0.0.1:8545/',
       accounts: {
-        mnemonic: MNEMONIC_SEED,
+        mnemonic: MNEMONIC,
       },
     },
   },

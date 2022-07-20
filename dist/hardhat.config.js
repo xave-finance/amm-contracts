@@ -14,7 +14,7 @@ require("hardhat-tracer");
 //import '@tenderly/hardhat-tenderly'
 var pool_actions_1 = __importDefault(require("./scripts/pool-actions/"));
 var INFURA_PROJECT_ID = process.env.INFURA_PROJECT_ID || '';
-var MNEMONIC_SEED = process.env.MNEMONIC_SEED || '';
+var MNEMONIC = process.env.MNEMONIC || '';
 var ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY || '';
 var ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY || '';
 var TENDERLY_USERNAME = process.env.TENDERLY_USERNAME || '';
@@ -98,21 +98,21 @@ exports.default = {
         hardhat: {
             chainId: 1337,
             accounts: {
-                mnemonic: MNEMONIC_SEED,
+                mnemonic: MNEMONIC,
             },
             allowUnlimitedContractSize: true,
         },
         kovan: {
             url: "https://kovan.infura.io/v3/".concat(INFURA_PROJECT_ID),
             accounts: {
-                mnemonic: MNEMONIC_SEED,
+                mnemonic: MNEMONIC,
             },
             blockGasLimit: 20000000,
         },
         rinkeby: {
             url: "https://rinkeby.infura.io/v3/".concat(INFURA_PROJECT_ID),
             accounts: {
-                mnemonic: MNEMONIC_SEED,
+                mnemonic: MNEMONIC,
             },
             blockGasLimit: 20000000,
         },
@@ -120,7 +120,7 @@ exports.default = {
             chainId: 137,
             url: "https://polygon-mainnet.infura.io/v3/".concat(INFURA_PROJECT_ID),
             accounts: {
-                mnemonic: MNEMONIC_SEED,
+                mnemonic: MNEMONIC,
             },
             gasPrice: 8000000000,
         },

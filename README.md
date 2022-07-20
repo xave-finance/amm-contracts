@@ -42,7 +42,7 @@ Note: use `nvm use` to use the same node version with `.nvmrc`
 - Add the chain api key in the object `etherscan/apiKey` with identifier of each chain as the key. Please refer [here](https://hardhat.org/plugins/nomiclabs-hardhat-etherscan.html#multiple-api-keys-and-alternative-block-explorers) for the chain key.
 - Provide the following in your .env file;
   - INFURA_PROJECT_ID
-  - MNEMONIC_SEED
+  - MNEMONIC
   - ETHERSCAN_API_KEY
   - BSCSCAN_API_KEY
   - POLYSCAN_API_KEY
