@@ -43,12 +43,12 @@ library ProportionalLiquidity {
         // Needed to calculate liquidity invariant
         (int128 _oGLiqProp, int128[] memory _oBalsProp) = getGrossLiquidityAndBalances(curve);
 
-        console.log('Before intake oGLiq: ', ABDKMath64x64.toUInt(_oGLiq * 1e15));
-        console.log('Before intake oBals[0]: ', ABDKMath64x64.toUInt(_oBals[0] * 1e15));
-        console.log('Before intake oBals[1]: ', ABDKMath64x64.toUInt(_oBals[1] * 1e15));
-        console.log('Before intake oGLiqProp: ', ABDKMath64x64.toUInt(_oGLiqProp * 1e15));
-        console.log('Before intake oBalsProp[0]: ', ABDKMath64x64.toUInt(_oBalsProp[0] * 1e15));
-        console.log('Before intake oBalsProp[1]: ', ABDKMath64x64.toUInt(_oBalsProp[1] * 1e15));
+        // console.log('Before intake oGLiq: ', ABDKMath64x64.toUInt(_oGLiq * 1e15));
+        // console.log('Before intake oBals[0]: ', ABDKMath64x64.toUInt(_oBals[0] * 1e15));
+        // console.log('Before intake oBals[1]: ', ABDKMath64x64.toUInt(_oBals[1] * 1e15));
+        // console.log('Before intake oGLiqProp: ', ABDKMath64x64.toUInt(_oGLiqProp * 1e15));
+        // console.log('Before intake oBalsProp[0]: ', ABDKMath64x64.toUInt(_oBalsProp[0] * 1e15));
+        // console.log('Before intake oBalsProp[1]: ', ABDKMath64x64.toUInt(_oBalsProp[1] * 1e15));
 
         // No liquidity, oracle sets the ratio
         if (_oGLiq == 0) {
@@ -106,7 +106,15 @@ library ProportionalLiquidity {
             * within requireLiquidityInvariant, need to update new gross liquidity (_nGliq var) to reflect the new higher or lower pool liquidity
                 by adding _newShells to _nGLiq
          */
-        requireLiquidityInvariant(curve, _totalShells, _newShells, _oGLiqProp, _oBalsProp, depositData.intAmounts);
+        requireLiquidityInvariant(
+            curve,
+            _totalShells,
+            _newShells,
+            _oGLiqProp,
+            _oBalsProp,
+            depositData.uintAmounts,
+            true
+        );
 
         // assign return value to curves_ instead of the original mint(curve, msg.sender, curves_ = _newShells.mulu(1e18));
         curves_ = _newShells.mulu(1e18);
@@ -220,7 +228,15 @@ library ProportionalLiquidity {
             withdrawData.uintAmounts[i] = Assimilators.viewRawAmount(curve.assets[i].addr, amount);
         }
 
-        requireLiquidityInvariant(curve, _totalShells, __withdrawal.neg(), _oGLiq, _oBals, withdrawData.intAmounts);
+        requireLiquidityInvariant(
+            curve,
+            _totalShells,
+            __withdrawal.neg(),
+            _oGLiq,
+            _oBals,
+            withdrawData.uintAmounts,
+            false
+        );
 
         //   burn(curve, msg.sender, _withdrawal);
 
@@ -297,7 +313,7 @@ library ProportionalLiquidity {
             grossLiquidity_ += _bal;
         }
 
-        console.log('getGrossLiquidityAndBalancesDeposit: ', ABDKMath64x64.toUInt(grossLiquidity_.abs()));
+        // console.log('getGrossLiquidityAndBalancesDeposit: ', ABDKMath64x64.toUInt(grossLiquidity_.abs()));
 
         return (grossLiquidity_, balances_);
     }
@@ -316,7 +332,52 @@ library ProportionalLiquidity {
             balances_[i] = _bal;
             grossLiquidity_ += _bal;
         }
-        console.log('getGrossLiquidityAndBalances: ', ABDKMath64x64.toUInt(grossLiquidity_.abs()));
+        // console.log('getGrossLiquidityAndBalances: ', ABDKMath64x64.toUInt(grossLiquidity_.abs()));
+        return (grossLiquidity_, balances_);
+    }
+
+    function getVirtualGrossLiquidityAndBalancesAfterIntake(Storage.Curve storage curve, uint256[] memory intakeAmounts)
+        internal
+        view
+        returns (int128 grossLiquidity_, int128[] memory)
+    {
+        uint256 _length = curve.assets.length;
+
+        int128[] memory balances_ = new int128[](_length);
+
+        for (uint256 i = 0; i < _length; i++) {
+            int128 _bal = Assimilators.virtualViewNumeraireBalanceIntake(
+                curve.assets[i].addr,
+                address(curve.vault),
+                curve.poolId,
+                intakeAmounts[i]
+            );
+            balances_[i] = _bal;
+            grossLiquidity_ += _bal;
+        }
+        // console.log('getVirtualGrossLiquidityAndBalancesAfterIntake: ', ABDKMath64x64.toUInt(grossLiquidity_.abs()));
+        return (grossLiquidity_, balances_);
+    }
+
+    function getVirtualGrossLiquidityAndBalancesAfterOuttake(
+        Storage.Curve storage curve,
+        uint256[] memory outputAmounts
+    ) internal view returns (int128 grossLiquidity_, int128[] memory) {
+        uint256 _length = curve.assets.length;
+
+        int128[] memory balances_ = new int128[](_length);
+
+        for (uint256 i = 0; i < _length; i++) {
+            int128 _bal = Assimilators.virtualViewNumeraireBalanceOutput(
+                curve.assets[i].addr,
+                address(curve.vault),
+                curve.poolId,
+                outputAmounts[i]
+            );
+            balances_[i] = _bal;
+            grossLiquidity_ += _bal;
+        }
+        // console.log('getVirtualGrossLiquidityAndBalancesAfterOuttake: ', ABDKMath64x64.toUInt(grossLiquidity_.abs()));
         return (grossLiquidity_, balances_);
     }
 
@@ -326,19 +387,18 @@ library ProportionalLiquidity {
         int128 _newShells,
         int128 _oGLiq,
         int128[] memory _oBals,
-        int128[] memory intDepositAmounts
+        uint256[] memory depositAmounts,
+        bool isDeposit
     ) private view {
-        (int128 _nGLiq, int128[] memory _nBals) = getGrossLiquidityAndBalances(curve);
+        int128 _nGLiq;
+        int128[] memory _nBals;
 
-        // 'simulate' the deposit/withdrawal of token balances
-        for (uint256 i = 0; i < _nBals.length; i++) {
-            console.log('liqInvariant: before adding intDepositAmounts:', ABDKMath64x64.toUInt(_nBals[i] * 1e15));
-            _nBals[i] = _nBals[i].add(intDepositAmounts[i]);
-            console.log('liqInvariant: after adding intDepositAmounts:', ABDKMath64x64.toUInt(_nBals[i] * 1e15));
+        // replaced getGrossLiquidityAndBalances with these virtual functions to simulate the Vault balances after transfer/intake is expected in original code
+        if (isDeposit) {
+            (_nGLiq, _nBals) = getVirtualGrossLiquidityAndBalancesAfterIntake(curve, depositAmounts);
+        } else {
+            (_nGLiq, _nBals) = getVirtualGrossLiquidityAndBalancesAfterOuttake(curve, depositAmounts);
         }
-
-        // add to nGliq cause Vault does transfers after onJoin
-        _nGLiq = _nGLiq.add(_newShells);
 
         int128 _beta = curve.beta;
         int128 _delta = curve.delta;
@@ -352,12 +412,12 @@ library ProportionalLiquidity {
 
         console.log('_psi: ', ABDKMath64x64.toUInt(_psi));
 
-        console.log('LiqInvariant  oGLiq: ', ABDKMath64x64.toUInt(_oGLiq * 1e15));
-        console.log('LiqInvariant oBals[0]: ', ABDKMath64x64.toUInt(_oBals[0] * 1e15));
-        console.log('LiqInvariant oBals[1]: ', ABDKMath64x64.toUInt(_oBals[1] * 1e15));
-        console.log('LiqInvariant nGLiq: ', ABDKMath64x64.toUInt(_nGLiq));
-        console.log('LiqInvariant nBals[0]: ', ABDKMath64x64.toUInt(_nBals[0] * 1e15));
-        console.log('LiqInvariant nBals[1]: ', ABDKMath64x64.toUInt(_nBals[1] * 1e15));
+        // console.log('LiqInvariant  oGLiq: ', ABDKMath64x64.toUInt(_oGLiq * 1e15));
+        // console.log('LiqInvariant oBals[0]: ', ABDKMath64x64.toUInt(_oBals[0] * 1e15));
+        // console.log('LiqInvariant oBals[1]: ', ABDKMath64x64.toUInt(_oBals[1] * 1e15));
+        // console.log('LiqInvariant nGLiq: ', ABDKMath64x64.toUInt(_nGLiq));
+        // console.log('LiqInvariant nBals[0]: ', ABDKMath64x64.toUInt(_nBals[0] * 1e15));
+        // console.log('LiqInvariant nBals[1]: ', ABDKMath64x64.toUInt(_nBals[1] * 1e15));
 
         CurveMath.enforceLiquidityInvariant(_curves, _newShells, _oGLiq, _nGLiq, _omega, _psi);
     }

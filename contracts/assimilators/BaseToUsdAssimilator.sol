@@ -215,10 +215,41 @@ contract BaseToUsdAssimilator is IAssimilator {
         uint256 _rate = getRate();
 
         (uint256 baseTokenBal, ) = _getBalancesFromVault(vault, poolId, address(usdc));
-        // if isAfterIntake == True , add uint amount to the baseTokenBal. Simulate intakeNumeraire
-        // if (isAfterIntake) {
-        //     baseTokenBal += intakeAmount;
-        // }
+
+        if (baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
+
+        balance_ = ((baseTokenBal * _rate) / 1e8).divu(baseDecimals);
+    }
+
+    // views the numeraire value of the current balance of the reserve, in this case baseToken
+    // adds intakeAmount to baseTokenBal to simulate LP deposit
+    function virtualViewNumeraireBalanceIntake(
+        address vault,
+        bytes32 poolId,
+        uint256 intakeAmount
+    ) external view override returns (int128 balance_) {
+        uint256 _rate = getRate();
+
+        (uint256 baseTokenBal, ) = _getBalancesFromVault(vault, poolId, address(usdc));
+        baseTokenBal += intakeAmount;
+
+        if (baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
+
+        balance_ = ((baseTokenBal * _rate) / 1e8).divu(baseDecimals);
+    }
+
+    // views the numeraire value of the current balance of the reserve, in this case baseToken
+    // subtracts outputAmount to baseTokenBal to simulate LP deposit
+    function virtualViewNumeraireBalanceOutput(
+        address vault,
+        bytes32 poolId,
+        uint256 outputAmount
+    ) external view override returns (int128 balance_) {
+        uint256 _rate = getRate();
+
+        (uint256 baseTokenBal, ) = _getBalancesFromVault(vault, poolId, address(usdc));
+        baseTokenBal = baseTokenBal - outputAmount;
+
         if (baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
 
         balance_ = ((baseTokenBal * _rate) / 1e8).divu(baseDecimals);

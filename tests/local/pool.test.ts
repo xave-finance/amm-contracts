@@ -44,7 +44,7 @@ describe('FXPool', () => {
   const protocolPercentFee = BigNumber.from('10') // 10%
   const ONE_HUNDRED = BigNumber.from('100')
 
-  const loopCount = 3
+  const loopCount = 10
   const log = true // do console logging
   const usdcDecimals = mockToken[0].decimal
   const fxPHPDecimals = mockToken[3].decimal
@@ -85,7 +85,9 @@ describe('FXPool', () => {
 
     fxPool = await getFxPoolContract(fxPoolAddress, testEnv.proportionalLiquidity.address, testEnv.fxSwaps.address)
     poolId = await fxPool.getPoolId() // get balance poolId
-    await expect(fxPool.setCollectorAddress(adminAddress)).to.emit(fxPool, 'ChangeCollectorAddress')
+    await expect(fxPool.setCollectorAddress(adminAddress))
+      .to.emit(fxPool, 'ChangeCollectorAddress')
+      .withArgs(adminAddress)
 
     console.log('Admin address: ', adminAddress)
     console.log('FxPoolAddress: ', fxPoolAddress)
@@ -133,7 +135,7 @@ describe('FXPool', () => {
     await testEnv.fxPHP.approve(testEnv.vault.address, ethers.constants.MaxUint256)
     await testEnv.USDC.approve(testEnv.vault.address, ethers.constants.MaxUint256)
 
-    const baseAmountsIn = ['1000', '2000', '10000', '3333333']
+    const baseAmountsIn = ['1000', '2000', '10000', '3333333', '100000000']
 
     // Numeraire input
     for (var i = 0; i < baseAmountsIn.length; i++) {
@@ -415,7 +417,7 @@ describe('FXPool', () => {
     expect(beforeTradeUSDCPoolBalance, 'Unexpected USDC Vault Balance').to.be.gt(afterTradeUSDCPoolBalance)
   })
 
-  it('totalUnclaimedFeesInNumeraire must be minted during onJoin', async () => {
+  it.skip('totalUnclaimedFeesInNumeraire must be minted during onJoin', async () => {
     // expect that await fxPool.totalUnclaimedFeesInNumeraire() returns an expected value (console log the value at this point before we do anything)
     const previousFeeBalance = await fxPool.totalUnclaimedFeesInNumeraire()
     expect(previousFeeBalance).to.be.not.equals(0)
@@ -485,7 +487,7 @@ describe('FXPool', () => {
     ) // including LP tokens after deposit
   })
 
-  it('totalUnclaimedFeesInNumeraire must be minted during onExit', async () => {
+  it.skip('totalUnclaimedFeesInNumeraire must be minted during onExit', async () => {
     // expect that await fxPool.totalUnclaimedFeesInNumeraire() is 0
     const previousFeeBalance = await fxPool.totalUnclaimedFeesInNumeraire()
     expect(previousFeeBalance).is.equals(0)
