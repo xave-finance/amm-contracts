@@ -32,7 +32,7 @@ inquirer
     {
       type: 'input',
       name: 'fee',
-      message: 'Protocol fee (ETH units)',
+      message: 'Protocol fee',
     },
     {
       type: 'confirm',

@@ -18,9 +18,9 @@ declare const hre: any
 
 export default async (taskArgs: any) => {
   const ALPHA = ethers.utils.parseUnits('0.8')
-  const BETA = ethers.utils.parseUnits('0.48')
-  const MAX = ethers.utils.parseUnits('0.175')
-  const EPSILON = ethers.utils.parseUnits('0.0005')
+  const BETA = ethers.utils.parseUnits('0.5')
+  const MAX = ethers.utils.parseUnits('0.15')
+  const EPSILON = ethers.utils.parseUnits('0.0004')
   const LAMBDA = ethers.utils.parseUnits('0.3')
 
   const network = taskArgs.to
@@ -211,7 +211,7 @@ export default async (taskArgs: any) => {
     vaultAddress,
     sortedAssets,
   })
-  const poolId = await fxPoolFactory.newFXPool(name, symbol, ethers.utils.parseUnits(fee), vaultAddress, sortedAssets, {
+  const poolId = await fxPoolFactory.newFXPool(name, symbol, fee, vaultAddress, sortedAssets, {
     gasPrice,
   })
   const fxPoolAddress = await fxPoolFactory.getActiveFxPool(sortedAssets)
@@ -274,5 +274,5 @@ export default async (taskArgs: any) => {
    * Step# - verify FxPool contract
    */
   console.log(`> Verifying FxPool...`)
-  await verifyContract(hre, fxPoolAddress, [sortedAssets, vaultAddress, ethers.utils.parseUnits(fee), name, symbol])
+  await verifyContract(hre, fxPoolAddress, [sortedAssets, vaultAddress, fee, name, symbol])
 }
