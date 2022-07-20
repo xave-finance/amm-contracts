@@ -188,6 +188,22 @@ contract UsdcToUsdAssimilator is IAssimilator {
         balance_ = ((quoteBalance * _rate) / 1e8).divu(DECIMALS);
     }
 
+    // adds intakeAmount to baseTokenBal to simulate LP deposit
+    function virtualViewNumeraireBalance(
+        address vault,
+        bytes32 poolId,
+        uint256 intakeAmount
+    ) external view override returns (int128 balance_) {
+        uint256 _rate = getRate();
+
+        uint256 quoteBalance = _getBalancesFromVault(vault, poolId, address(usdc));
+        quoteBalance += intakeAmount;
+
+        if (quoteBalance <= 0) return ABDKMath64x64.fromUInt(0);
+
+        balance_ = ((quoteBalance * _rate) / 1e8).divu(DECIMALS);
+    }
+
     // views the numeraire value of the current balance of the reserve wrt to USD
     // since this is already the USD assimlator, the ratio is just 1
     function viewNumeraireBalanceLPRatio(

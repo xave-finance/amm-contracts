@@ -106,7 +106,7 @@ library ProportionalLiquidity {
             * within requireLiquidityInvariant, need to update new gross liquidity (_nGliq var) to reflect the new higher or lower pool liquidity
                 by adding _newShells to _nGLiq
          */
-        requireLiquidityInvariant(curve, _totalShells, _newShells, _oGLiqProp, _oBalsProp, depositData.intAmounts);
+        requireLiquidityInvariant(curve, _totalShells, _newShells, _oGLiqProp, _oBalsProp, depositData.uintAmounts);
 
         // assign return value to curves_ instead of the original mint(curve, msg.sender, curves_ = _newShells.mulu(1e18));
         curves_ = _newShells.mulu(1e18);
@@ -220,7 +220,7 @@ library ProportionalLiquidity {
             withdrawData.uintAmounts[i] = Assimilators.viewRawAmount(curve.assets[i].addr, amount);
         }
 
-        requireLiquidityInvariant(curve, _totalShells, __withdrawal.neg(), _oGLiq, _oBals, withdrawData.intAmounts);
+        requireLiquidityInvariant(curve, _totalShells, __withdrawal.neg(), _oGLiq, _oBals, withdrawData.uintAmounts);
 
         //   burn(curve, msg.sender, _withdrawal);
 
@@ -320,10 +320,11 @@ library ProportionalLiquidity {
         return (grossLiquidity_, balances_);
     }
 
-    function getVirtualGrossLiquidityAndBalancesAfterIntake(
-        Storage.Curve storage curve,
-        uint256[] storage intakeAmounts
-    ) internal view returns (int128 grossLiquidity_, int128[] memory) {
+    function getVirtualGrossLiquidityAndBalancesAfterIntake(Storage.Curve storage curve, uint256[] memory intakeAmounts)
+        internal
+        view
+        returns (int128 grossLiquidity_, int128[] memory)
+    {
         uint256 _length = curve.assets.length;
 
         int128[] memory balances_ = new int128[](_length);
