@@ -15,9 +15,9 @@ declare const ethers: any
 
 export default async (taskArgs: any) => {
   const ALPHA = ethers.utils.parseUnits('0.8')
-  const BETA = ethers.utils.parseUnits('0.48')
-  const MAX = ethers.utils.parseUnits('0.175')
-  const EPSILON = ethers.utils.parseUnits('0.0005')
+  const BETA = ethers.utils.parseUnits('0.5')
+  const MAX = ethers.utils.parseUnits('0.15')
+  const EPSILON = ethers.utils.parseUnits('0.0004')
   const LAMBDA = ethers.utils.parseUnits('0.3')
 
   const network = taskArgs.to
