@@ -85,7 +85,9 @@ describe('FXPool', () => {
 
     fxPool = await getFxPoolContract(fxPoolAddress, testEnv.proportionalLiquidity.address, testEnv.fxSwaps.address)
     poolId = await fxPool.getPoolId() // get balance poolId
-    await expect(fxPool.setCollectorAddress(adminAddress)).to.emit(fxPool, 'ChangeCollectorAddress')
+    await expect(fxPool.setCollectorAddress(adminAddress))
+      .to.emit(fxPool, 'ChangeCollectorAddress')
+      .withArgs(adminAddress)
 
     console.log('Admin address: ', adminAddress)
     console.log('FxPoolAddress: ', fxPoolAddress)
