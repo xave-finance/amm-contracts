@@ -55,8 +55,12 @@ library ProportionalLiquidity {
             for (uint256 i = 0; i < _length; i++) {
                 // Variable here to avoid stack-too-deep errors
                 int128 _d = __deposit.mul(curve.weights[i]);
-                depositData.intAmounts[i] = _d;
+                console.log('oGLiq=0 int amount (int): ');
+                console.logInt(_d);
+                console.log('oGLiq=0 int amount : ', ABDKMath64x64.toUInt(_d));
+                depositData.intAmounts[i] = _d.add(ONE_WEI);
                 depositData.uintAmounts[i] = Assimilators.viewRawAmount(curve.assets[i].addr, _d.add(ONE_WEI));
+                console.log('oGLiq=0  uint amount: ', depositData.uintAmounts[i]);
             }
         } else {
             // We already have an existing pool ratio
