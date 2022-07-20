@@ -320,25 +320,51 @@ library ProportionalLiquidity {
         return (grossLiquidity_, balances_);
     }
 
+    function getVirtualGrossLiquidityAndBalancesAfterIntake(
+        Storage.Curve storage curve,
+        uint256[] storage intakeAmounts
+    ) internal view returns (int128 grossLiquidity_, int128[] memory) {
+        uint256 _length = curve.assets.length;
+
+        int128[] memory balances_ = new int128[](_length);
+
+        for (uint256 i = 0; i < _length; i++) {
+            int128 _bal = Assimilators.virtualViewNumeraireBalance(
+                curve.assets[i].addr,
+                address(curve.vault),
+                curve.poolId,
+                intakeAmounts[i]
+            );
+            balances_[i] = _bal;
+            grossLiquidity_ += _bal;
+        }
+        console.log('getGrossLiquidityAndBalances: ', ABDKMath64x64.toUInt(grossLiquidity_.abs()));
+        return (grossLiquidity_, balances_);
+    }
+
     function requireLiquidityInvariant(
         Storage.Curve storage curve,
         int128 _curves,
         int128 _newShells,
         int128 _oGLiq,
         int128[] memory _oBals,
-        int128[] memory intDepositAmounts
+        uint256[] memory depositAmounts
     ) private view {
-        (int128 _nGLiq, int128[] memory _nBals) = getGrossLiquidityAndBalances(curve);
+        // getGrossLiquidityAndBalances needs to simulate the balances after transfer/intake
+        // this is the only time its called after an intake
+        // which means that this is the only place we need to simulate _nGLiq and _nBals after intake
+        // (int128 _nGLiq, int128[] memory _nBals) = getGrossLiquidityAndBalances(curve);getVirtualGrossLiquidityAndBalancesAfterIntake
+        (int128 _nGLiq, int128[] memory _nBals) = getVirtualGrossLiquidityAndBalancesAfterIntake(curve, depositAmounts);
 
         // 'simulate' the deposit/withdrawal of token balances
-        for (uint256 i = 0; i < _nBals.length; i++) {
-            console.log('liqInvariant: before adding intDepositAmounts:', ABDKMath64x64.toUInt(_nBals[i] * 1e15));
-            _nBals[i] = _nBals[i].add(intDepositAmounts[i]);
-            console.log('liqInvariant: after adding intDepositAmounts:', ABDKMath64x64.toUInt(_nBals[i] * 1e15));
-        }
+        // for (uint256 i = 0; i < _nBals.length; i++) {
+        //     console.log('liqInvariant: before adding intDepositAmounts:', ABDKMath64x64.toUInt(_nBals[i] * 1e15));
+        //     _nBals[i] = _nBals[i].add(intDepositAmounts[i]);
+        //     console.log('liqInvariant: after adding intDepositAmounts:', ABDKMath64x64.toUInt(_nBals[i] * 1e15));
+        // }
 
         // add to nGliq cause Vault does transfers after onJoin
-        _nGLiq = _nGLiq.add(_newShells);
+        // _nGLiq = _nGLiq.add(_newShells);
 
         int128 _beta = curve.beta;
         int128 _delta = curve.delta;

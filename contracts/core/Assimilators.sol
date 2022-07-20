@@ -91,6 +91,15 @@ library Assimilators {
         bal_ = IAssimilator(_assim).viewNumeraireBalance(vault, poolId);
     }
 
+    function virtualViewNumeraireBalance(
+        address _assim,
+        address vault,
+        bytes32 poolId,
+        uint256 intakeAmount
+    ) internal view returns (int128 bal_) {
+        bal_ = IAssimilator(_assim).virtualViewNumeraireBalance(vault, poolId, intakeAmount);
+    }
+
     function viewNumeraireBalanceLPRatio(
         uint256 _baseWeight,
         uint256 _quoteWeight,

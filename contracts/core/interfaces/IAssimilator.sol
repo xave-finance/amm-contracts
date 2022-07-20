@@ -60,6 +60,12 @@ interface IAssimilator {
 
     function viewNumeraireBalance(address, bytes32) external view returns (int128);
 
+    function virtualViewNumeraireBalance(
+        address,
+        bytes32,
+        uint256
+    ) external view returns (int128);
+
     function viewNumeraireAmountAndBalance(
         uint256,
         address,
