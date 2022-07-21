@@ -261,7 +261,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         SwapRequest memory swapRequest,
         uint256,
         uint256
-    ) external override whenNotPaused returns (uint256) {
+    ) external override whenNotPaused isVault returns (uint256) {
         require(msg.sender == address(curve.vault), 'Non Vault caller');
 
         bool isTargetSwap = swapRequest.kind == IVault.SwapKind.GIVEN_OUT;
