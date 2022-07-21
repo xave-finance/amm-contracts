@@ -59,8 +59,8 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     event FeesAccrued(uint256 feesCollected);
     event ProtocolFeeShareUpdated(address updater, uint256 newProtocolPercentage);
 
-    modifier deadline(uint256 _deadline) {
-        require(block.timestamp < _deadline, 'FXPool/tx-deadline-passed');
+    modifier isVault() {
+        require(msg.sender == address(curve.vault), 'FXPool/caller-not-vault');
         _;
     }
 
@@ -327,7 +327,13 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256,
         uint256,
         bytes calldata userData
-    ) external override whenNotPaused returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts) {
+    )
+        external
+        override
+        whenNotPaused
+        isVault
+        returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts)
+    {
         (uint256 totalDepositNumeraire, address[] memory assetAddresses) = abi.decode(userData, (uint256, address[]));
 
         _enforceCap(totalDepositNumeraire);
@@ -375,7 +381,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256,
         uint256,
         bytes calldata userData
-    ) external override returns (uint256[] memory amountsOut, uint256[] memory dueProtocolFeeAmounts) {
+    ) external override isVault returns (uint256[] memory amountsOut, uint256[] memory dueProtocolFeeAmounts) {
         (uint256 tokensToBurn, address[] memory assetAddresses) = abi.decode(userData, (uint256, address[]));
 
         uint256[] memory amountToWithdraw = emergency

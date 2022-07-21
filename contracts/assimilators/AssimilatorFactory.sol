@@ -26,7 +26,7 @@ contract AssimilatorFactory is Ownable {
     mapping(bytes32 => address) public assimilators;
     IOracle public immutable usdcOracle;
     IERC20 public immutable usdc;
-    UsdcToUsdAssimilator public usdcAssimilator;
+    UsdcToUsdAssimilator public immutable usdcAssimilator;
 
     constructor(IOracle _usdcOracle, IERC20 _usdc) {
         usdcOracle = _usdcOracle;

@@ -33,6 +33,8 @@ describe('FXPool', () => {
   const TEST_DEPOSIT_PAUSEABLE = '1000'
   const TEST_DEPOSIT_FEES = '9932' // random
   const TEST_WITHDRAW_FEES = '212' // random
+  const TEST_DEPOSIT_FAIL = '88888' // random
+  const TEST_WITHDRAW_FAIL = '88888' // random
   const ALPHA = parseUnits('0.8')
   const BETA = parseUnits('0.5')
   const MAX = parseUnits('0.15')
@@ -667,10 +669,10 @@ describe('FXPool', () => {
   })
 
   it('reverts when  deposit numeraire + current liquidity value is greater than cap limit given numeraire input', async () => {
-    const numeraireAmoutnsIn = [CAP_DEPOSIT_FAIL_USDC]
+    const numeraireAmountsIn = [CAP_DEPOSIT_FAIL_USDC]
 
-    for (var i = 0; i < numeraireAmoutnsIn.length; i++) {
-      const numeraireAmount = numeraireAmoutnsIn[i]
+    for (var i = 0; i < numeraireAmountsIn.length; i++) {
+      const numeraireAmount = numeraireAmountsIn[i]
 
       const payload = ethers.utils.defaultAbiCoder.encode(
         ['uint256', 'address[]'],
@@ -689,6 +691,48 @@ describe('FXPool', () => {
         CONTRACT_REVERT.CapLimit
       )
     }
+  })
+
+  it('reverts when onJoin is not called by the vault', async () => {
+    const numeraireAmount = TEST_DEPOSIT_FAIL
+
+    const payload = ethers.utils.defaultAbiCoder.encode(
+      ['uint256', 'address[]'],
+      [parseEther(numeraireAmount), sortedAddresses]
+    )
+
+    await expect(
+      fxPool.onJoinPool(
+        poolId,
+        adminAddress,
+        adminAddress,
+        [parseUnits(TEST_DEPOSIT_FEES), parseUnits(TEST_DEPOSIT_FEES)],
+        await ethers.provider.getBlockNumber(),
+        parseUnits(TEST_DEPOSIT_FEES),
+        payload
+      )
+    ).to.be.revertedWith(CONTRACT_REVERT.NotVault)
+  })
+
+  it('reverts when onExit is not called by the vault', async () => {
+    const numeraireAmount = TEST_WITHDRAW_FAIL
+
+    const payload = ethers.utils.defaultAbiCoder.encode(
+      ['uint256', 'address[]'],
+      [parseEther(numeraireAmount), sortedAddresses]
+    )
+
+    await expect(
+      fxPool.onExitPool(
+        poolId,
+        adminAddress,
+        adminAddress,
+        [parseUnits(TEST_DEPOSIT_FEES), parseUnits(TEST_DEPOSIT_FEES)],
+        await ethers.provider.getBlockNumber(),
+        parseUnits(TEST_DEPOSIT_FEES),
+        payload
+      )
+    ).to.be.revertedWith(CONTRACT_REVERT.NotVault)
   })
 
   it('creates new pools and use the last pool in the array as the active fxpool ', async () => {
