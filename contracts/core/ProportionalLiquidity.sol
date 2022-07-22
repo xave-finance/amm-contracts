@@ -10,7 +10,6 @@ import './lib/UnsafeMath64x64.sol';
 import './lib/ABDKMath64x64.sol';
 
 import './CurveMath.sol';
-import 'hardhat/console.sol';
 
 library ProportionalLiquidity {
     using ABDKMath64x64 for uint256;
@@ -43,24 +42,13 @@ library ProportionalLiquidity {
         // Needed to calculate liquidity invariant
         (int128 _oGLiqProp, int128[] memory _oBalsProp) = getGrossLiquidityAndBalances(curve);
 
-        // console.log('Before intake oGLiq: ', ABDKMath64x64.toUInt(_oGLiq * 1e15));
-        // console.log('Before intake oBals[0]: ', ABDKMath64x64.toUInt(_oBals[0] * 1e15));
-        // console.log('Before intake oBals[1]: ', ABDKMath64x64.toUInt(_oBals[1] * 1e15));
-        // console.log('Before intake oGLiqProp: ', ABDKMath64x64.toUInt(_oGLiqProp * 1e15));
-        // console.log('Before intake oBalsProp[0]: ', ABDKMath64x64.toUInt(_oBalsProp[0] * 1e15));
-        // console.log('Before intake oBalsProp[1]: ', ABDKMath64x64.toUInt(_oBalsProp[1] * 1e15));
-
         // No liquidity, oracle sets the ratio
         if (_oGLiq == 0) {
             for (uint256 i = 0; i < _length; i++) {
                 // Variable here to avoid stack-too-deep errors
                 int128 _d = __deposit.mul(curve.weights[i]);
-                console.log('oGLiq=0 int amount (int): ');
-                console.logInt(_d);
-                console.log('oGLiq=0 int amount : ', ABDKMath64x64.toUInt(_d));
                 depositData.intAmounts[i] = _d.add(ONE_WEI);
                 depositData.uintAmounts[i] = Assimilators.viewRawAmount(curve.assets[i].addr, _d.add(ONE_WEI));
-                console.log('oGLiq=0  uint amount: ', depositData.uintAmounts[i]);
             }
         } else {
             // We already have an existing pool ratio
@@ -89,7 +77,6 @@ library ProportionalLiquidity {
         }
 
         int128 _totalShells = curve.totalSupply.divu(1e18);
-        console.log('Total shells: ', ABDKMath64x64.toUInt(_totalShells));
 
         int128 _newShells = __deposit;
 
@@ -97,8 +84,6 @@ library ProportionalLiquidity {
             _newShells = __deposit.div(_oGLiq);
             _newShells = _newShells.mul(_totalShells);
         }
-
-        console.log('New shells: ', ABDKMath64x64.toUInt(_newShells));
 
         /*
          * Problem: to validate deposit via invariant check, 
@@ -247,12 +232,11 @@ library ProportionalLiquidity {
         return withdrawData.uintAmounts;
     }
 
-    function viewProportionalWithdraw(
-        Storage.Curve storage curve,
-        uint256 _withdrawal,
-        address vault,
-        bytes32 poolId
-    ) external view returns (uint256[] memory) {
+    function viewProportionalWithdraw(Storage.Curve storage curve, uint256 _withdrawal)
+        external
+        view
+        returns (uint256[] memory)
+    {
         uint256 _length = curve.assets.length;
 
         (, int128[] memory _oBals) = getGrossLiquidityAndBalances(curve);
@@ -317,8 +301,6 @@ library ProportionalLiquidity {
             grossLiquidity_ += _bal;
         }
 
-        // console.log('getGrossLiquidityAndBalancesDeposit: ', ABDKMath64x64.toUInt(grossLiquidity_.abs()));
-
         return (grossLiquidity_, balances_);
     }
 
@@ -336,7 +318,7 @@ library ProportionalLiquidity {
             balances_[i] = _bal;
             grossLiquidity_ += _bal;
         }
-        // console.log('getGrossLiquidityAndBalances: ', ABDKMath64x64.toUInt(grossLiquidity_.abs()));
+
         return (grossLiquidity_, balances_);
     }
 
@@ -359,7 +341,7 @@ library ProportionalLiquidity {
             balances_[i] = _bal;
             grossLiquidity_ += _bal;
         }
-        // console.log('getVirtualGrossLiquidityAndBalancesAfterIntake: ', ABDKMath64x64.toUInt(grossLiquidity_.abs()));
+
         return (grossLiquidity_, balances_);
     }
 
@@ -381,7 +363,7 @@ library ProportionalLiquidity {
             balances_[i] = _bal;
             grossLiquidity_ += _bal;
         }
-        // console.log('getVirtualGrossLiquidityAndBalancesAfterOuttake: ', ABDKMath64x64.toUInt(grossLiquidity_.abs()));
+
         return (grossLiquidity_, balances_);
     }
 
@@ -410,18 +392,7 @@ library ProportionalLiquidity {
 
         int128 _omega = CurveMath.calculateFee(_oGLiq, _oBals, _beta, _delta, _weights);
 
-        console.log('_omega: ', ABDKMath64x64.toUInt(_omega));
-
         int128 _psi = CurveMath.calculateFee(_nGLiq, _nBals, _beta, _delta, _weights);
-
-        console.log('_psi: ', ABDKMath64x64.toUInt(_psi));
-
-        // console.log('LiqInvariant  oGLiq: ', ABDKMath64x64.toUInt(_oGLiq * 1e15));
-        // console.log('LiqInvariant oBals[0]: ', ABDKMath64x64.toUInt(_oBals[0] * 1e15));
-        // console.log('LiqInvariant oBals[1]: ', ABDKMath64x64.toUInt(_oBals[1] * 1e15));
-        // console.log('LiqInvariant nGLiq: ', ABDKMath64x64.toUInt(_nGLiq));
-        // console.log('LiqInvariant nBals[0]: ', ABDKMath64x64.toUInt(_nBals[0] * 1e15));
-        // console.log('LiqInvariant nBals[1]: ', ABDKMath64x64.toUInt(_nBals[1] * 1e15));
 
         CurveMath.enforceLiquidityInvariant(_curves, _newShells, _oGLiq, _nGLiq, _omega, _psi);
     }

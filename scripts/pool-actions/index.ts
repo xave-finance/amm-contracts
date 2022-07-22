@@ -36,8 +36,6 @@ export default () => {
     .addParam('basetoken', 'Base Token of Pool')
     .addParam('quotetoken', 'Quote token of Pool')
     .addParam('numeraireamount', 'Numeraire amount to deposit')
-    // .addParam('baseamount', 'Amount to add on base token side')
-    // .addParam('quoteamount', 'Amount to add on quote token side')
     .addParam('frominternalbalance', 'Add liquidity from vault internal balance')
     .setAction(AddLiquidity)
 

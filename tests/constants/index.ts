@@ -38,4 +38,5 @@ export enum CONTRACT_REVERT {
   CapLimit = 'FXPool/amount-beyond-set-cap',
   CapLessThanLiquidity = 'FXPool/cap-is-not-greater-than-total-liquidity',
   Paused = 'Pausable: paused',
+  NotVault = 'FXPool/caller-not-vault',
 }

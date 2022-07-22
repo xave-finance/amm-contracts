@@ -16,8 +16,6 @@ import {ReentrancyGuard} from '@openzeppelin/contracts/utils/ReentrancyGuard.sol
 import './core/lib/OZSafeMath.sol';
 import './core/lib/ABDKMathQuad.sol';
 
-import 'hardhat/console.sol';
-
 contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, ReentrancyGuard, Pausable {
     using ABDKMath64x64 for int128;
     using ABDKMathQuad for int128;
@@ -61,8 +59,8 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
     event FeesAccrued(uint256 feesCollected);
     event ProtocolFeeShareUpdated(address updater, uint256 newProtocolPercentage);
 
-    modifier deadline(uint256 _deadline) {
-        require(block.timestamp < _deadline, 'FXPool/tx-deadline-passed');
+    modifier isVault() {
+        require(msg.sender == address(curve.vault), 'FXPool/caller-not-vault');
         _;
     }
 
@@ -256,14 +254,14 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
     /// @dev Hook called by the Vault on swaps to quote prices and execute trade
     /// @param swapRequest The request which contains the details of the swap
-    /// @param currentBalanceTokenIn The input token balance scaled to the base token decimals that the assimilators expect
-    /// @param currentBalanceTokenOut The output token balance scaled to the quote token decimals (6 for USDC) that the assimilators expect
+    /// currentBalanceTokenIn The input token balance scaled to the base token decimals that the assimilators expect
+    /// currentBalanceTokenOut The output token balance scaled to the quote token decimals (6 for USDC) that the assimilators expect
     /// @return the amount of the output or input token amount of for swap
     function onSwap(
         SwapRequest memory swapRequest,
-        uint256 currentBalanceTokenIn,
-        uint256 currentBalanceTokenOut
-    ) external override whenNotPaused returns (uint256) {
+        uint256,
+        uint256
+    ) external override whenNotPaused isVault returns (uint256) {
         require(msg.sender == address(curve.vault), 'Non Vault caller');
 
         bool isTargetSwap = swapRequest.kind == IVault.SwapKind.GIVEN_OUT;
@@ -325,11 +323,17 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         bytes32 poolId,
         address, // sender
         address recipient,
-        uint256[] memory currentBalances, // @todo for vault transfers
+        uint256[] memory, // @todo for vault transfers
         uint256,
         uint256,
         bytes calldata userData
-    ) external override whenNotPaused returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts) {
+    )
+        external
+        override
+        whenNotPaused
+        isVault
+        returns (uint256[] memory amountsIn, uint256[] memory dueProtocolFeeAmounts)
+    {
         (uint256 totalDepositNumeraire, address[] memory assetAddresses) = abi.decode(userData, (uint256, address[]));
 
         _enforceCap(totalDepositNumeraire);
@@ -373,11 +377,11 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         bytes32 poolId,
         address sender,
         address,
-        uint256[] memory currentBalances, // @todo for vault transfers
+        uint256[] memory, // @todo for vault transfers
         uint256,
         uint256,
         bytes calldata userData
-    ) external override returns (uint256[] memory amountsOut, uint256[] memory dueProtocolFeeAmounts) {
+    ) external override isVault returns (uint256[] memory amountsOut, uint256[] memory dueProtocolFeeAmounts) {
         (uint256 tokensToBurn, address[] memory assetAddresses) = abi.decode(userData, (uint256, address[]));
 
         uint256[] memory amountToWithdraw = emergency
@@ -473,7 +477,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
 
     /// @notice view tokens to be received given LP tokens to burn
     function viewWithdraw(uint256 _curvesToBurn) external view returns (uint256[] memory) {
-        return ProportionalLiquidity.viewProportionalWithdraw(curve, _curvesToBurn, address(curve.vault), curve.poolId);
+        return ProportionalLiquidity.viewProportionalWithdraw(curve, _curvesToBurn);
     }
 
     // INTERNAL LOGIC FUNCTIONS
@@ -502,7 +506,7 @@ contract FXPool is IMinimalSwapInfoPool, BalancerPoolToken, Ownable, Storage, Re
         uint256 feesToAdd = ABDKMath64x64.toUInt(fees * 1e18);
 
         // fees to
-        feesToAdd = feesToAdd.div(1e2).mul(protocolPercentFee);
+        feesToAdd = feesToAdd.mul(protocolPercentFee).div(1e2);
         totalUnclaimedFeesInNumeraire += feesToAdd;
 
         emit FeesAccrued(feesToAdd);
