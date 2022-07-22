@@ -1,6 +1,5 @@
 const inquirer = require('inquirer')
 const childProcess = require('child_process')
-const haloContractAddresses = require('@halodao/xave-contract-addresses')
 
 const runNpmCommand = (command: string) => childProcess.execSync(command, { stdio: [0, 1, 2] })
 
@@ -21,15 +20,37 @@ inquirer
       choices: baseTokens,
     },
     {
+      type: 'input',
+      name: 'name',
+      message: 'LP token name',
+    },
+    {
+      type: 'input',
+      name: 'symbol',
+      message: 'LP token symbol',
+    },
+    {
+      type: 'input',
+      name: 'fee',
+      message: 'Protocol fee',
+    },
+    {
       type: 'confirm',
       name: 'fresh',
       message: 'Fresh deploy?',
     },
   ])
   .then((answers: any) => {
-    const { network, baseToken, fresh } = answers
+    const { network, baseToken, name, symbol, fee, fresh } = answers
 
     return runNpmCommand(
-      `npx hardhat deploy-fx-pool --to ${network} --basetoken ${baseToken} --fresh ${fresh} --network ${network}`
+      `npx hardhat deploy-fx-pool ` +
+        `--to ${network} ` +
+        `--basetoken ${baseToken} ` +
+        `--name ${name} ` +
+        `--symbol ${symbol} ` +
+        `--fee ${fee} ` +
+        `--fresh ${fresh} ` +
+        `--network ${network}`
     )
   })

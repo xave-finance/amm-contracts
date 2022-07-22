@@ -23,6 +23,9 @@ export default () => {
   task('deploy-fx-pool', 'Deploy an FX-accurate pool')
     .addParam('to', 'Network to deploy Pool')
     .addParam('basetoken', 'Base token for the pool')
+    .addParam('name', 'LP token name')
+    .addParam('symbol', 'LP token symbol')
+    .addParam('fee', 'Protocol fee (ETH units)')
     .addOptionalParam('fresh', 'Deploy a new AssimilatorFactory?')
     .setAction(DeployFxPool)
 
