@@ -590,7 +590,7 @@ describe('FXPool', () => {
     await expect(fxPool.setCollectorAddress(owner2Address)).to.not.be.reverted
   })
 
-  it('can still deposit of collectorAddress is zero', async () => {
+  it('can still deposit if collectorAddress is zero', async () => {
     await expect(fxPool.setCollectorAddress(ethers.constants.AddressZero)).to.not.be.reverted
 
     expect(await fxPool.collectorAddress()).to.be.equals(ethers.constants.AddressZero)
