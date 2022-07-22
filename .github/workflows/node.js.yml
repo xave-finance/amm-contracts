@@ -1,14 +1,19 @@
-name: Build
+name: Test
 
 on:
   push:
-    branches: [master, develop]
+    branches:
+      - master
+      - develop
   pull_request:
-    branches: [master, develop]
+    branches:
+      - master
+      - develop
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+    environment: CI
 
     strategy:
       matrix:
@@ -29,4 +34,4 @@ jobs:
         env:
           INFURA_PROJECT_ID: ${{ secrets.INFURA_PROJECT_ID }}
           ALCHEMY_PROJECT_ID: ${{ secrets.ALCHEMY_PROJECT_ID }}
-          MNEMONIC: ${{ secrets.MNEMONIC }}
+          MNEMONIC_SEED: ${{ secrets.MNEMONIC_SEED }}

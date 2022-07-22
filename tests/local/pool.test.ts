@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import { ethers } from 'hardhat'
-import { BigNumber, Signer } from 'ethers'
+import { BigNumber, BigNumberish, Signer } from 'ethers'
 import { setupEnvironment, TestEnv } from '../common/setupEnvironment'
 import { parseEther, parseUnits } from '@ethersproject/units'
 import { CONTRACT_REVERT } from '../constants'
@@ -10,7 +10,7 @@ import * as swaps from '../common/helpers/swap'
 import { FXPool } from '../../typechain/FXPool'
 import { fxPHPUSDCFxPool } from '../constants/mockPoolList'
 import { getFxPoolContract } from '../common/contractGetters'
-import { formatEther } from 'ethers/lib/utils'
+import { Bytes, BytesLike, formatEther } from 'ethers/lib/utils'
 
 describe('FXPool', () => {
   let testEnv: TestEnv
@@ -33,6 +33,9 @@ describe('FXPool', () => {
   const TEST_DEPOSIT_PAUSEABLE = '1000'
   const TEST_DEPOSIT_FEES = '9932' // random
   const TEST_WITHDRAW_FEES = '212' // random
+  const TEST_DEPOSIT_FAIL = '88888' // random
+  const TEST_WITHDRAW_FAIL = '88888' // random
+  const TEST_SWAP_FAIL = '88888' // random
   const ALPHA = parseUnits('0.8')
   const BETA = parseUnits('0.5')
   const MAX = parseUnits('0.15')
@@ -44,7 +47,7 @@ describe('FXPool', () => {
   const protocolPercentFee = BigNumber.from('10') // 10%
   const ONE_HUNDRED = BigNumber.from('100')
 
-  const loopCount = 3
+  const loopCount = 10
   const log = true // do console logging
   const usdcDecimals = mockToken[0].decimal
   const fxPHPDecimals = mockToken[3].decimal
@@ -85,7 +88,9 @@ describe('FXPool', () => {
 
     fxPool = await getFxPoolContract(fxPoolAddress, testEnv.proportionalLiquidity.address, testEnv.fxSwaps.address)
     poolId = await fxPool.getPoolId() // get balance poolId
-    await expect(fxPool.setCollectorAddress(adminAddress)).to.emit(fxPool, 'ChangeCollectorAddress')
+    await expect(fxPool.setCollectorAddress(adminAddress))
+      .to.emit(fxPool, 'ChangeCollectorAddress')
+      .withArgs(adminAddress)
 
     console.log('Admin address: ', adminAddress)
     console.log('FxPoolAddress: ', fxPoolAddress)
@@ -133,7 +138,7 @@ describe('FXPool', () => {
     await testEnv.fxPHP.approve(testEnv.vault.address, ethers.constants.MaxUint256)
     await testEnv.USDC.approve(testEnv.vault.address, ethers.constants.MaxUint256)
 
-    const baseAmountsIn = ['1000', '2000', '10000', '3333333']
+    const baseAmountsIn = ['1000', '2000', '10000', '3333333', '100000000']
 
     // Numeraire input
     for (var i = 0; i < baseAmountsIn.length; i++) {
@@ -418,6 +423,7 @@ describe('FXPool', () => {
   it('totalUnclaimedFeesInNumeraire must be minted during onJoin', async () => {
     // expect that await fxPool.totalUnclaimedFeesInNumeraire() returns an expected value (console log the value at this point before we do anything)
     const previousFeeBalance = await fxPool.totalUnclaimedFeesInNumeraire()
+    console.log(previousFeeBalance)
     expect(previousFeeBalance).to.be.not.equals(0)
     console.log(
       'Total Fees accrued from totalUnclaimedFeesInNumeraire must be minted during onJoin: ',
@@ -575,13 +581,56 @@ describe('FXPool', () => {
     )
   })
 
-  it('cannot set new collectorAddress to zero if owner', async () => {
+  it('can set new collectorAddress to zero if owner', async () => {
     await expect(fxPool.setCollectorAddress(ethers.constants.AddressZero)).to.not.be.reverted
   })
 
-  it('cannot set new collectorAddress to a new collector address if owner', async () => {
+  it('can set new collectorAddress to a new collector address if owner', async () => {
     const owner2Address = await owner2.getAddress()
     await expect(fxPool.setCollectorAddress(owner2Address)).to.not.be.reverted
+  })
+
+  it('can still deposit if collectorAddress is zero', async () => {
+    await expect(fxPool.setCollectorAddress(ethers.constants.AddressZero)).to.not.be.reverted
+
+    expect(await fxPool.collectorAddress()).to.be.equals(ethers.constants.AddressZero)
+
+    const payload = ethers.utils.defaultAbiCoder.encode(
+      ['uint256', 'address[]'],
+      [parseEther(TEST_DEPOSIT_FEES), sortedAddresses]
+    )
+
+    const maxAmountsIn = [ethers.constants.MaxUint256, ethers.constants.MaxUint256]
+
+    const joinPoolRequest = {
+      assets: sortedAddresses,
+      maxAmountsIn,
+      userData: payload,
+      fromInternalBalance: false,
+    }
+
+    await expect(testEnv.vault.joinPool(poolId, adminAddress, adminAddress, joinPoolRequest)).to.not.be.reverted
+  })
+
+  it('can still withdraw if collectorAddress is zero', async () => {
+    await expect(fxPool.setCollectorAddress(ethers.constants.AddressZero)).to.not.be.reverted
+
+    expect(await fxPool.collectorAddress()).to.be.equals(ethers.constants.AddressZero)
+
+    const hlpTokensToBurninWei = parseEther(TEST_WITHDRAW_FEES)
+
+    const payload = ethers.utils.defaultAbiCoder.encode(
+      ['uint256', 'address[]'],
+      [hlpTokensToBurninWei, sortedAddresses]
+    )
+    const exitPoolRequest = {
+      assets: sortedAddresses,
+      minAmountsOut: [0, 0], // check token out
+      userData: payload,
+      toInternalBalance: false,
+    }
+
+    await expect(testEnv.vault.exitPool(poolId, adminAddress, adminAddress, exitPoolRequest)).to.be.not.reverted
   })
 
   it('can trigger emergency alarm', async () => {
@@ -621,10 +670,10 @@ describe('FXPool', () => {
   })
 
   it('reverts when  deposit numeraire + current liquidity value is greater than cap limit given numeraire input', async () => {
-    const numeraireAmoutnsIn = [CAP_DEPOSIT_FAIL_USDC]
+    const numeraireAmountsIn = [CAP_DEPOSIT_FAIL_USDC]
 
-    for (var i = 0; i < numeraireAmoutnsIn.length; i++) {
-      const numeraireAmount = numeraireAmoutnsIn[i]
+    for (var i = 0; i < numeraireAmountsIn.length; i++) {
+      const numeraireAmount = numeraireAmountsIn[i]
 
       const payload = ethers.utils.defaultAbiCoder.encode(
         ['uint256', 'address[]'],
@@ -645,6 +694,67 @@ describe('FXPool', () => {
     }
   })
 
+  it('reverts when onJoin is not called by the vault', async () => {
+    const numeraireAmount = TEST_DEPOSIT_FAIL
+
+    const payload = ethers.utils.defaultAbiCoder.encode(
+      ['uint256', 'address[]'],
+      [parseEther(numeraireAmount), sortedAddresses]
+    )
+
+    await expect(
+      fxPool.onJoinPool(
+        poolId,
+        adminAddress,
+        adminAddress,
+        [parseUnits(TEST_DEPOSIT_FEES), parseUnits(TEST_DEPOSIT_FEES)],
+        await ethers.provider.getBlockNumber(),
+        parseUnits(TEST_DEPOSIT_FEES),
+        payload
+      )
+    ).to.be.revertedWith(CONTRACT_REVERT.NotVault)
+  })
+
+  it('reverts when onExit is not called by the vault', async () => {
+    const numeraireAmount = TEST_WITHDRAW_FAIL
+
+    const payload = ethers.utils.defaultAbiCoder.encode(
+      ['uint256', 'address[]'],
+      [parseEther(numeraireAmount), sortedAddresses]
+    )
+
+    await expect(
+      fxPool.onExitPool(
+        poolId,
+        adminAddress,
+        adminAddress,
+        [parseUnits(TEST_DEPOSIT_FEES), parseUnits(TEST_DEPOSIT_FEES)],
+        await ethers.provider.getBlockNumber(),
+        parseUnits(TEST_DEPOSIT_FEES),
+        payload
+      )
+    ).to.be.revertedWith(CONTRACT_REVERT.NotVault)
+  })
+
+  it('reverts when onSwap is not called by the vault', async () => {
+    const SWAP_KIND = 0
+
+    const swapRequest = {
+      kind: BigNumber.from(SWAP_KIND),
+      tokenIn: testEnv.USDC.address,
+      tokenOut: testEnv.fxPHP.address,
+      amount: parseUnits(TEST_SWAP_FAIL, 6), // usdc
+      poolId: poolId as BytesLike,
+      lastChangeBlock: await ethers.provider.getBlockNumber(),
+      from: adminAddress,
+      to: adminAddress,
+      userData: '0x' as BytesLike,
+    }
+
+    await expect(fxPool.onSwap(swapRequest, parseUnits(TEST_SWAP_FAIL), parseUnits(TEST_SWAP_FAIL))).to.be.revertedWith(
+      CONTRACT_REVERT.NotVault
+    )
+  })
   it('creates new pools and use the last pool in the array as the active fxpool ', async () => {
     // new pool #1 is the previously created pool
 

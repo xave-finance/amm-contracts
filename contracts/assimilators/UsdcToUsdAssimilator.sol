@@ -42,102 +42,6 @@ contract UsdcToUsdAssimilator is IAssimilator {
         return uint256(oracle.latestAnswer());
     }
 
-    function intakeRawAndGetBalance(uint256 _amount) external override returns (int128 amount_, int128 balance_) {
-        bool _success = usdc.transferFrom(msg.sender, address(this), _amount);
-        // needs transfer from vault
-
-        require(_success, 'UsdcAssimilator/USDC-transfer-from-failed');
-
-        uint256 _balance = usdc.balanceOf(address(this));
-        // needs vault balance check
-
-        uint256 _rate = getRate();
-
-        balance_ = ((_balance * _rate) / 1e8).divu(DECIMALS);
-
-        amount_ = ((_amount * _rate) / 1e8).divu(DECIMALS);
-    }
-
-    function intakeRaw(uint256 _amount) external override returns (int128 amount_) {
-        bool _success = usdc.transferFrom(msg.sender, address(this), _amount);
-        // needs transfer from vault
-
-        require(_success, 'UsdcAssimilator/USDC-transfer-from-failed');
-
-        uint256 _rate = getRate();
-
-        amount_ = ((_amount * _rate) / 1e8).divu(DECIMALS);
-    }
-
-    function intakeNumeraire(int128 _amount) external override returns (uint256 amount_) {
-        uint256 _rate = getRate();
-
-        amount_ = (_amount.mulu(DECIMALS) * 1e8) / _rate;
-
-        bool _success = usdc.transferFrom(msg.sender, address(this), amount_);
-        // needs transfer from vault
-
-        require(_success, 'UsdcAssimilator/USDC-transfer-from-failed');
-    }
-
-    function intakeNumeraireLPRatio(
-        uint256,
-        uint256,
-        address,
-        int128 _amount
-    ) external override returns (uint256 amount_) {
-        amount_ = _amount.mulu(DECIMALS);
-
-        bool _success = usdc.transferFrom(msg.sender, address(this), amount_);
-        // transfer from vault
-
-        require(_success, 'UsdcAssimilator/USDC-transfer-from-failed');
-    }
-
-    function outputRawAndGetBalance(address _dst, uint256 _amount)
-        external
-        override
-        returns (int128 amount_, int128 balance_)
-    {
-        uint256 _rate = getRate();
-
-        uint256 _usdcAmount = ((_amount * _rate) / 1e8);
-
-        bool _success = usdc.transfer(_dst, _usdcAmount);
-        // needs token check + transfer from vault
-
-        require(_success, 'UsdcAssimilator/USDC-transfer-failed');
-
-        uint256 _balance = usdc.balanceOf(address(this));
-        // needs token check + transfer from vault
-
-        amount_ = _usdcAmount.divu(DECIMALS);
-
-        balance_ = ((_balance * _rate) / 1e8).divu(DECIMALS);
-    }
-
-    function outputRaw(address _dst, uint256 _amount) external override returns (int128 amount_) {
-        uint256 _rate = getRate();
-
-        uint256 _usdcAmount = (_amount * _rate) / 1e8;
-
-        bool _success = usdc.transfer(_dst, _usdcAmount);
-
-        require(_success, 'UsdcAssimilator/USDC-transfer-failed');
-
-        amount_ = _usdcAmount.divu(DECIMALS);
-    }
-
-    function outputNumeraire(address _dst, int128 _amount) external override returns (uint256 amount_) {
-        uint256 _rate = getRate();
-
-        amount_ = (_amount.mulu(DECIMALS) * 1e8) / _rate;
-
-        bool _success = usdc.transfer(_dst, amount_);
-
-        require(_success, 'UsdcAssimilator/USDC-transfer-failed');
-    }
-
     function viewRawAmount(int128 _amount) external view override returns (uint256 amount_) {
         uint256 _rate = getRate();
 
@@ -182,6 +86,38 @@ contract UsdcToUsdAssimilator is IAssimilator {
         uint256 _rate = getRate();
 
         uint256 quoteBalance = _getBalancesFromVault(vault, poolId, address(usdc));
+
+        if (quoteBalance <= 0) return ABDKMath64x64.fromUInt(0);
+
+        balance_ = ((quoteBalance * _rate) / 1e8).divu(DECIMALS);
+    }
+
+    // adds intakeAmount to baseTokenBal to simulate LP deposit
+    function virtualViewNumeraireBalanceIntake(
+        address vault,
+        bytes32 poolId,
+        uint256 intakeAmount
+    ) external view override returns (int128 balance_) {
+        uint256 _rate = getRate();
+
+        uint256 quoteBalance = _getBalancesFromVault(vault, poolId, address(usdc));
+        quoteBalance += intakeAmount;
+
+        if (quoteBalance <= 0) return ABDKMath64x64.fromUInt(0);
+
+        balance_ = ((quoteBalance * _rate) / 1e8).divu(DECIMALS);
+    }
+
+    // adds outputAmount to baseTokenBal to simulate LP deposit
+    function virtualViewNumeraireBalanceOutput(
+        address vault,
+        bytes32 poolId,
+        uint256 outputAmount
+    ) external view override returns (int128 balance_) {
+        uint256 _rate = getRate();
+
+        uint256 quoteBalance = _getBalancesFromVault(vault, poolId, address(usdc));
+        quoteBalance = quoteBalance - outputAmount;
 
         if (quoteBalance <= 0) return ABDKMath64x64.fromUInt(0);
 

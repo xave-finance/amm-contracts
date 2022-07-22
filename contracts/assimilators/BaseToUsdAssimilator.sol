@@ -51,115 +51,6 @@ contract BaseToUsdAssimilator is IAssimilator {
         return uint256(price);
     }
 
-    // takes raw baseToken amount, transfers it in, calculates corresponding numeraire amount and returns it
-    function intakeRawAndGetBalance(uint256 _amount) external override returns (int128 amount_, int128 balance_) {
-        bool _transferSuccess = baseToken.transferFrom(msg.sender, address(this), _amount);
-
-        require(_transferSuccess, 'BaseAssimilator/baseToken-transfer-from-failed');
-
-        uint256 _balance = baseToken.balanceOf(address(this));
-
-        uint256 _rate = getRate();
-
-        balance_ = ((_balance * _rate) / 1e8).divu(baseDecimals);
-
-        amount_ = ((_amount * _rate) / 1e8).divu(baseDecimals);
-    }
-
-    // takes raw baseToken amount, transfers it in, calculates corresponding numeraire amount and returns it
-    function intakeRaw(uint256 _amount) external override returns (int128 amount_) {
-        bool _transferSuccess = baseToken.transferFrom(msg.sender, address(this), _amount);
-
-        require(_transferSuccess, 'BaseAssimilator/baseToken-transfer-from-failed');
-
-        uint256 _rate = getRate();
-
-        amount_ = ((_amount * _rate) / 1e8).divu(baseDecimals);
-    }
-
-    // takes a numeraire amount, calculates the raw amount of baseToken, transfers it in and returns the corresponding raw amount
-    function intakeNumeraire(int128 _amount) external override returns (uint256 amount_) {
-        uint256 _rate = getRate();
-
-        amount_ = (_amount.mulu(baseDecimals) * 1e8) / _rate;
-
-        bool _transferSuccess = baseToken.transferFrom(msg.sender, address(this), amount_);
-
-        require(_transferSuccess, 'BaseAssimilator/baseToken-transfer-from-failed');
-    }
-
-    // takes a numeraire amount, calculates the raw amount of baseToken, transfers it in and returns the corresponding raw amount
-    function intakeNumeraireLPRatio(
-        uint256 _baseWeight,
-        uint256 _quoteWeight,
-        address _addr,
-        int128 _amount
-    ) external override returns (uint256 amount_) {
-        uint256 _baseTokenBal = baseToken.balanceOf(_addr);
-
-        if (_baseTokenBal <= 0) return 0;
-
-        // base decimals
-        _baseTokenBal = _baseTokenBal.mul(1e18).div(_baseWeight);
-
-        // 1e6
-        uint256 _usdcBal = usdc.balanceOf(_addr).mul(1e18).div(_quoteWeight);
-
-        // Rate is in 1e6
-        uint256 _rate = _usdcBal.mul(baseDecimals).div(_baseTokenBal);
-
-        amount_ = (_amount.mulu(baseDecimals) * 1e6) / _rate;
-
-        bool _transferSuccess = baseToken.transferFrom(msg.sender, address(this), amount_);
-
-        require(_transferSuccess, 'BaseAssimilator/baseToken-transfer-from-failed');
-    }
-
-    // takes a raw amount of baseToken and transfers it out, returns numeraire value of the raw amount
-    function outputRawAndGetBalance(address _dst, uint256 _amount)
-        external
-        override
-        returns (int128 amount_, int128 balance_)
-    {
-        uint256 _rate = getRate();
-
-        uint256 _baseTokenAmount = ((_amount) * _rate) / 1e8;
-
-        bool _transferSuccess = baseToken.transfer(_dst, _baseTokenAmount);
-
-        require(_transferSuccess, 'BaseAssimilator/baseToken-transfer-failed');
-
-        uint256 _balance = baseToken.balanceOf(address(this));
-
-        amount_ = _baseTokenAmount.divu(baseDecimals);
-
-        balance_ = ((_balance * _rate) / 1e8).divu(baseDecimals);
-    }
-
-    // takes a raw amount of baseToken and transfers it out, returns numeraire value of the raw amount
-    function outputRaw(address _dst, uint256 _amount) external override returns (int128 amount_) {
-        uint256 _rate = getRate();
-
-        uint256 _baseTokenAmount = (_amount * _rate) / 1e8;
-
-        bool _transferSuccess = baseToken.transfer(_dst, _baseTokenAmount);
-
-        require(_transferSuccess, 'BaseAssimilator/baseToken-transfer-failed');
-
-        amount_ = _baseTokenAmount.divu(baseDecimals);
-    }
-
-    // takes a numeraire value of baseToken, figures out the raw amount, transfers raw amount out, and returns raw amount
-    function outputNumeraire(address _dst, int128 _amount) external override returns (uint256 amount_) {
-        uint256 _rate = getRate();
-
-        amount_ = (_amount.mulu(baseDecimals) * 1e8) / _rate;
-
-        bool _transferSuccess = baseToken.transfer(_dst, amount_);
-
-        require(_transferSuccess, 'BaseAssimilator/baseToken-transfer-failed');
-    }
-
     // takes a numeraire amount and returns the raw amount
     function viewRawAmount(int128 _amount) external view override returns (uint256 amount_) {
         uint256 _rate = getRate();
@@ -214,6 +105,40 @@ contract BaseToUsdAssimilator is IAssimilator {
         uint256 _rate = getRate();
 
         (uint256 baseTokenBal, ) = _getBalancesFromVault(vault, poolId, address(usdc));
+
+        if (baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
+
+        balance_ = ((baseTokenBal * _rate) / 1e8).divu(baseDecimals);
+    }
+
+    // views the numeraire value of the current balance of the reserve, in this case baseToken
+    // adds intakeAmount to baseTokenBal to simulate LP deposit
+    function virtualViewNumeraireBalanceIntake(
+        address vault,
+        bytes32 poolId,
+        uint256 intakeAmount
+    ) external view override returns (int128 balance_) {
+        uint256 _rate = getRate();
+
+        (uint256 baseTokenBal, ) = _getBalancesFromVault(vault, poolId, address(usdc));
+        baseTokenBal += intakeAmount;
+
+        if (baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
+
+        balance_ = ((baseTokenBal * _rate) / 1e8).divu(baseDecimals);
+    }
+
+    // views the numeraire value of the current balance of the reserve, in this case baseToken
+    // subtracts outputAmount to baseTokenBal to simulate LP withdrawal
+    function virtualViewNumeraireBalanceOutput(
+        address vault,
+        bytes32 poolId,
+        uint256 outputAmount
+    ) external view override returns (int128 balance_) {
+        uint256 _rate = getRate();
+
+        (uint256 baseTokenBal, ) = _getBalancesFromVault(vault, poolId, address(usdc));
+        baseTokenBal = baseTokenBal - outputAmount;
 
         if (baseTokenBal <= 0) return ABDKMath64x64.fromUInt(0);
 

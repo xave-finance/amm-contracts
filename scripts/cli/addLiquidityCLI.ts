@@ -17,15 +17,21 @@ inquirer
     //   name: 'poolId',
     //   message: 'Specify Pool ID',
     // },
+    // {
+    //   type: 'input',
+    //   name: 'baseAmount',
+    //   message: 'Base Token Amount in (ETH units)',
+    // },
+    // {
+    //   type: 'input',
+    //   name: 'quoteAmount',
+    //   message: 'Quote Token Amount in (ETH units)',
+    // },
+
     {
       type: 'input',
-      name: 'baseAmount',
-      message: 'Base Token Amount in (ETH units)',
-    },
-    {
-      type: 'input',
-      name: 'quoteAmount',
-      message: 'Quote Token Amount in (ETH units)',
+      name: 'numeraireAmount',
+      message: 'Numeraire amount in (ETH units)',
     },
     // {
     //   type: 'confirm',
@@ -36,9 +42,11 @@ inquirer
   .then(async (answers: any) => {
     const network = answers.network
     //const poolId = answers.poolId as string
-    const baseAmount = answers.baseAmount
-    const quoteAmount = answers.quoteAmount
+    // const baseAmount = answers.baseAmount
+    // const quoteAmount = answers.quoteAmount
     //const frominternalbalance = answers.fromInternalBalance
+
+    const numeraireAmount = answers.numeraireAmount
 
     // const pools = await getEnabledPools(network)
     // const pool = pools ? pools.find((p) => p.poolId === poolId) : undefined
@@ -61,10 +69,10 @@ inquirer
     // const baseTokenAddress = '0xaA64D57E3c781bcFB2e8B1e1C9936C302Db84bCE'
 
     // CHF:USDC
-    const poolId = '0xaa33da6719a7f9181beeb20a27f4464df461e7e400020000000000000000096d'
-    const baseTokenAddress = '0xE9958574866587c391735b7e7CE0D79432d3b9d0'
-
-    const quoteTokenAddress = '0x7e6F38922B59545bB5A6dc3A71039b85dFB1B7cE'
+    // const poolId = '0xaa33da6719a7f9181beeb20a27f4464df461e7e400020000000000000000096d'
+    const poolId = '0xfa61e597abc1e5e4f0d176fc647a290a5b28f49d0002000000000000000009c0'
+    const baseTokenAddress = '0x07bab1e2d6dcb965d250f376b811ab8c2373aae0'
+    const quoteTokenAddress = '0x7e6f38922b59545bb5a6dc3a71039b85dfb1b7ce'
     const frominternalbalance = false
 
     console.log(
@@ -74,8 +82,7 @@ inquirer
         `--poolid ${poolId} ` +
         `--basetoken ${baseTokenAddress} ` +
         `--quotetoken ${quoteTokenAddress} ` +
-        `--baseamount ${baseAmount} ` +
-        `--quoteamount ${quoteAmount} ` +
+        `--numeraireamount ${numeraireAmount} ` + // `--quoteamount ${quoteAmount} ` + // `--baseamount ${baseAmount} ` +
         `--frominternalbalance ${frominternalbalance} ` +
         `--network ${network}`
     )
@@ -87,8 +94,9 @@ inquirer
         `--poolid ${poolId} ` +
         `--basetoken ${baseTokenAddress} ` +
         `--quotetoken ${quoteTokenAddress} ` +
-        `--baseamount ${baseAmount} ` +
-        `--quoteamount ${quoteAmount} ` +
+        `--numeraireamount ${numeraireAmount} ` +
+        // `--baseamount ${baseAmount} ` +
+        // `--quoteamount ${quoteAmount} ` +
         `--frominternalbalance ${frominternalbalance} ` +
         `--network ${network}`
     )

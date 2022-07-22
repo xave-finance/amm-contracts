@@ -28,7 +28,9 @@ Note: use `nvm use` to use the same node version with `.nvmrc`
 
 - For running local test: `yarn test-local`
 - For running tests against a forked node: `yarn test-fork` (N/A yet)\*\*
-- Note: append `--logs` after if you want to see all the emitted events fired in all contract calls
+- append `--logs` after if you want to see all the emitted events fired in all contract calls
+- append `--trace` show events and contract calls
+- append `--fulltrace` show events, calls, and storage
 
 ## Running test coverage
 
